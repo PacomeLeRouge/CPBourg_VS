@@ -600,6 +600,62 @@ warning text displays correctly. Checked the rest of the project for the
 same pattern (horizontal `StackPanel` + a wrapped `TextBlock`) and found no
 other instances - this was specific to these two warning banners.
 
+### v19 — Machine Line Configuration screen
+
+**New: `Views/MachineLineConfigurationView.xaml(.cs)`** - the Machine Line
+Configuration screen (FR-05 line topology), reachable from the global menu's
+"Machine Line Configuration" item (previously a title-only stub; now real
+navigation, alongside Home, Settings, Jobs, and Errors - see
+`MainWindow.xaml.cs` `NavigateTo`).
+
+Demonstrates all three reference states as one interactive screen, same
+convention as `SettingsView`/`JobsView`/`ErrorsView`, driven by how many
+machines are on the line rather than by separate mockup screens:
+
+- **Empty** (0 machines) - a dashed LINE CANVAS placeholder ("No machines
+  configured") plus a "GET STARTED" tips panel (3 numbered steps + a tip
+  banner) on the right.
+- **Single** (1 machine) - an editable identity/network detail panel
+  (Machine Name, Module Type, Mode, Connection Status, IP Address,
+  Firmware) and Add Upstream / Add Downstream actions.
+- **Overview** (2+ machines) - selectable cards on the LINE CANVAS
+  (INPUT -> cards -> OUTPUT, connected by arrows), Add Machine / Remove /
+  Move Left / Move Right actions, and a per-machine settings panel (Auto
+  Start, Jam Detection, Output Counting toggles; Speed Limit and Reject Bin
+  dropdowns) for whichever card is selected.
+
+Clicking a card selects it (blue border) and refreshes the detail panel;
+Apply Layout / Save Configuration show a shared green confirmation banner,
+same pattern as `SettingsView`'s Saved banner. Nothing here is persisted or
+sent to the WFM yet (FR-01, FR-02) - the sample line (Feeder, Booklet Maker,
+Stacker) is hard-coded in the constructor, same "stub" convention as the
+rest of this prototype.
+
+**One deliberate deviation from the reference mock:** the mock's
+single-machine action bar only has Add Upstream / Add Downstream, with no
+way to remove the last machine. Since the Empty state's own tip says "you
+can always add, remove, or rearrange machines later," a small trash-icon
+Remove button was added to that bar - without it, Empty would be permanently
+unreachable once any machine exists (the app always starts with 3 sample
+machines).
+
+**New model:** `Models/MachineLineItemInfo.cs` - plain data for one
+machine/module, with `IsSelected`/`ShowConnector` view-state flags set on
+every refresh (same non-observable `List<T>`-rebind pattern as
+`JobsView.RefreshJobsList()`).
+
+**New theme token:** `ToggleSwitchStyle` (in `Theme/BrandTheme.xaml`) - a
+`CheckBox` re-templated as a pill switch, for Auto Start / Jam Detection /
+Output Counting.
+
+**Icon note:** most glyphs reuse Segoe MDL2 Assets codepoints already
+confirmed elsewhere in this app. Two are new/unverified for this screen:
+full-screen (zoom controls) and search/scan ("Scan for Devices") - flagged
+in a comment at the top of `MachineLineConfigurationView.xaml`. Where the
+reference mock uses a plain connector arrow, this screen deliberately uses
+literal Unicode characters (→, ▶) instead of guessing another icon
+codepoint, same reasoning as the flag emoji in `ChangeValueDialog`.
+
 ### Languages (FR-10)
 
 The stage labels in `Startup/StartupStage.cs` are the strings that will move to
@@ -628,6 +684,7 @@ inline for the prototype and marked with a comment.
 | `Views/ErrorsView.xaml(.cs)` | Errors & Information screen (summary tiles, Active Messages, empty state) |
 | `Views/ErrorDetailDialog.xaml(.cs)` | Error/warning detail overlay |
 | `Views/ErrorSeverityToBrushConverter.cs` | Maps `ErrorSeverity` to theme brushes |
+| `Views/MachineLineConfigurationView.xaml(.cs)` | Machine Line Configuration screen (Empty / Single / Overview states) |
 | `Views/GlobalMenuView.xaml(.cs)` | Slide-out global navigation overlay |
 | `Views/MachineStatusToBrushConverter.cs` | Maps `MachineStatus` to theme brushes |
 | `Views/NullToCollapsedConverter.cs` | Hides an element when a bound string is null/empty |
@@ -641,6 +698,7 @@ inline for the prototype and marked with a comment.
 | `Models/JobRecord.cs` | Data for one saved job |
 | `Models/ErrorSeverity.cs` | Critical / Warning / Info / Resolved enum |
 | `Models/ErrorRecord.cs` | Data for one error/warning message |
+| `Models/MachineLineItemInfo.cs` | Data for one machine/module on the LINE CANVAS |
 | `Startup/StartupStage.cs` | The five boot phases + display text |
 | `Startup/StartupProgress.cs` | Immutable progress snapshot |
 | `Startup/StartupSequencer.cs` | Runs the sequence, UI-agnostic |

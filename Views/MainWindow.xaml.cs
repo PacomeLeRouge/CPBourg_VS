@@ -74,6 +74,7 @@ namespace CPBourg.NextGenGui.Views
                 SettingsScreen.Visibility = Visibility.Collapsed;
                 JobsScreen.Visibility = Visibility.Collapsed;
                 ErrorsScreen.Visibility = Visibility.Collapsed;
+                MachineLineConfigScreen.Visibility = Visibility.Collapsed;
                 PageTitleText.Text = "Home";
             }
             else if (itemName == "Settings / Preferences")
@@ -82,6 +83,7 @@ namespace CPBourg.NextGenGui.Views
                 SettingsScreen.Visibility = Visibility.Visible;
                 JobsScreen.Visibility = Visibility.Collapsed;
                 ErrorsScreen.Visibility = Visibility.Collapsed;
+                MachineLineConfigScreen.Visibility = Visibility.Collapsed;
                 PageTitleText.Text = "Settings";
             }
             else if (itemName == "Job / File Menu")
@@ -90,6 +92,7 @@ namespace CPBourg.NextGenGui.Views
                 SettingsScreen.Visibility = Visibility.Collapsed;
                 JobsScreen.Visibility = Visibility.Visible;
                 ErrorsScreen.Visibility = Visibility.Collapsed;
+                MachineLineConfigScreen.Visibility = Visibility.Collapsed;
                 PageTitleText.Text = "Jobs / File Menu";
             }
             else if (itemName == "Error & Information")
@@ -98,7 +101,17 @@ namespace CPBourg.NextGenGui.Views
                 SettingsScreen.Visibility = Visibility.Collapsed;
                 JobsScreen.Visibility = Visibility.Collapsed;
                 ErrorsScreen.Visibility = Visibility.Visible;
+                MachineLineConfigScreen.Visibility = Visibility.Collapsed;
                 PageTitleText.Text = "Errors";
+            }
+            else if (itemName == "Machine Line Configuration")
+            {
+                Dashboard.Visibility = Visibility.Collapsed;
+                SettingsScreen.Visibility = Visibility.Collapsed;
+                JobsScreen.Visibility = Visibility.Collapsed;
+                ErrorsScreen.Visibility = Visibility.Collapsed;
+                MachineLineConfigScreen.Visibility = Visibility.Visible;
+                PageTitleText.Text = "Machine Line Configuration";
             }
             else
             {

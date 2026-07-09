@@ -1,0 +1,347 @@
+<UserControl x:Class="CPBourg.NextGenGui.Views.MachineLineConfigurationView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource ScreenBackgroundBrush}">
+
+    <!--
+        Machine Line Configuration screen (FR-05 line topology), reachable
+        from the global menu's "Machine Line Configuration" item (see
+        MainWindow.xaml.cs NavigateTo).
+
+        Matches HighFidelity/MachineLineConfig.png: a carousel ("Machine
+        Line") showing a horizontal strip of small module tiles (one
+        highlighted as focused), bookended by dashed "add module here" hint
+        tiles so there's always visible empty space on each side; chevrons
+        page the focus left/right and clicking a tile focuses it directly.
+        Below that is a "Selected Module" info panel, and a "Line Actions"
+        panel (Add / Remove / Replace Module, Review Changes) on the right
+        with the "Configuration Status" line pinned to the bottom of that
+        same column. Same interactive-single-screen convention as
+        SettingsView/JobsView/ErrorsView: the three reference states (Empty
+        Line / Single-Module / Configured) are driven by how many machines
+        are on the line, not three separate mockup screens. See
+        MachineLineConfigurationView.xaml.cs for the state machine and tile
+        construction (PaginationDotsPanel-style code-behind, not templates).
+
+        LAYOUT NOTE: Configuration Status used to stack under Selected
+        Module in the left column, which at the window's enforced minimum
+        size (MinWidth/MinHeight in MainWindow.xaml) added up to more
+        height than was available and got clipped in windowed mode. Moving
+        it into the right column (which had unused space below the Line
+        Actions buttons) both fixes that overflow and gives Machine Line /
+        Selected Module room to breathe.
+
+        ICON NOTE: glyphs reuse Segoe MDL2 Assets codepoints already
+        confirmed elsewhere in this app (plus , minus , checkmark
+        , document/open-file , info ). Where the reference mock
+        uses a chevron or swap-arrows icon this screen doesn't already have a
+        confirmed codepoint for, it uses literal Unicode characters (‹, ›,
+        ⇄) instead of guessing another icon codepoint - same reasoning as the
+        flag emoji in ChangeValueDialog.
+    -->
+
+    <UserControl.Resources>
+        <Style x:Key="CardTitleTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="17" />
+            <Setter Property="FontWeight" Value="Medium" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Margin" Value="0,0,0,14" />
+        </Style>
+
+        <Style x:Key="CarouselChevronButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="52" />
+            <Setter Property="Height" Value="52" />
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+
+        <Style x:Key="LineActionButtonStyle" TargetType="Button">
+            <Setter Property="MinHeight" Value="60" />
+            <Setter Property="Margin" Value="0,0,0,12" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="24,20,24,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="8" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- ================= Main two-column area ================= -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="1*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- ===== Left column: Machine Line / Selected Module ===== -->
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="28" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- ===== Machine Line (carousel) ===== -->
+                <Border Grid.Row="0" Style="{StaticResource CardStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="14" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="12" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Text="Machine Line" Style="{StaticResource CardTitleTextStyle}" Margin="0" />
+
+                        <Grid Grid.Row="2" MinHeight="190">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <Button Grid.Column="0" Style="{StaticResource CarouselChevronButtonStyle}"
+                                    VerticalAlignment="Center" Click="OnPrevClick" ToolTip="Previous module">
+                                <TextBlock Text="&#8249;" FontSize="22" Foreground="{StaticResource TextSecondaryBrush}" />
+                            </Button>
+
+                            <!-- Empty: dashed placeholder -->
+                            <Grid x:Name="EmptyCarouselPanel" Grid.Column="1" Margin="16,0" Visibility="Collapsed">
+                                <Rectangle Stroke="{StaticResource OutlineButtonBorderBrush}" StrokeThickness="2"
+                                           StrokeDashArray="6,4" RadiusX="10" RadiusY="10"
+                                           Fill="{StaticResource ScreenBackgroundBrush}" />
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Border Width="52" Height="52" CornerRadius="26" BorderThickness="2"
+                                            BorderBrush="{StaticResource OutlineButtonBorderBrush}"
+                                            Background="{StaticResource CardBackgroundBrush}" HorizontalAlignment="Center">
+                                        <TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFontFamily}" FontSize="20"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBlock Text="No modules configured." FontSize="14"
+                                               Foreground="{StaticResource TextMutedBrush}" Margin="0,14,0,16" HorizontalAlignment="Center" />
+                                    <Button MinHeight="48" MinWidth="180" HorizontalAlignment="Center"
+                                            Background="{StaticResource JobsAccentBrush}" Foreground="{StaticResource JobsAccentForegroundBrush}"
+                                            BorderThickness="0" Click="OnAddModuleClick">
+                                        <TextBlock Text="Add Module" FontSize="14" FontWeight="Medium" />
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Populated: horizontal strip of small module tiles, bookended by dashed
+                                 "add module here" hint tiles so there's always visible empty space on
+                                 each side. Tiles are built in code-behind (RefreshCarousel) the same way
+                                 PaginationDotsPanel's dots are - see MachineLineConfigurationView.xaml.cs. -->
+                            <ScrollViewer x:Name="PopulatedCarouselPanel" Grid.Column="1" Margin="16,0"
+                                          VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Auto"
+                                          Visibility="Collapsed">
+                                <StackPanel x:Name="MachineStripPanel" Orientation="Horizontal"
+                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </ScrollViewer>
+
+                            <Button Grid.Column="2" Style="{StaticResource CarouselChevronButtonStyle}"
+                                    VerticalAlignment="Center" Click="OnNextClick" ToolTip="Next module">
+                                <TextBlock Text="&#8250;" FontSize="22" Foreground="{StaticResource TextSecondaryBrush}" />
+                            </Button>
+                        </Grid>
+
+                        <StackPanel x:Name="PaginationDotsPanel" Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center" />
+                    </Grid>
+                </Border>
+
+                <!-- ===== Selected Module ===== -->
+                <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Selected Module" Style="{StaticResource CardTitleTextStyle}" />
+
+                        <StackPanel x:Name="EmptySelectedModulePanel" Orientation="Horizontal" Visibility="Collapsed">
+                            <Border Width="52" Height="52" CornerRadius="12" Background="{StaticResource ScreenBackgroundBrush}">
+                                <TextBlock Text="&#xE8A5;" FontFamily="{StaticResource IconFontFamily}" FontSize="22"
+                                           Foreground="{StaticResource TextMutedBrush}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <TextBlock Text="No module selected." FontSize="14" Foreground="{StaticResource TextMutedBrush}"
+                                       Margin="14,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+
+                        <Grid x:Name="PopulatedSelectedModulePanel" Visibility="Collapsed">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Width="60" Height="60" CornerRadius="12"
+                                    Background="{StaticResource StatusIdleBgBrush}" VerticalAlignment="Top">
+                                <TextBlock Text="&#xE749;" FontFamily="{StaticResource IconFontFamily}" FontSize="26"
+                                           Foreground="{StaticResource StatusIdleBrush}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <StackPanel Grid.Column="1" Margin="14,0,0,0">
+                                <TextBlock Text="C.P. Bourg" FontSize="15" FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                <TextBlock x:Name="SelectedModuleLineText" Text="-" FontSize="13"
+                                           Foreground="{StaticResource TextMutedBrush}" Margin="0,2,0,0" />
+
+                                <Border Background="{StaticResource ScreenBackgroundBrush}" CornerRadius="8" Margin="0,12,0,0">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="1" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="1" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="10,10" HorizontalAlignment="Center">
+                                            <TextBlock Text="&#xE946;" FontFamily="{StaticResource IconFontFamily}" FontSize="17"
+                                                       Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" />
+                                            <StackPanel Margin="7,0,0,0">
+                                                <TextBlock Text="Position" FontSize="10" Foreground="{StaticResource TextMutedBrush}" />
+                                                <TextBlock x:Name="PositionValueText" Text="-" FontSize="13" FontWeight="Medium"
+                                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <Border Grid.Column="1" Background="{StaticResource CardBorderBrush}" Width="1" Margin="0,8" />
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="10,10" HorizontalAlignment="Center">
+                                            <TextBlock Text="&#xE73E;" FontFamily="{StaticResource IconFontFamily}" FontSize="17"
+                                                       Foreground="{StaticResource StatusRunningBrush}" VerticalAlignment="Center" />
+                                            <StackPanel Margin="7,0,0,0">
+                                                <TextBlock Text="Status" FontSize="10" Foreground="{StaticResource TextMutedBrush}" />
+                                                <TextBlock x:Name="StatusValueText" Text="-" FontSize="13" FontWeight="Medium"
+                                                           Foreground="{StaticResource StatusRunningBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <Border Grid.Column="3" Background="{StaticResource CardBorderBrush}" Width="1" Margin="0,8" />
+                                        <StackPanel Grid.Column="4" Orientation="Horizontal" Margin="10,10" HorizontalAlignment="Center">
+                                            <TextBlock Text="&#xE9D9;" FontFamily="{StaticResource IconFontFamily}" FontSize="17"
+                                                       Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" />
+                                            <StackPanel Margin="7,0,0,0">
+                                                <TextBlock Text="Speed" FontSize="10" Foreground="{StaticResource TextMutedBrush}" />
+                                                <TextBlock x:Name="SpeedValueText" Text="-" FontSize="13" FontWeight="Medium"
+                                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- ===== Right column: Line Actions (top) / Configuration Status (bottom-right) =====
+                 The middle spacer row is "*" so Configuration Status settles toward the
+                 bottom of the column, but it's capped with MaxHeight so tall/maximized
+                 windows don't stretch it into a big empty gap between the two cards. -->
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" MaxHeight="28" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Line Actions" Style="{StaticResource CardTitleTextStyle}" />
+
+                        <Button x:Name="AddModuleButton" Style="{StaticResource LineActionButtonStyle}" Click="OnAddModuleClick">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Width="34" Height="34" CornerRadius="8" BorderThickness="1.5"
+                                        BorderBrush="{StaticResource JobsAccentBrush}">
+                                    <TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFontFamily}" FontSize="15"
+                                               Foreground="{StaticResource JobsAccentBrush}"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBlock Grid.Column="1" Text="Add Module" FontSize="15" FontWeight="Medium"
+                                           Margin="14,0,0,0" VerticalAlignment="Center" />
+                            </Grid>
+                        </Button>
+
+                        <Button x:Name="RemoveModuleButton" Style="{StaticResource LineActionButtonStyle}" Click="OnRemoveModuleClick">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Width="34" Height="34" CornerRadius="17" BorderThickness="1.5"
+                                        BorderBrush="{StaticResource JobsAccentBrush}">
+                                    <TextBlock Text="&#xE738;" FontFamily="{StaticResource IconFontFamily}" FontSize="15"
+                                               Foreground="{StaticResource JobsAccentBrush}"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBlock Grid.Column="1" Text="Remove Module" FontSize="15" FontWeight="Medium"
+                                           Margin="14,0,0,0" VerticalAlignment="Center" />
+                            </Grid>
+                        </Button>
+
+                        <Button x:Name="ReplaceModuleButton" Style="{StaticResource LineActionButtonStyle}" Click="OnReplaceModuleClick">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Width="34" Height="34" CornerRadius="8" BorderThickness="1.5"
+                                        BorderBrush="{StaticResource JobsAccentBrush}">
+                                    <TextBlock Text="&#8644;" FontSize="16" Foreground="{StaticResource JobsAccentBrush}"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBlock Grid.Column="1" Text="Replace Module" FontSize="15" FontWeight="Medium"
+                                           Margin="14,0,0,0" VerticalAlignment="Center" />
+                            </Grid>
+                        </Button>
+
+                        <Button x:Name="ReviewChangesButton" Style="{StaticResource LineActionButtonStyle}" Click="OnReviewChangesClick">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Width="34" Height="34" CornerRadius="8" BorderThickness="1.5"
+                                        BorderBrush="{StaticResource JobsAccentBrush}">
+                                    <TextBlock Text="&#xE8A5;" FontFamily="{StaticResource IconFontFamily}" FontSize="15"
+                                               Foreground="{StaticResource JobsAccentBrush}"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBlock Grid.Column="1" Text="Review Changes" FontSize="15" FontWeight="Medium"
+                                           Margin="14,0,0,0" VerticalAlignment="Center" />
+                            </Grid>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <!-- ===== Configuration Status ===== -->
+                <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Configuration Status" Style="{StaticResource CardTitleTextStyle}" Margin="0" />
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="ConfigStatusIconBg" Width="30" Height="30" CornerRadius="15"
+                                    Background="{StaticResource StatusOfflineBgBrush}">
+                                <TextBlock x:Name="ConfigStatusIconText" Text="&#xE73E;" FontFamily="{StaticResource IconFontFamily}"
+                                           FontSize="14" Foreground="{StaticResource StatusOfflineBrush}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <TextBlock Grid.Column="1" x:Name="ConfigStatusText" Text="No status." FontSize="14" FontWeight="Medium"
+                                       Foreground="{StaticResource TextSecondaryBrush}" Margin="12,0,0,0" VerticalAlignment="Center" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- Demo feedback line for pure stubs (Review Changes) - same pattern as DashboardView's LastActionText. -->
+        <TextBlock Grid.Row="2" x:Name="LastActionText" Text=""
+                   Foreground="{StaticResource TextMutedBrush}" FontSize="12" HorizontalAlignment="Center" />
+    </Grid>
+</UserControl>
