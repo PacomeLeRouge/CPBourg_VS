@@ -1,0 +1,100 @@
+<UserControl x:Class="CPBourg.NextGenGui.Views.ChangeValueDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="clr-namespace:CPBourg.NextGenGui.Models"
+             xmlns:views="clr-namespace:CPBourg.NextGenGui.Views"
+             Visibility="Collapsed">
+
+    <UserControl.Resources>
+        <views:NullToCollapsedConverter x:Key="NullToCollapsedConverter" />
+    </UserControl.Resources>
+
+    <!--
+        Reusable "Change [setting]" picker dialog - one radio-button list,
+        a "Current: X" subtitle, Cancel/OK. Used by SettingsView for
+        Language, Keyboard Layout, Mouse Cursor and Units (the four pickers
+        from the reference mock); Date & Time, UI Scale and Screen
+        Calibration don't have a picker mockup yet and stay as simple stubs
+        elsewhere.
+
+        Language options carry a flag emoji (real Unicode flag characters,
+        e.g. GB/FR/NL/DE/ES/IT) rendered through Segoe UI Emoji - deliberately
+        NOT a Segoe MDL2 Assets icon glyph, since flags aren't in that icon
+        font and guessing a codepoint there would risk another blank-box
+        icon. Emoji flags are standard Unicode and Windows already has a
+        colour emoji font, so this is the safer choice.
+
+        See ChangeValueDialog.xaml.cs for Open(...) / the Confirmed event.
+    -->
+
+    <Grid>
+        <!-- Scrim: click outside the card to cancel (same convention as
+             GlobalMenuView's scrim). -->
+        <Border Background="{StaticResource OverlayScrimBrush}" MouseDown="OnScrimMouseDown" />
+
+        <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="16"
+                Width="460" MaxHeight="620" HorizontalAlignment="Center" VerticalAlignment="Center"
+                Padding="28">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="18" />
+                    <RowDefinition Height="1" />
+                    <RowDefinition Height="10" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="20" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock x:Name="DialogTitleText" Grid.Row="0" Text="Change Setting"
+                           FontSize="22" FontWeight="Medium"
+                           Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" />
+
+                <TextBlock x:Name="CurrentValueText" Grid.Row="1" Text="Current: -"
+                           FontSize="15" Margin="0,6,0,0"
+                           Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" />
+
+                <Border Grid.Row="3" Background="{StaticResource CardBorderBrush}" Height="1" />
+
+                <ScrollViewer Grid.Row="5" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl x:Name="OptionsItemsControl">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type models:ChangeOptionInfo}">
+                                <RadioButton GroupName="ChangeValueOptions" MinHeight="52"
+                                             Style="{StaticResource OptionRadioButtonStyle}"
+                                             IsChecked="{Binding IsSelected, Mode=OneTime}"
+                                             Checked="OnOptionChecked">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding FlagEmoji}" FontFamily="Segoe UI Emoji" FontSize="18"
+                                                   Margin="0,0,10,0" VerticalAlignment="Center"
+                                                   Visibility="{Binding FlagEmoji, Converter={StaticResource NullToCollapsedConverter}}" />
+                                        <TextBlock Text="{Binding DisplayLabel}" FontSize="16"
+                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </RadioButton>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <Grid Grid.Row="7">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="14" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" MinHeight="52" Click="OnCancelClick">
+                        <TextBlock Text="Cancel" FontSize="15" FontWeight="Medium" />
+                    </Button>
+                    <Button Grid.Column="2" MinHeight="52" Background="{StaticResource JobsAccentBrush}"
+                            Foreground="{StaticResource JobsAccentForegroundBrush}" BorderThickness="0"
+                            Click="OnOkClick">
+                        <TextBlock Text="OK" FontSize="15" FontWeight="Medium" />
+                    </Button>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

@@ -1,0 +1,410 @@
+<UserControl x:Class="CPBourg.NextGenGui.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="clr-namespace:CPBourg.NextGenGui.Models"
+             xmlns:views="clr-namespace:CPBourg.NextGenGui.Views"
+             Background="{StaticResource ScreenBackgroundBrush}">
+
+	<UserControl.Resources>
+		<!-- Converters map the UI-agnostic MachineStatus enum (Models layer)
+             to brush resources (Views/Theme layer) - keeps Models free of
+             any WPF dependency. -->
+		<views:MachineStatusToBrushConverter x:Key="StatusToBrush" Background="False" />
+		<views:MachineStatusToBrushConverter x:Key="StatusToBgBrush" Background="True" />
+
+		<!-- One machine tile. Keeps the enlarged status icon, but uses a
+             more compact size so tiles do not clip in windowed mode. -->
+		<DataTemplate DataType="{x:Type models:MachineTileInfo}">
+			<Border Background="{Binding Status, Converter={StaticResource StatusToBgBrush}}"
+                    CornerRadius="10" Margin="4" Padding="12" MinHeight="78">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto" />
+						<ColumnDefinition Width="*" />
+					</Grid.ColumnDefinitions>
+
+					<Border Grid.Column="0" Width="40" Height="40" CornerRadius="12"
+                            Background="{StaticResource CardBackgroundBrush}"
+                            BorderBrush="{Binding Status, Converter={StaticResource StatusToBrush}}"
+                            BorderThickness="1.5" VerticalAlignment="Center">
+						<TextBlock Text="&#xE749;" FontFamily="{StaticResource IconFontFamily}"
+                                   FontSize="22"
+                                   Foreground="{Binding Status, Converter={StaticResource StatusToBrush}}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+					</Border>
+
+					<StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
+						<TextBlock Text="{Binding ShortCode}" FontSize="17" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextPrimaryBrush}" />
+						<StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+							<Ellipse Width="8" Height="8"
+                                     Fill="{Binding Status, Converter={StaticResource StatusToBrush}}"
+                                     VerticalAlignment="Center" />
+							<TextBlock Text="{Binding StatusLabel}" FontSize="13" Margin="6,0,0,0"
+                                       Foreground="{Binding Status, Converter={StaticResource StatusToBrush}}"
+                                       VerticalAlignment="Center" />
+						</StackPanel>
+					</StackPanel>
+				</Grid>
+			</Border>
+		</DataTemplate>
+	</UserControl.Resources>
+
+	<!--
+        Home dashboard content, below the app-shell header (see MainWindow).
+
+        Fully fluid layout - no fixed design canvas. Columns use star sizing
+        so the dashboard genuinely fills whatever screen it runs on (this
+        used to sit inside a fixed 1024x768 canvas wrapped in a Viewbox,
+        which left empty margins on any non-4:3 screen; removed - see
+        MainWindow.xaml for the full explanation).
+
+        Sized for tablet/touch use throughout (44px+ interactive targets),
+        since the production interface runs on a tablet mounted on the
+        machine, not a desktop monitor.
+
+        Sample data (machine tiles, current job) is populated in the
+        code-behind for this prototype. Replace with real WFM-backed data
+        once the connection is wired in (FR-01, FR-02).
+    -->
+
+	<Grid Margin="24,20,24,20">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="*" />
+			<RowDefinition Height="16" />
+			<RowDefinition Height="100" />
+			<RowDefinition Height="14" />
+		</Grid.RowDefinitions>
+
+		<!-- ================= Main two-column area ================= -->
+		<Grid Grid.Row="0">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="2*" />
+				<ColumnDefinition Width="16" />
+				<ColumnDefinition Width="1*" />
+			</Grid.ColumnDefinitions>
+
+			<!-- Left column: Counter and Productivity + Machines -->
+			<Grid Grid.Column="0">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="2*" />
+					<RowDefinition Height="14" />
+					<RowDefinition Height="1*" />
+				</Grid.RowDefinitions>
+
+				<!-- Counter and Productivity card -->
+				<Border Grid.Row="0" Style="{StaticResource CardStyle}">
+					<Grid>
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="18" />
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="16" />
+							<RowDefinition Height="1" />
+							<RowDefinition Height="16" />
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="18" />
+							<RowDefinition Height="Auto" />
+						</Grid.RowDefinitions>
+
+						<!-- Header -->
+						<StackPanel Grid.Row="0" Orientation="Horizontal">
+							<TextBlock Text="Counter and Productivity"
+                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                       FontSize="18" FontWeight="Medium" />
+							<TextBlock Text="&#xE946;" FontFamily="{StaticResource IconFontFamily}"
+                                       Foreground="{StaticResource TextMutedBrush}"
+                                       FontSize="18" Margin="8,2,0,0" VerticalAlignment="Center" />
+						</StackPanel>
+
+						<!-- Completed sets + preset controls - a single left-aligned
+                             StackPanel so the preset cluster sits close to the number
+                             instead of being pushed to the card's far edge. -->
+						<StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left">
+							<StackPanel VerticalAlignment="Bottom">
+								<TextBlock Text="Completed Sets" Foreground="{StaticResource TextMutedBrush}" FontSize="12" />
+								<TextBlock x:Name="CompletedSetsText" Text="5,234"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           FontSize="36" FontWeight="Medium" Margin="0,2,0,0" />
+							</StackPanel>
+
+							<StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" Margin="48,0,0,0">
+								<Button Width="52" Height="52" Click="OnCounterDecrementClick"
+                                        ToolTip="Decrease preset (stub)">
+									<TextBlock Text="&#xE738;" FontFamily="{StaticResource IconFontFamily}" FontSize="22" />
+								</Button>
+								<StackPanel Margin="14,0" VerticalAlignment="Center" HorizontalAlignment="Center">
+									<TextBlock Text="Preset" Foreground="{StaticResource TextMutedBrush}" FontSize="11" HorizontalAlignment="Center" />
+									<TextBlock x:Name="PresetValueText" Text="0 / &#8734;" FontSize="15" FontWeight="Medium"
+                                               Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" />
+								</StackPanel>
+								<Button Width="52" Height="52" Click="OnCounterIncrementClick"
+                                        ToolTip="Increase preset (stub)">
+									<TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFontFamily}" FontSize="22" />
+								</Button>
+								<Button Padding="16,13" Height="52" Margin="14,0,0,0" Click="OnResetToZeroClick">
+									<StackPanel Orientation="Horizontal">
+										<TextBlock Text="&#xE72C;" FontFamily="{StaticResource IconFontFamily}" FontSize="20" VerticalAlignment="Center" />
+										<TextBlock Text="Reset to zero" FontSize="15" Margin="7,0,0,0" VerticalAlignment="Center" />
+									</StackPanel>
+								</Button>
+							</StackPanel>
+						</StackPanel>
+
+						<!-- Divider -->
+						<Border Grid.Row="4" Background="{StaticResource CardBorderBrush}" Height="1" />
+
+						<!-- Output/h + Set Target -->
+						<Grid Grid.Row="6">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="Auto" />
+							</Grid.ColumnDefinitions>
+							<StackPanel Grid.Column="0">
+								<TextBlock Text="Output / h" Foreground="{StaticResource TextMutedBrush}" FontSize="12" />
+								<StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+									<TextBlock Text="1,248" Foreground="{StaticResource TextPrimaryBrush}" FontSize="21" FontWeight="Medium" />
+									<TextBlock Text="&#xE70E;" FontFamily="{StaticResource IconFontFamily}"
+                                               Foreground="{StaticResource StatusRunningBrush}" FontSize="22"
+                                               Margin="8,0,0,0" VerticalAlignment="Center" />
+								</StackPanel>
+							</StackPanel>
+							<Button Grid.Column="1" Padding="16,13" Height="52" VerticalAlignment="Center" Click="OnSetTargetClick">
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Text="&#xE7C3;" FontFamily="{StaticResource IconFontFamily}" FontSize="20" VerticalAlignment="Center" />
+									<TextBlock Text="Set target" FontSize="15" Margin="8,0,0,0" VerticalAlignment="Center" />
+								</StackPanel>
+							</Button>
+						</Grid>
+
+						<!-- Mini stat strip - one box, vertical dividers between items -->
+						<Border Grid.Row="8" Background="{StaticResource ScreenBackgroundBrush}" CornerRadius="8" Padding="0">
+							<Grid>
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="*" />
+									<ColumnDefinition Width="1" />
+									<ColumnDefinition Width="*" />
+									<ColumnDefinition Width="1" />
+									<ColumnDefinition Width="*" />
+								</Grid.ColumnDefinitions>
+
+								<StackPanel Grid.Column="0" Orientation="Horizontal" Margin="16,12" HorizontalAlignment="Center">
+									<TextBlock Text="&#xE73E;" FontFamily="{StaticResource IconFontFamily}"
+                                               Foreground="{StaticResource TextMutedBrush}" FontSize="24" VerticalAlignment="Center" />
+									<StackPanel Margin="8,0,0,0">
+										<TextBlock Text="Completed sets" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
+										<TextBlock Text="5,234" Foreground="{StaticResource TextPrimaryBrush}" FontSize="14" FontWeight="Medium" />
+									</StackPanel>
+								</StackPanel>
+
+								<Border Grid.Column="1" Background="{StaticResource CardBorderBrush}" Width="1" Margin="0,10" />
+
+								<StackPanel Grid.Column="2" Orientation="Horizontal" Margin="16,12" HorizontalAlignment="Center">
+									<TextBlock Text="&#xE81C;" FontFamily="{StaticResource IconFontFamily}"
+                                               Foreground="{StaticResource TextMutedBrush}" FontSize="24" VerticalAlignment="Center" />
+									<StackPanel Margin="8,0,0,0">
+										<TextBlock Text="Preset" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
+										<TextBlock Text="&#8734;" Foreground="{StaticResource TextPrimaryBrush}" FontSize="14" FontWeight="Medium" />
+									</StackPanel>
+								</StackPanel>
+
+								<Border Grid.Column="3" Background="{StaticResource CardBorderBrush}" Width="1" Margin="0,10" />
+
+								<StackPanel Grid.Column="4" Orientation="Horizontal" Margin="16,12" HorizontalAlignment="Center">
+									<TextBlock Text="&#xE9D9;" FontFamily="{StaticResource IconFontFamily}"
+                                               Foreground="{StaticResource TextMutedBrush}" FontSize="24" VerticalAlignment="Center" />
+									<StackPanel Margin="8,0,0,0">
+										<TextBlock Text="Output / h" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
+										<TextBlock Text="1,248" Foreground="{StaticResource TextPrimaryBrush}" FontSize="14" FontWeight="Medium" />
+									</StackPanel>
+								</StackPanel>
+							</Grid>
+						</Border>
+					</Grid>
+				</Border>
+
+				<!-- Machines card -->
+				<Border Grid.Row="2" Style="{StaticResource CardStyle}">
+					<StackPanel>
+						<TextBlock Text="Machines" Foreground="{StaticResource TextPrimaryBrush}"
+                                   FontSize="18" FontWeight="Medium" Margin="0,0,0,14" />
+						<ItemsControl x:Name="MachineTilesControl">
+							<ItemsControl.ItemsPanel>
+								<ItemsPanelTemplate>
+									<UniformGrid Columns="4" />
+								</ItemsPanelTemplate>
+							</ItemsControl.ItemsPanel>
+						</ItemsControl>
+					</StackPanel>
+				</Border>
+			</Grid>
+
+			<!-- Right column: Current Jobs + Active Alerts -->
+			<Grid Grid.Column="2">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="1*" />
+					<RowDefinition Height="14" />
+					<RowDefinition Height="1*" />
+				</Grid.RowDefinitions>
+
+				<!-- Current Jobs card -->
+				<Border Grid.Row="0" Style="{StaticResource CardStyle}" Padding="18">
+					<StackPanel>
+						<TextBlock Text="Current Jobs" Foreground="{StaticResource TextPrimaryBrush}"
+                                   FontSize="17" FontWeight="Medium" Margin="0,0,0,12" />
+
+						<Border Background="{StaticResource ScreenBackgroundBrush}" CornerRadius="8" Padding="14" Margin="0,0,0,14">
+							<Grid>
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="Auto" />
+									<ColumnDefinition Width="*" />
+									<ColumnDefinition Width="Auto" />
+								</Grid.ColumnDefinitions>
+								<Border Grid.Column="0" Width="50" Height="50" CornerRadius="12"
+                                        Background="{StaticResource StatusIdleBgBrush}" VerticalAlignment="Top">
+									<TextBlock Text="&#xE7C3;" FontFamily="{StaticResource IconFontFamily}"
+                                               Foreground="{StaticResource StatusIdleBrush}" FontSize="28"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+								</Border>
+								<StackPanel Grid.Column="1" Margin="12,0">
+									<StackPanel Orientation="Horizontal">
+										<TextBlock x:Name="JobNameText" Text="Sample Job A"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" FontSize="14" FontWeight="Medium" />
+										<Border Background="{StaticResource StatusRunningBgBrush}" CornerRadius="9" Padding="8,3" Margin="8,0,0,0">
+											<TextBlock x:Name="JobStatusText" Text="Running"
+                                                       Foreground="{StaticResource StatusRunningBrush}" FontSize="11" FontWeight="Medium" />
+										</Border>
+									</StackPanel>
+									<StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+										<TextBlock Text="Quantity" Foreground="{StaticResource TextMutedBrush}" FontSize="11" />
+										<TextBlock x:Name="JobQuantityText" Text="12,500" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="4,0,14,0" />
+										<TextBlock Text="Completed" Foreground="{StaticResource TextMutedBrush}" FontSize="11" />
+										<TextBlock x:Name="JobCompletedText" Text="5,234" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="4,0,0,0" />
+									</StackPanel>
+								</StackPanel>
+								<TextBlock Grid.Column="2" Text="&#xE76C;" FontFamily="{StaticResource IconFontFamily}"
+                                           Foreground="{StaticResource TextMutedBrush}" FontSize="24" VerticalAlignment="Center" />
+							</Grid>
+						</Border>
+
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="10" />
+								<ColumnDefinition Width="*" />
+							</Grid.ColumnDefinitions>
+							<Button Grid.Column="0" Padding="0,12" Height="56" Background="{StaticResource JobsAccentBrush}"
+                                    Foreground="{StaticResource JobsAccentForegroundBrush}" BorderThickness="0"
+                                    Click="OnNewJobClick">
+								<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+									<TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFontFamily}" FontSize="24" VerticalAlignment="Center" />
+									<TextBlock Text="New job" FontSize="16" FontWeight="Medium" Margin="8,0,0,0" VerticalAlignment="Center" />
+								</StackPanel>
+							</Button>
+							<Button Grid.Column="2" Padding="0,12" Height="56" Click="OnLoadJobClick">
+								<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+									<TextBlock Text="&#xE838;" FontFamily="{StaticResource IconFontFamily}" FontSize="24" VerticalAlignment="Center" />
+									<TextBlock Text="Load job" FontSize="16" Margin="8,0,0,0" VerticalAlignment="Center" />
+								</StackPanel>
+							</Button>
+						</Grid>
+					</StackPanel>
+				</Border>
+
+				<!-- Active Alerts card -->
+				<Border Grid.Row="2" Style="{StaticResource CardStyle}" Padding="18">
+					<StackPanel>
+						<TextBlock Text="Active Alerts" Foreground="{StaticResource TextPrimaryBrush}"
+                                   FontSize="17" FontWeight="Medium" Margin="0,0,0,14" />
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto" />
+								<ColumnDefinition Width="*" />
+							</Grid.ColumnDefinitions>
+							<Border Grid.Column="0" x:Name="AlertsIconBg" Width="52" Height="52" CornerRadius="26"
+                                    Background="{StaticResource StatusRunningBgBrush}" VerticalAlignment="Top">
+								<TextBlock x:Name="AlertsIconText" Text="&#xE73E;" FontFamily="{StaticResource IconFontFamily}"
+                                           Foreground="{StaticResource StatusRunningBrush}" FontSize="26"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+							</Border>
+							<StackPanel Grid.Column="1" Margin="12,0,0,0">
+								<TextBlock x:Name="AlertsHeadlineText" Text="No active alerts"
+                                           Foreground="{StaticResource TextPrimaryBrush}" FontSize="14" FontWeight="Medium" />
+								<TextBlock x:Name="AlertsSubtitleText" Text="All systems are operating normally."
+                                           Foreground="{StaticResource TextMutedBrush}" FontSize="12" Margin="0,2,0,10" TextWrapping="Wrap" />
+								<Button Padding="16,13" Height="52" HorizontalAlignment="Left" Click="OnViewErrorsClick">
+									<StackPanel Orientation="Horizontal">
+										<TextBlock Text="&#xE7C3;" FontFamily="{StaticResource IconFontFamily}" FontSize="20" VerticalAlignment="Center" />
+										<TextBlock Text="View errors" FontSize="15" Margin="7,0,0,0" VerticalAlignment="Center" />
+									</StackPanel>
+								</Button>
+							</StackPanel>
+						</Grid>
+					</StackPanel>
+				</Border>
+			</Grid>
+		</Grid>
+
+		<!-- ================= Action bar =================
+             Start/Pause/Stop icons are wrapped in a coloured circle to
+             match the reference mock more closely. -->
+		<UniformGrid Grid.Row="2" Columns="4" Rows="1">
+			<Border Style="{StaticResource CardStyle}" Padding="0" Margin="0,0,6,0">
+				<Button Background="Transparent" BorderThickness="0" Click="OnPurgeClick">
+					<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+						<TextBlock Text="&#xE72C;" FontFamily="{StaticResource IconFontFamily}" FontSize="30"
+                                   Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+						<StackPanel Margin="12,0,0,0">
+							<TextBlock Text="Purge" FontSize="13" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}" />
+							<TextBlock Text="Clear after jam" FontSize="10" Foreground="{StaticResource TextMutedBrush}" />
+						</StackPanel>
+					</StackPanel>
+				</Button>
+			</Border>
+			<Border Style="{StaticResource CardStyle}" Padding="0" Margin="6,0">
+				<Button Background="Transparent" BorderThickness="0" Click="OnStartClick">
+					<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+						<Border Width="46" Height="46" CornerRadius="23" BorderThickness="2"
+                                BorderBrush="{StaticResource StatusRunningBrush}">
+							<TextBlock Text="&#xE768;" FontFamily="{StaticResource IconFontFamily}" FontSize="22"
+                                       Foreground="{StaticResource StatusRunningBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+						</Border>
+						<TextBlock Text="Start" FontSize="14" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}" Margin="12,0,0,0" VerticalAlignment="Center" />
+					</StackPanel>
+				</Button>
+			</Border>
+			<Border Style="{StaticResource CardStyle}" Padding="0" Margin="6,0">
+				<Button Background="Transparent" BorderThickness="0" Click="OnPauseClick">
+					<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+						<Border Width="46" Height="46" CornerRadius="23" BorderThickness="2"
+                                BorderBrush="{StaticResource BrandAccentBrush}">
+							<TextBlock Text="&#xE769;" FontFamily="{StaticResource IconFontFamily}" FontSize="22"
+                                       Foreground="{StaticResource BrandAccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+						</Border>
+						<TextBlock Text="Pause" FontSize="14" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}" Margin="12,0,0,0" VerticalAlignment="Center" />
+					</StackPanel>
+				</Button>
+			</Border>
+			<Border Style="{StaticResource CardStyle}" Padding="0" Margin="6,0,0,0">
+				<Button Background="Transparent" BorderThickness="0" Click="OnStopClick">
+					<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+						<Border Width="46" Height="46" CornerRadius="23" BorderThickness="2"
+                                BorderBrush="{StaticResource StatusErrorBrush}">
+							<Rectangle Width="16" Height="16" Fill="{StaticResource StatusErrorBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+						</Border>
+						<TextBlock Text="Stop" FontSize="14" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}" Margin="12,0,0,0" VerticalAlignment="Center" />
+					</StackPanel>
+				</Button>
+			</Border>
+		</UniformGrid>
+
+		<!-- Demo feedback line - shows which stub action was last triggered.
+             Remove once real WFM commands are wired in (FR-03). -->
+		<TextBlock Grid.Row="3" x:Name="LastActionText" Text=""
+                   Foreground="{StaticResource TextMutedBrush}" FontSize="12"
+                   HorizontalAlignment="Center" />
+	</Grid>
+</UserControl>

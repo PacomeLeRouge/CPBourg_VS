@@ -1,0 +1,45 @@
+<UserControl x:Class="CPBourg.NextGenGui.Views.ConfirmationDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Visibility="Collapsed">
+
+    <!--
+        Shared success confirmation - big green checkmark circle, title,
+        message, OK. Used for "Comment Saved!", "New Job Saved!", and
+        "Job Removed!" (all three from the reference mock share this exact
+        visual structure, so this is one reusable dialog rather than three
+        near-identical ones - same reasoning as ChangeValueDialog).
+    -->
+
+    <Grid>
+        <Border Background="{StaticResource OverlayScrimBrush}" MouseDown="OnScrimMouseDown" />
+
+        <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="16"
+                Width="440" HorizontalAlignment="Center" VerticalAlignment="Center"
+                Padding="32">
+            <StackPanel HorizontalAlignment="Center">
+                <Border Width="72" Height="72" CornerRadius="36"
+                        Background="{StaticResource StatusRunningBgBrush}" HorizontalAlignment="Center">
+                    <TextBlock Text="&#xE73E;" FontFamily="{StaticResource IconFontFamily}" FontSize="32"
+                               Foreground="{StaticResource StatusRunningBrush}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+
+                <TextBlock x:Name="TitleText" Text="Saved!" FontSize="22" FontWeight="Medium"
+                           Foreground="{StaticResource TextPrimaryBrush}"
+                           HorizontalAlignment="Center" Margin="0,18,0,0" />
+
+                <TextBlock x:Name="MessageText" Text="" FontSize="14"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"
+                           Margin="0,8,0,24" />
+
+                <Button MinHeight="52" MinWidth="160" Background="{StaticResource JobsAccentBrush}"
+                        Foreground="{StaticResource JobsAccentForegroundBrush}" BorderThickness="0"
+                        Click="OnOkClick">
+                    <TextBlock Text="OK" FontSize="15" FontWeight="Medium" />
+                </Button>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

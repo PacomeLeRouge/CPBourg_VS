@@ -1,0 +1,175 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        ============================================================
+        BRAND THEME - single source of truth for the visual identity
+        ============================================================
+        Re-skin the whole application from this one file.
+
+        NOTE: the accent colour and the logo mark are PLACEHOLDER tokens.
+        Replace them with the values validated by CPBourg marketing (the
+        official website graphic charter) once confirmed. Nothing else in
+        the codebase hard-codes a colour - always reference these keys.
+
+        v2: switched to a light-mode design per the approved reference mock,
+        replacing the earlier dark-mode direction.
+    -->
+
+    <!-- === Brand palette (placeholder - confirm with marketing) === -->
+    <SolidColorBrush x:Key="BrandAccentBrush"        Color="#FFE2521A" />
+    <SolidColorBrush x:Key="BrandSecondaryMarkBrush" Color="#FF9A9A9A" />
+
+    <!-- === Screen surfaces === -->
+    <SolidColorBrush x:Key="ScreenBackgroundBrush"   Color="#FFF2F3F5" />
+
+    <!-- === Text === -->
+    <SolidColorBrush x:Key="TextPrimaryBrush"        Color="#FF111111" />
+    <SolidColorBrush x:Key="TextSecondaryBrush"      Color="#FF3A3C40" />
+    <SolidColorBrush x:Key="TextMutedBrush"          Color="#FF8A8D93" />
+
+    <!-- === Controls === -->
+    <SolidColorBrush x:Key="ProgressTrackBrush"      Color="#FFD9DADD" />
+    <SolidColorBrush x:Key="ProgressFillBrush"       Color="#FF17181A" />
+
+    <!-- === Status (errors at startup, e.g. WFM unreachable) === -->
+    <SolidColorBrush x:Key="StatusErrorBrush"        Color="#FFC0392B" />
+    <SolidColorBrush x:Key="StatusErrorBgBrush"      Color="#FFFBE4E2" />
+
+    <!-- === Cards / surfaces (dashboard) === -->
+    <SolidColorBrush x:Key="CardBackgroundBrush"     Color="#FFFFFFFF" />
+    <SolidColorBrush x:Key="CardBorderBrush"         Color="#FFE1E2E5" />
+    <SolidColorBrush x:Key="HeaderBackgroundBrush"   Color="#FF14213D" />
+    <SolidColorBrush x:Key="OverlayScrimBrush"       Color="#66000000" />
+
+    <!-- === Header text (dark navy header - needs light text, unlike the
+         rest of the app, which stays light-mode with dark text) === -->
+    <SolidColorBrush x:Key="HeaderTextPrimaryBrush"   Color="#FFFFFFFF" />
+    <SolidColorBrush x:Key="HeaderTextSecondaryBrush" Color="#FFC7CCD4" />
+    <SolidColorBrush x:Key="HeaderTextMutedBrush"     Color="#FF8A93A6" />
+    <SolidColorBrush x:Key="HeaderDividerBrush"       Color="#3DFFFFFF" />
+
+    <!-- === Machine / job status (dashboard) ===
+         Running = green, Idle = blue, Offline = grey. These are semantic
+         status colours, independent of the brand accent above. -->
+    <SolidColorBrush x:Key="StatusRunningBrush"      Color="#FF2E7D46" />
+    <SolidColorBrush x:Key="StatusRunningBgBrush"    Color="#FFE7F5EA" />
+    <SolidColorBrush x:Key="StatusIdleBrush"         Color="#FF2F6FED" />
+    <SolidColorBrush x:Key="StatusIdleBgBrush"       Color="#FFEAF1FE" />
+    <SolidColorBrush x:Key="StatusOfflineBrush"      Color="#FF8A8D93" />
+    <SolidColorBrush x:Key="StatusOfflineBgBrush"    Color="#FFEEEEEF" />
+
+    <!-- === Buttons (dashboard) ===
+         Primary actions use the single brand accent (orange) rather than
+         the blue used in the reference mock, to keep one accent colour
+         across the whole app. Change BrandAccentBrush above to re-skin. -->
+    <SolidColorBrush x:Key="PrimaryButtonForegroundBrush" Color="#FFFFFFFF" />
+    <SolidColorBrush x:Key="OutlineButtonBorderBrush"     Color="#FFCACBCF" />
+
+    <!-- === Current Jobs accent ===
+         Per feedback, the "New Job" button uses blue (matching the Idle
+         status colour) rather than the orange brand accent, to distinguish
+         job actions from machine-control actions. -->
+    <SolidColorBrush x:Key="JobsAccentBrush" Color="#FF2F6FED" />
+    <SolidColorBrush x:Key="JobsAccentForegroundBrush" Color="#FFFFFFFF" />
+
+    <!-- === Warning (Settings: unsaved changes banner) === -->
+    <SolidColorBrush x:Key="WarningBrush" Color="#FFB25A17" />
+    <SolidColorBrush x:Key="WarningBgBrush" Color="#FFFBEDDD" />
+
+    <!-- === Icon font ===
+         Segoe MDL2 Assets ships with Windows 10 (incl. IoT) - no extra font
+         file to deploy. If glyphs render as boxes in your environment,
+         confirm the OS build includes this font.-->
+    <FontFamily x:Key="IconFontFamily">Segoe MDL2 Assets</FontFamily>
+
+    <!-- === Typography === -->
+    <FontFamily x:Key="BrandFontFamily">Segoe UI, Arial</FontFamily>
+
+    <!-- === Card style (dashboard) ===
+         Rounded 12px corners + a soft drop shadow, matching the reference
+         mock's elevated-card look. Applied via Style="{StaticResource
+         CardStyle}" - override Padding per-instance where needed (local
+         Setters always win over Style setters in WPF). -->
+    <Style x:Key="CardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="20" />
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect Color="#000000" Opacity="0.06" BlurRadius="18" ShadowDepth="2" Direction="270" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- === Option radio button style (Change-value dialogs) ===
+         Custom template: an outlined circle that fills with a solid dot
+         when checked, plus the option's content (flag/icon + label) to the
+         right. Whole row is the hit target (MinHeight set by callers, e.g.
+         52px for touch). -->
+    <Style x:Key="OptionRadioButtonStyle" TargetType="RadioButton">
+        <Setter Property="Padding" Value="14,12" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Border x:Name="RowBg" Background="Transparent" CornerRadius="8">
+                        <Grid Margin="{TemplateBinding Padding}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="16" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border x:Name="Circle" Grid.Column="0" Width="22" Height="22" CornerRadius="11"
+                                    BorderThickness="2" BorderBrush="{StaticResource OutlineButtonBorderBrush}"
+                                    VerticalAlignment="Center">
+                                <Ellipse x:Name="Dot" Width="10" Height="10"
+                                         Fill="{StaticResource JobsAccentBrush}" Visibility="Collapsed" />
+                            </Border>
+
+                            <ContentPresenter Grid.Column="2" VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Circle" Property="BorderBrush" Value="{StaticResource JobsAccentBrush}" />
+                            <Setter TargetName="Dot" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="RowBg" Property="Background" Value="{StaticResource ScreenBackgroundBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- === Global menu nav item style === -->
+    <Style x:Key="NavItemButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="Padding" Value="10,13" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bg" Background="{TemplateBinding Background}" CornerRadius="8">
+                        <ContentPresenter Margin="{TemplateBinding Padding}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bg" Property="Background" Value="{StaticResource ScreenBackgroundBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

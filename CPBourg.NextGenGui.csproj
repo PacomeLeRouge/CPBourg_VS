@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    CPBourg NextGen Operator Interface - prototype
+    ===================================================
+    Target framework: .NET Framework 4.7.2 (present on Windows 10 IoT Enterprise,
+    the same OS family the current GUI already runs on).
+
+    If your industrial image is locked to .NET Framework 4.5.2, either:
+      (a) install the 4.7.2 runtime - it is an in-place update and remains
+          backward compatible with 4.5.2-targeted apps, or
+      (b) change TargetFramework below to net452 and convert this to a classic
+          (non-SDK) .csproj. All WPF APIs used here exist since 4.5, and the C#
+          is written to language version 7.3 so it compiles on older toolchains.
+  -->
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net472</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <LangVersion>7.3</LangVersion>
+    <RootNamespace>CPBourg.NextGenGui</RootNamespace>
+    <AssemblyName>CPBourg.NextGenGui</AssemblyName>
+    <Company>C.P. Bourg S.A.</Company>
+    <Product>CPBourg NextGen Operator Interface</Product>
+    <AssemblyVersion>1.29.0.0</AssemblyVersion>
+    <FileVersion>1.29.0.0</FileVersion>
+  </PropertyGroup>
+
+  <!--
+    Copies anything under Assets/ (e.g. a real cpbourg-logo.png, once added)
+    to the output directory so LogoLoader.cs can find it at runtime next to
+    the .exe. Safe to leave in place even with an empty/near-empty Assets
+    folder - the glob just matches nothing extra.
+  -->
+  <ItemGroup>
+    <None Include="Assets\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

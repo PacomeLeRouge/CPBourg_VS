@@ -1,0 +1,213 @@
+<UserControl x:Class="CPBourg.NextGenGui.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="clr-namespace:CPBourg.NextGenGui.Models"
+             xmlns:local="clr-namespace:CPBourg.NextGenGui.Views"
+             Background="{StaticResource ScreenBackgroundBrush}">
+
+    <!--
+        Settings / Operator Preferences screen (FR-09 minimal configurator).
+
+        Demonstrates the three states from the reference mock as an actual
+        interactive stub, rather than three separate static screens:
+          - Default:          no banner, Apply/Cancel present but inactive
+          - Unsaved changes:  clicking any "Change"/"Calibrate" row button
+                               shows the amber banner
+          - Preferences saved: clicking "Apply" shows the green banner
+        Clicking "Cancel" or the banner's close (x) returns to Default.
+        See SettingsView.xaml.cs for the small state machine.
+
+        ICON NOTE: the row icons below use Segoe MDL2 Assets glyphs. Codepoints
+        marked "confirmed" have already rendered correctly elsewhere in this
+        app (per earlier screenshots); codepoints marked "unverified" are new
+        for this screen and haven't been visually confirmed on a real Windows
+        build yet - flagging so it's obvious what to check first if anything
+        renders as a blank box: Language (Globe, unverified), Date & Time
+        (Calendar, unverified), Keyboard Layout (unverified), Mouse Cursor
+        (unverified). "UI Scale" deliberately uses literal "Aa" text instead
+        of an icon glyph, since that's guaranteed to render correctly.
+    -->
+
+    <UserControl.Resources>
+        <!-- Reusable text styles, following the pattern already established
+             in GlobalMenuView.xaml.Resources. -->
+        <Style x:Key="SectionHeaderTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{StaticResource JobsAccentBrush}" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+        </Style>
+
+        <Style x:Key="RowLabelTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        </Style>
+
+        <Style x:Key="RowValueTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        </Style>
+
+        <!-- One settings row: icon circle, label, value, action button.
+             Bottom divider gives the "list" look from the reference; the
+             card's own border makes the divider after the last row mostly
+             invisible in practice. -->
+        <DataTemplate DataType="{x:Type models:SettingsItemInfo}">
+            <Border BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="0,0,0,1">
+                <Grid Margin="0,14">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="220" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Width="48" Height="48" CornerRadius="12"
+                            Background="{StaticResource ScreenBackgroundBrush}" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding IconGlyph}" FontSize="22"
+                                   Foreground="{StaticResource JobsAccentBrush}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontFamily" Value="{StaticResource IconFontFamily}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsLetterIcon}" Value="True">
+                                            <Setter Property="FontFamily" Value="{StaticResource BrandFontFamily}" />
+                                            <Setter Property="FontWeight" Value="Bold" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Border>
+
+                    <TextBlock Grid.Column="1" Text="{Binding Label}" Style="{StaticResource RowLabelTextStyle}"
+                               Margin="16,0,0,0" VerticalAlignment="Center" />
+
+                    <TextBlock Grid.Column="2" Text="{Binding Value}" Style="{StaticResource RowValueTextStyle}"
+                               VerticalAlignment="Center" />
+
+                    <Button Grid.Column="3" MinHeight="48" MinWidth="120" Padding="18,0"
+                            Tag="{Binding Tag}" Click="OnRowActionClick">
+                        <TextBlock Text="{Binding ButtonLabel}" FontSize="14" FontWeight="Medium" />
+                    </Button>
+                </Grid>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid Margin="24,20,24,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="20" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Title row: heading + subtitle on the left, Cancel/Apply on the right -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="Settings" FontSize="30" FontWeight="Medium"
+                           Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock Text="Operator Preferences" FontSize="15"
+                           Foreground="{StaticResource TextMutedBrush}" Margin="0,2,0,0" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button MinHeight="52" MinWidth="110" Padding="18,0" Click="OnCancelClick">
+                    <TextBlock Text="Cancel" FontSize="15" FontWeight="Medium" />
+                </Button>
+                <Button MinHeight="52" MinWidth="110" Padding="18,0" Margin="12,0,0,0"
+                        Background="{StaticResource JobsAccentBrush}"
+                        Foreground="{StaticResource JobsAccentForegroundBrush}" BorderThickness="0"
+                        Click="OnApplyClick">
+                    <TextBlock Text="Apply" FontSize="15" FontWeight="Medium" />
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- Status banners - only one visible at a time; both start hidden (Default state) -->
+        <Grid Grid.Row="1" Margin="0,18,0,0">
+            <Border x:Name="UnsavedBanner" Background="{StaticResource WarningBgBrush}"
+                    CornerRadius="10" Padding="16,14" Visibility="Collapsed">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Width="36" Height="36" CornerRadius="18"
+                            Background="{StaticResource CardBackgroundBrush}" VerticalAlignment="Center">
+                        <TextBlock Text="&#xE7BA;" FontFamily="{StaticResource IconFontFamily}" FontSize="17"
+                                   Foreground="{StaticResource WarningBrush}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="Unsaved changes" FontSize="16" FontWeight="Bold"
+                                   Foreground="{StaticResource WarningBrush}" />
+                        <TextBlock Text="Please apply changes before exiting." FontSize="13"
+                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0" />
+                    </StackPanel>
+                    <Button Grid.Column="2" Width="40" Height="40" Background="Transparent" BorderThickness="0"
+                            VerticalAlignment="Center" Click="OnBannerCloseClick">
+                        <TextBlock Text="&#xE711;" FontFamily="{StaticResource IconFontFamily}" FontSize="14" />
+                    </Button>
+                </Grid>
+            </Border>
+
+            <Border x:Name="SavedBanner" Background="{StaticResource StatusRunningBgBrush}"
+                    CornerRadius="10" Padding="16,14" Visibility="Collapsed">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Width="36" Height="36" CornerRadius="18"
+                            Background="{StaticResource CardBackgroundBrush}" VerticalAlignment="Center">
+                        <TextBlock Text="&#xE73E;" FontFamily="{StaticResource IconFontFamily}" FontSize="17"
+                                   Foreground="{StaticResource StatusRunningBrush}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="Preferences saved" FontSize="16" FontWeight="Bold"
+                                   Foreground="{StaticResource StatusRunningBrush}" />
+                    </StackPanel>
+                    <Button Grid.Column="2" Width="40" Height="40" Background="Transparent" BorderThickness="0"
+                            VerticalAlignment="Center" Click="OnBannerCloseClick">
+                        <TextBlock Text="&#xE711;" FontFamily="{StaticResource IconFontFamily}" FontSize="14" />
+                    </Button>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Preference sections - scrollable.
+             Fixes a real bug: with no scroll fallback, content taller than
+             the visible window (which gets worse the moment a banner adds
+             extra height above) simply ran off the bottom of the screen in
+             windowed mode, with UI Scale and Screen Calibration unreachable
+             except by maximizing. The title row, banners, and Cancel/Apply
+             stay fixed above; only this section scrolls. -->
+        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Margin="0,0,4,20">
+                <TextBlock Text="LANGUAGE AND REGION" Style="{StaticResource SectionHeaderTextStyle}" />
+                <Border Style="{StaticResource CardStyle}" Padding="18,6" Margin="0,0,0,20">
+                    <ItemsControl x:Name="LanguageRegionItems" />
+                </Border>
+
+                <TextBlock Text="DISPLAY" Style="{StaticResource SectionHeaderTextStyle}" />
+                <Border Style="{StaticResource CardStyle}" Padding="18,6">
+                    <ItemsControl x:Name="DisplayItems" />
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Change-value picker overlay - covers the whole screen, shown/hidden by ChangeValueDialog itself -->
+        <local:ChangeValueDialog x:Name="ChangeDialog" Grid.Row="0" Grid.RowSpan="4" Confirmed="OnChangeDialogConfirmed" />
+    </Grid>
+</UserControl>

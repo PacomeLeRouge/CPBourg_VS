@@ -1,0 +1,141 @@
+<Window x:Class="CPBourg.NextGenGui.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:CPBourg.NextGenGui.Views"
+        Title="C.P. Bourg - NextGen Operator Interface"
+        WindowState="Maximized"
+        MinWidth="1180" MinHeight="760"
+        Background="{StaticResource ScreenBackgroundBrush}"
+        FontFamily="{StaticResource BrandFontFamily}">
+
+    <!--
+        Application shell: header bar + dashboard content + global menu
+        overlay.
+
+        MinWidth/MinHeight above stop the window from being resized smaller
+        than the header and action bar's natural minimum size - without
+        this, restoring the window down in windowed mode could clip buttons
+        that had nowhere left to go (Grid columns don't wrap or scroll).
+
+        Everything fills the actual window (no fixed design canvas / Viewbox
+        - see the v5 README note for why that was removed).
+    -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="72" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- ================= Header ================= -->
+        <Border Grid.Row="0" Background="{StaticResource HeaderBackgroundBrush}">
+            <Grid Margin="20,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="20" />
+                    <ColumnDefinition Width="1" />
+                    <ColumnDefinition Width="20" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="18" />
+                    <ColumnDefinition Width="1" />
+                    <ColumnDefinition Width="18" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="18" />
+                    <ColumnDefinition Width="1" />
+                    <ColumnDefinition Width="18" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Column indices:
+                     0 hamburger, 1 logo, 2 spacer, 3 divider, 4 spacer,
+                     5 title(*), 6 bell, 7 spacer, 8 divider, 9 spacer,
+                     10 language, 11 spacer, 12 divider, 13 spacer, 14 clock. -->
+
+                <!-- Notification bell - navigates to the Errors & Information
+                     screen (same destination as the global menu item). -->
+                <Button Grid.Column="6" Width="40" Height="40" Background="Transparent" BorderThickness="0"
+                        Click="OnBellClick" ToolTip="Errors and information">
+                    <TextBlock Text="&#xE7E7;" FontFamily="{StaticResource IconFontFamily}" FontSize="18"
+                               Foreground="{StaticResource HeaderTextSecondaryBrush}" />
+                </Button>
+
+                <!-- Divider between the bell and the language indicator -->
+                <Border Grid.Column="8" Background="{StaticResource HeaderDividerBrush}" Width="1" Height="28" />
+
+                <!-- Hamburger - 44x44 touch target -->
+                <Button Grid.Column="0" x:Name="MenuToggleButton" Width="44" Height="44"
+                        Background="Transparent" BorderThickness="0" Click="OnMenuToggleClick"
+                        ToolTip="Global menu">
+                    <TextBlock Text="&#xE700;" FontFamily="{StaticResource IconFontFamily}"
+                               Foreground="{StaticResource HeaderTextPrimaryBrush}" FontSize="20" />
+                </Button>
+
+                <!-- Logo lockup.
+                     LogoImage is used automatically if a real logo file is present at
+                     Assets/cpbourg-logo.png next to the executable (checked at startup
+                     in MainWindow.xaml.cs) - otherwise LogoPlaceholder (the two-square
+                     mark) is shown. See README "Using the real CPBourg logo". -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                    <Grid Width="30" Height="30">
+                        <Grid x:Name="LogoPlaceholder">
+                            <Border Width="19" Height="19" Background="{StaticResource BrandSecondaryMarkBrush}"
+                                    HorizontalAlignment="Left" VerticalAlignment="Bottom" />
+                            <Border Width="19" Height="19" Background="{StaticResource BrandAccentBrush}"
+                                    HorizontalAlignment="Right" VerticalAlignment="Top" />
+                        </Grid>
+                        <Image x:Name="LogoImage" Stretch="Uniform" Visibility="Collapsed" />
+                    </Grid>
+                    <StackPanel Margin="10,0,0,0">
+                        <TextBlock Text="C.P. Bourg" FontSize="16" FontWeight="Medium"
+                                   Foreground="{StaticResource HeaderTextPrimaryBrush}" />
+                        <TextBlock Text="www.cpbourg.com" FontSize="11"
+                                   Foreground="{StaticResource HeaderTextMutedBrush}" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Divider -->
+                <Border Grid.Column="3" Background="{StaticResource HeaderDividerBrush}" Width="1" Height="28" />
+
+                <!-- Page title -->
+                <TextBlock Grid.Column="5" x:Name="PageTitleText" Text="Home"
+                           FontSize="18" FontWeight="Medium" VerticalAlignment="Center"
+                           Foreground="{StaticResource HeaderTextPrimaryBrush}" />
+
+                <!-- Language indicator - display only. The abbreviation shown here
+                     is kept in sync with the language chosen on the Settings screen
+                     (see MainWindow.xaml.cs, wired to SettingsView.LanguageChanged).
+                     Actually translating the rest of the UI is future work (FR-10) -
+                     this only updates the two-letter code shown here. -->
+                <TextBlock x:Name="LanguageIndicatorText" Grid.Column="10" Text="EN" FontSize="14" FontWeight="Medium"
+                           VerticalAlignment="Center"
+                           Foreground="{StaticResource HeaderTextSecondaryBrush}" />
+
+                <!-- Divider -->
+                <Border Grid.Column="12" Background="{StaticResource HeaderDividerBrush}" Width="1" Height="28" />
+
+                <!-- Clock / date -->
+                <StackPanel Grid.Column="14" VerticalAlignment="Center">
+                    <TextBlock x:Name="ClockText" Text="--:--" FontSize="14" HorizontalAlignment="Right"
+                               Foreground="{StaticResource HeaderTextPrimaryBrush}" />
+                    <TextBlock x:Name="DateText" Text="----&#8209;--&#8209;--" FontSize="12" HorizontalAlignment="Right"
+                               Foreground="{StaticResource HeaderTextMutedBrush}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ================= Content =================
+             Dashboard, SettingsView, JobsView, and ErrorsView all exist now;
+             MainWindow.xaml.cs toggles which is visible based on the global
+             menu selection (or the header bell, for Errors). Other nav items
+             remain stubs (see OnGlobalMenuItemSelected). -->
+        <local:DashboardView Grid.Row="1" x:Name="Dashboard" />
+        <local:SettingsView Grid.Row="1" x:Name="SettingsScreen" Visibility="Collapsed" />
+        <local:JobsView Grid.Row="1" x:Name="JobsScreen" Visibility="Collapsed" />
+        <local:ErrorsView Grid.Row="1" x:Name="ErrorsScreen" Visibility="Collapsed" />
+
+        <!-- ================= Global menu overlay ================= -->
+        <local:GlobalMenuView Grid.Row="0" Grid.RowSpan="2" x:Name="GlobalMenu"
+                               Visibility="Collapsed" />
+    </Grid>
+</Window>

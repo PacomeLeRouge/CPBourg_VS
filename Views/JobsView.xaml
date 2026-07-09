@@ -1,0 +1,413 @@
+<UserControl x:Class="CPBourg.NextGenGui.Views.JobsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="clr-namespace:CPBourg.NextGenGui.Models"
+             xmlns:local="clr-namespace:CPBourg.NextGenGui.Views"
+             Background="{StaticResource ScreenBackgroundBrush}">
+
+    <!--
+        Jobs / File Menu screen (FR-08 job save/load; AC-06). Two columns:
+        left is the Saved Jobs list + a Status banner, right is the Summary
+        of whichever job is selected plus six action tiles.
+
+        ICON NOTE: several icons here are new codepoints not yet visually
+        confirmed on a real Windows build - flagging so it's obvious what
+        to check first if anything renders as a blank box. UNVERIFIED:
+        search (magnifying glass), filter (funnel), save-as-new / floppy
+        disk (also used as the Save As New Job dialog's header icon),
+        remove/trash, scan barcode, add comment. CONFIRMED (already
+        rendered correctly elsewhere in this app per earlier screenshots):
+        document/list icon, chevron-right, checkmark, info circle,
+        folder-open, warning triangle, org-chart (used for "Machine Line").
+
+        Action dialogs (AddCommentDialog, OpenJobDialog, SaveAsNewJobDialog,
+        RemoveJobDialog) and the shared ConfirmationDialog success screen
+        are overlaid at the bottom of this file - see JobsView.xaml.cs for
+        how they're wired to actually mutate the sample job list.
+
+        Sample job data is populated in JobsView.xaml.cs. Replace with real
+        WFM-backed job storage once that's wired in - View Log and Scan
+        Barcode ID are still simple stubs (no dialog mockup yet for those).
+    -->
+
+    <UserControl.Resources>
+        <Style x:Key="SummaryLabelTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        </Style>
+        <Style x:Key="SummaryValueTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+
+        <!-- One row in the Saved Jobs list. -->
+        <DataTemplate x:Key="JobRowTemplate" DataType="{x:Type models:JobRecord}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Width="42" Height="42" CornerRadius="10"
+                        Background="{StaticResource ScreenBackgroundBrush}" VerticalAlignment="Center">
+                    <TextBlock Text="&#xE7C3;" FontFamily="{StaticResource IconFontFamily}" FontSize="18"
+                               Foreground="{StaticResource JobsAccentBrush}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+
+                <StackPanel Grid.Column="1" Margin="14,0,10,0" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextPrimaryBrush}" />
+                    <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                        <TextBlock Text="{Binding PagesLabel}" FontSize="13" Foreground="{StaticResource TextMutedBrush}" />
+                        <TextBlock Text=" &#8226; " FontSize="13" Foreground="{StaticResource TextMutedBrush}" />
+                        <TextBlock Text="{Binding Format}" FontSize="13" Foreground="{StaticResource TextMutedBrush}" />
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding SavedDate}" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Right" />
+                    <TextBlock Text="{Binding SavedTime}" FontSize="12" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Right" Margin="0,2,0,0" />
+                </StackPanel>
+
+                <TextBlock Grid.Column="3" Text="&#xE76C;" FontFamily="{StaticResource IconFontFamily}" FontSize="16"
+                           Foreground="{StaticResource TextMutedBrush}" Margin="14,0,0,0" VerticalAlignment="Center" />
+            </Grid>
+        </DataTemplate>
+
+        <!-- Selection look: left accent bar + light-blue background, replacing
+             the default ListBoxItem chrome entirely. -->
+        <Style x:Key="JobListItemStyle" TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="0,0,0,1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="4" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border x:Name="AccentBar" Grid.Column="0" Background="Transparent" />
+                                <Border x:Name="ContentBg" Grid.Column="1" Background="Transparent">
+                                    <ContentPresenter Margin="14,14,10,14" />
+                                </Border>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ContentBg" Property="Background" Value="{StaticResource ScreenBackgroundBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="AccentBar" Property="Background" Value="{StaticResource JobsAccentBrush}" />
+                                <Setter TargetName="ContentBg" Property="Background" Value="{StaticResource StatusIdleBgBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="24,20,24,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="10" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- ===== Left column: Saved Jobs + Status ===== -->
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="14" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Style="{StaticResource CardStyle}" Padding="20">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="16" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <!-- Header: title, search box, filter button -->
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="220" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                <TextBlock Text="&#xE7C3;" FontFamily="{StaticResource IconFontFamily}" FontSize="20"
+                                           Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                <TextBlock Text="Saved Jobs" FontSize="18" FontWeight="Medium" Margin="10,0,0,0"
+                                           Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                            </StackPanel>
+
+                            <Border Grid.Column="2" Height="44" CornerRadius="8"
+                                    Background="{StaticResource ScreenBackgroundBrush}"
+                                    BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="&#xE721;" FontFamily="{StaticResource IconFontFamily}"
+                                               FontSize="15" Foreground="{StaticResource TextMutedBrush}"
+                                               Margin="12,0,0,0" VerticalAlignment="Center" />
+                                    <Grid Grid.Column="1">
+                                        <TextBox x:Name="SearchBox" Background="Transparent" BorderThickness="0"
+                                                 Margin="10,0,10,0" VerticalContentAlignment="Center" FontSize="14"
+                                                 TextChanged="OnSearchTextChanged" />
+                                        <TextBlock x:Name="SearchPlaceholder" Text="Search jobs" FontSize="14"
+                                                   Foreground="{StaticResource TextMutedBrush}"
+                                                   Margin="10,0,0,0" VerticalAlignment="Center"
+                                                   IsHitTestVisible="False" />
+                                    </Grid>
+                                </Grid>
+                            </Border>
+
+                            <Button Grid.Column="4" Width="44" Height="44" Click="OnFilterClick" ToolTip="Filter (stub)">
+                                <TextBlock Text="&#xE71C;" FontFamily="{StaticResource IconFontFamily}" FontSize="16" />
+                            </Button>
+                        </Grid>
+
+                        <!-- Job list -->
+                        <ListBox Grid.Row="2" x:Name="JobsListBox"
+                                 BorderThickness="0" Background="Transparent"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 ItemTemplate="{StaticResource JobRowTemplate}"
+                                 ItemContainerStyle="{StaticResource JobListItemStyle}"
+                                 SelectionChanged="OnJobSelectionChanged" />
+                    </Grid>
+                </Border>
+
+                <!-- Status -->
+                <Border Grid.Row="2" Style="{StaticResource CardStyle}" Padding="18">
+                    <StackPanel>
+                        <TextBlock Text="Status" FontSize="16" FontWeight="Medium"
+                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,12" />
+                        <Border Background="{StaticResource StatusRunningBgBrush}" CornerRadius="8" Padding="14,12">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="28" Height="28" CornerRadius="14"
+                                        Background="{StaticResource CardBackgroundBrush}" VerticalAlignment="Center">
+                                    <TextBlock Text="&#xE73E;" FontFamily="{StaticResource IconFontFamily}" FontSize="13"
+                                               Foreground="{StaticResource StatusRunningBrush}"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBlock x:Name="StatusMessageText" Text="Selected job is ready to open."
+                                           FontSize="14" FontWeight="Medium" Margin="12,0,0,0"
+                                           Foreground="{StaticResource StatusRunningBrush}" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- ===== Right column: Summary + Actions ===== -->
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="14" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Style="{StaticResource CardStyle}" Padding="18">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                            <TextBlock Text="&#xE946;" FontFamily="{StaticResource IconFontFamily}" FontSize="18"
+                                       Foreground="{StaticResource JobsAccentBrush}" VerticalAlignment="Center" />
+                            <TextBlock Text="Summary" FontSize="17" FontWeight="Medium" Margin="10,0,0,0"
+                                       Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                        </StackPanel>
+
+                        <Grid Margin="0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Name" Style="{StaticResource SummaryLabelTextStyle}" />
+                            <TextBlock Grid.Column="1" x:Name="SummaryNameText" Style="{StaticResource SummaryValueTextStyle}" />
+                        </Grid>
+                        <Border Background="{StaticResource CardBorderBrush}" Height="1" />
+
+                        <Grid Margin="0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Pages" Style="{StaticResource SummaryLabelTextStyle}" />
+                            <TextBlock Grid.Column="1" x:Name="SummaryPagesText" Style="{StaticResource SummaryValueTextStyle}" />
+                        </Grid>
+                        <Border Background="{StaticResource CardBorderBrush}" Height="1" />
+
+                        <Grid Margin="0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Format" Style="{StaticResource SummaryLabelTextStyle}" />
+                            <TextBlock Grid.Column="1" x:Name="SummaryFormatText" Style="{StaticResource SummaryValueTextStyle}" />
+                        </Grid>
+                        <Border Background="{StaticResource CardBorderBrush}" Height="1" />
+
+                        <Grid Margin="0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Comment" Style="{StaticResource SummaryLabelTextStyle}" />
+                            <TextBlock Grid.Column="1" x:Name="SummaryCommentText" Style="{StaticResource SummaryValueTextStyle}" />
+                        </Grid>
+                        <Border Background="{StaticResource CardBorderBrush}" Height="1" />
+
+                        <Grid Margin="0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Barcode ID" Style="{StaticResource SummaryLabelTextStyle}" />
+                            <TextBlock Grid.Column="1" x:Name="SummaryBarcodeText" Style="{StaticResource SummaryValueTextStyle}" />
+                        </Grid>
+                        <Border Background="{StaticResource CardBorderBrush}" Height="1" />
+
+                        <Grid Margin="0,10,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Last modified" Style="{StaticResource SummaryLabelTextStyle}" />
+                            <TextBlock Grid.Column="1" x:Name="SummaryLastModifiedText" Style="{StaticResource SummaryValueTextStyle}" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Actions -->
+                <Grid Grid.Row="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="10" />
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="10" />
+                        <RowDefinition Height="1*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="10" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Style="{StaticResource CardStyle}" Padding="0" Background="{StaticResource JobsAccentBrush}">
+                            <Button Background="Transparent" BorderThickness="0" Click="OnOpenJobClick">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <TextBlock Text="&#xE838;" FontFamily="{StaticResource IconFontFamily}" FontSize="18"
+                                               Foreground="{StaticResource JobsAccentForegroundBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Text="Open Job" FontSize="15" FontWeight="Medium" Margin="10,0,0,0"
+                                               Foreground="{StaticResource JobsAccentForegroundBrush}" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                        </Border>
+                        <Border Grid.Column="2" Style="{StaticResource CardStyle}" Padding="0">
+                            <Button Background="Transparent" BorderThickness="0" Click="OnSaveAsNewClick">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFontFamily}" FontSize="18"
+                                               Foreground="{StaticResource JobsAccentBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Text="Save as New" FontSize="15" FontWeight="Medium" Margin="10,0,0,0"
+                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                        </Border>
+                    </Grid>
+
+                    <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="10" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Style="{StaticResource CardStyle}" Padding="0">
+                            <Button Background="Transparent" BorderThickness="0" Click="OnRemoveJobClick">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <TextBlock Text="&#xE74D;" FontFamily="{StaticResource IconFontFamily}" FontSize="18"
+                                               Foreground="{StaticResource StatusErrorBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Text="Remove Job" FontSize="15" FontWeight="Medium" Margin="10,0,0,0"
+                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                        </Border>
+                        <Border Grid.Column="2" Style="{StaticResource CardStyle}" Padding="0">
+                            <Button Background="Transparent" BorderThickness="0" Click="OnViewLogClick">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <TextBlock Text="&#xE7C3;" FontFamily="{StaticResource IconFontFamily}" FontSize="18"
+                                               Foreground="{StaticResource JobsAccentBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Text="View Log" FontSize="15" FontWeight="Medium" Margin="10,0,0,0"
+                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                        </Border>
+                    </Grid>
+
+                    <Grid Grid.Row="4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="10" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Style="{StaticResource CardStyle}" Padding="0">
+                            <Button Background="Transparent" BorderThickness="0" Click="OnScanBarcodeClick">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <TextBlock Text="&#xE8FE;" FontFamily="{StaticResource IconFontFamily}" FontSize="18"
+                                               Foreground="{StaticResource JobsAccentBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Text="Scan Barcode ID" FontSize="15" FontWeight="Medium" Margin="10,0,0,0"
+                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                        </Border>
+                        <Border Grid.Column="2" Style="{StaticResource CardStyle}" Padding="0">
+                            <Button Background="Transparent" BorderThickness="0" Click="OnAddCommentClick">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <TextBlock Text="&#xE8F2;" FontFamily="{StaticResource IconFontFamily}" FontSize="18"
+                                               Foreground="{StaticResource JobsAccentBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Text="Add Comment" FontSize="15" FontWeight="Medium" Margin="10,0,0,0"
+                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Grid>
+
+        <!-- Demo feedback line - shows which stub action was last triggered.
+             Same pattern as DashboardView.LastActionText. -->
+        <TextBlock Grid.Row="2" x:Name="LastActionText" Text=""
+                   Foreground="{StaticResource TextMutedBrush}" FontSize="12"
+                   HorizontalAlignment="Center" />
+
+        <!-- Action dialog overlays - each covers the whole screen and shows/hides itself -->
+        <local:AddCommentDialog x:Name="AddCommentDialogControl" Grid.Row="0" Grid.RowSpan="3" Saved="OnCommentSaved" />
+        <local:OpenJobDialog x:Name="OpenJobDialogControl" Grid.Row="0" Grid.RowSpan="3" Opened="OnJobOpened" />
+        <local:SaveAsNewJobDialog x:Name="SaveAsNewJobDialogControl" Grid.Row="0" Grid.RowSpan="3"
+                                   SaveRequested="OnSaveRequested" OverwriteConfirmed="OnOverwriteConfirmed" />
+        <local:RemoveJobDialog x:Name="RemoveJobDialogControl" Grid.Row="0" Grid.RowSpan="3" Removed="OnJobRemoved" />
+        <local:ConfirmationDialog x:Name="ConfirmationDialogControl" Grid.Row="0" Grid.RowSpan="3" />
+    </Grid>
+</UserControl>

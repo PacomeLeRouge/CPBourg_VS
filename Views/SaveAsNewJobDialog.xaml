@@ -1,0 +1,130 @@
+<UserControl x:Class="CPBourg.NextGenGui.Views.SaveAsNewJobDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Visibility="Collapsed">
+
+    <!--
+        Handles two states from the reference mock as one dialog rather than
+        two separate ones, since they share the same "Current Setup" box and
+        the typed job name needs to survive the switch between them:
+          - Input:    normal "Save As New Job" name-entry form
+          - Conflict: "Job Name Already Exists!" warning, shown if Save Job
+                      is clicked with a name that matches an existing job
+        "New Name" (conflict state) returns to Input with the name still
+        there to edit, rather than closing the dialog.
+    -->
+
+    <Grid>
+        <Border Background="{StaticResource OverlayScrimBrush}" MouseDown="OnScrimMouseDown" />
+
+        <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="16"
+                Width="480" HorizontalAlignment="Center" VerticalAlignment="Center"
+                Padding="28">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Border x:Name="HeaderIconBg" Grid.Column="0" Width="40" Height="40" CornerRadius="10"
+                            Background="{StaticResource StatusIdleBgBrush}">
+                        <TextBlock x:Name="HeaderIconText" Text="&#xE78C;" FontFamily="{StaticResource IconFontFamily}"
+                                   FontSize="18" Foreground="{StaticResource JobsAccentBrush}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <TextBlock x:Name="TitleText" Grid.Column="1" Text="Save As New Job" FontSize="20" FontWeight="Medium"
+                               Foreground="{StaticResource TextPrimaryBrush}"
+                               Margin="14,0,0,0" VerticalAlignment="Center" />
+                    <Button Grid.Column="2" Width="40" Height="40" Background="Transparent" BorderThickness="0"
+                            Click="OnCloseClick">
+                        <TextBlock Text="&#xE711;" FontFamily="{StaticResource IconFontFamily}" FontSize="14" />
+                    </Button>
+                </Grid>
+
+                <TextBlock x:Name="SubtitleText" Text="Save the current machine setup as a new job." FontSize="14"
+                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,10,0,20" TextWrapping="Wrap" />
+
+                <TextBlock Text="Current Setup" FontSize="13" FontWeight="SemiBold"
+                           Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,8" />
+                <Border Background="{StaticResource ScreenBackgroundBrush}" CornerRadius="8" Padding="14,12" Margin="0,0,0,20">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,8">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE7C3;" FontFamily="{StaticResource IconFontFamily}" FontSize="14"
+                                           Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                                <TextBlock Text="Format" FontSize="13" Foreground="{StaticResource TextMutedBrush}"
+                                           Margin="8,0,0,0" VerticalAlignment="Center" />
+                            </StackPanel>
+                            <TextBlock x:Name="SetupFormatText" Text="-" FontSize="13" FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Right" />
+                        </Grid>
+                        <Grid>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE9A9;" FontFamily="{StaticResource IconFontFamily}" FontSize="14"
+                                           Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                                <TextBlock Text="Machine Line" FontSize="13" Foreground="{StaticResource TextMutedBrush}"
+                                           Margin="8,0,0,0" VerticalAlignment="Center" />
+                            </StackPanel>
+                            <TextBlock x:Name="SetupMachineLineText" Text="-" FontSize="13" FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Right" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Input state: job name entry -->
+                <StackPanel x:Name="JobNameInputPanel">
+                    <TextBlock Text="Job Name" FontSize="13" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,8" />
+                    <Border Background="{StaticResource ScreenBackgroundBrush}" CornerRadius="8"
+                            BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" Margin="0,0,0,8">
+                        <TextBox x:Name="JobNameTextBox" Background="Transparent" BorderThickness="0"
+                                 Padding="12,12" FontSize="14" Height="48" VerticalContentAlignment="Center" />
+                    </Border>
+                    <TextBlock Text="Job names must be unique." FontSize="12"
+                               Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,20" />
+                </StackPanel>
+
+                <!-- Conflict state: overwrite warning -->
+                <Border x:Name="ConflictBanner" Background="{StaticResource WarningBgBrush}" CornerRadius="8"
+                        Padding="14,12" Margin="0,0,0,20" Visibility="Collapsed">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="&#xE7BA;" FontFamily="{StaticResource IconFontFamily}" FontSize="16"
+                                   Foreground="{StaticResource WarningBrush}" VerticalAlignment="Top" Margin="0,2,0,0" />
+                        <TextBlock Grid.Column="1" Text="This will overwrite the existing job and cannot be undone." FontSize="13"
+                                   Foreground="{StaticResource WarningBrush}" Margin="10,0,0,0" TextWrapping="Wrap"
+                                   VerticalAlignment="Center" />
+                    </Grid>
+                </Border>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="10" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="10" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" MinHeight="52" Click="OnCancelClick">
+                        <TextBlock Text="Cancel" FontSize="15" FontWeight="Medium" />
+                    </Button>
+                    <Button x:Name="NewNameButton" Grid.Column="2" MinHeight="52" MinWidth="120"
+                            Background="{StaticResource CardBackgroundBrush}"
+                            BorderBrush="{StaticResource JobsAccentBrush}" BorderThickness="1"
+                            Visibility="Collapsed" Click="OnNewNameClick">
+                        <TextBlock Text="New Name" FontSize="15" FontWeight="Medium" Foreground="{StaticResource JobsAccentBrush}" />
+                    </Button>
+                    <Button Grid.Column="4" MinHeight="52" Background="{StaticResource JobsAccentBrush}"
+                            Foreground="{StaticResource JobsAccentForegroundBrush}" BorderThickness="0"
+                            Click="OnSaveJobClick">
+                        <TextBlock Text="Save Job" FontSize="15" FontWeight="Medium" />
+                    </Button>
+                </Grid>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>
