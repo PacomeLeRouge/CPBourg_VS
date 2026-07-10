@@ -1,6 +1,7 @@
 <UserControl x:Class="CPBourg.NextGenGui.Views.MachineLineConfigurationView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:CPBourg.NextGenGui.Views"
              Background="{StaticResource ScreenBackgroundBrush}">
 
     <!--
@@ -340,8 +341,13 @@
             </Grid>
         </Grid>
 
-        <!-- Demo feedback line for pure stubs (Review Changes) - same pattern as DashboardView's LastActionText. -->
+        <!-- Demo feedback line for pure stubs (Review Changes) and the Add Module wizard's
+             result - same pattern as DashboardView's LastActionText. -->
         <TextBlock Grid.Row="2" x:Name="LastActionText" Text=""
                    Foreground="{StaticResource TextMutedBrush}" FontSize="12" HorizontalAlignment="Center" />
+
+        <!-- Action dialog overlay - covers the whole screen and shows/hides itself -->
+        <local:AddModuleWizardDialog x:Name="AddModuleWizardDialogControl" Grid.Row="0" Grid.RowSpan="3"
+                                      Confirmed="OnAddModuleConfirmed" />
     </Grid>
 </UserControl>

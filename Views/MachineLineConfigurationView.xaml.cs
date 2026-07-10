@@ -15,12 +15,16 @@ namespace CPBourg.NextGenGui.Views
     /// Configured) and why they're one interactive screen rather than three
     /// static mockups - same convention as SettingsView/JobsView/ErrorsView.
     ///
-    /// The Machine Line carousel shows one module at a time (<see cref="_focusedIndex"/>
-    /// into <see cref="_machines"/>); the Selected Module and Configuration
-    /// Status panels, and which Line Actions are enabled, all follow that
-    /// focus. Nothing here is persisted or sent to the WFM yet (FR-01,
-    /// FR-02) - Review Changes only shows the stub feedback line, same
-    /// convention as unbuilt flows elsewhere (e.g. JobsView's View Log).
+    /// The Machine Line carousel strip is focused on one module at a time
+    /// (<see cref="_focusedIndex"/> into <see cref="_machines"/>); the
+    /// Selected Module and Configuration Status panels, and which Line
+    /// Actions are enabled, all follow that focus. Add Module opens
+    /// <see cref="AddModuleWizardDialog"/> (module type -> Before/After the
+    /// focused module -> technician code), which inserts locally on
+    /// Confirm - nothing here is persisted or sent to the WFM yet (FR-01,
+    /// FR-02). Remove/Replace/Review Changes only show the stub feedback
+    /// line, same convention as unbuilt flows elsewhere (e.g. JobsView's
+    /// View Log).
     /// </summary>
     public partial class MachineLineConfigurationView : UserControl
     {
@@ -282,11 +286,29 @@ namespace CPBourg.NextGenGui.Views
 
         private void OnAddModuleClick(object sender, RoutedEventArgs e)
         {
-            var entry = Catalog[_machines.Count % Catalog.Length];
-            var machine = CreateMachine(entry.ModuleType);
-            _machines.Add(machine);
-            _focusedIndex = _machines.Count - 1;
+            string anchorModuleType = _machines.Count > 0 ? _machines[_focusedIndex].ModuleType : null;
+            AddModuleWizardDialogControl.Open(Catalog.Select(c => c.ModuleType), anchorModuleType);
+        }
+
+        private void OnAddModuleConfirmed(object sender, AddModuleRequestInfo request)
+        {
+            var machine = CreateMachine(request.ModuleType);
+
+            int insertIndex;
+            if (request.PlaceBeforeAnchor == null || _machines.Count == 0)
+            {
+                insertIndex = _machines.Count;
+            }
+            else
+            {
+                insertIndex = request.PlaceBeforeAnchor.Value ? _focusedIndex : _focusedIndex + 1;
+            }
+
+            _machines.Insert(insertIndex, machine);
+            _focusedIndex = insertIndex;
             RefreshAll();
+
+            LastActionText.Text = $"Last action: Added {request.ModuleType} ({request.PositionSummary}).";
         }
 
         private void OnRemoveModuleClick(object sender, RoutedEventArgs e)

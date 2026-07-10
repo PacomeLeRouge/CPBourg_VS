@@ -1,0 +1,226 @@
+<UserControl x:Class="CPBourg.NextGenGui.Views.AddModuleWizardDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="clr-namespace:CPBourg.NextGenGui.Models"
+             Visibility="Collapsed">
+
+    <!--
+        Add Module wizard - matches the ChatGPT high-fidelity mock (see the
+        conversation that added this: 4 numbered screens - Module Selection,
+        Position Selection, Position Selected State, Technician
+        Confirmation) and the earlier Figma low-fidelity wireframe. Position
+        Selection and "Position Selected State" are the same panel in one
+        state before/after a choice is made, not two separate steps - same
+        one-dialog-multiple-panels convention as SaveAsNewJobDialog's
+        Input/Conflict states.
+
+        Three named panels toggled by ShowModuleStep / ShowPositionStep /
+        ShowConfirmStep (see AddModuleWizardDialog.xaml.cs):
+          1. ModuleStepPanel:   pick a module type from the catalog.
+          2. PositionStepPanel: Before/After the currently focused module on
+                                 the line - skipped entirely when the line is
+                                 empty (nothing to be before/after).
+          3. ConfirmStepPanel:  preview + an on-screen numeric keypad for the
+                                 "Technician Code" (touchscreen kiosk, so a
+                                 real keyboard can't be assumed).
+
+        No Back button, matching the mock (Cancel is the only way out once
+        started) - Continue is disabled until a selection is made on both
+        the Module and Position steps, matching the mock's greyed-out state.
+    -->
+
+    <UserControl.Resources>
+        <!-- Module Selection row: a bordered, icon+label row that highlights
+             when selected. Implemented as a RadioButton (for the built-in
+             single-selection grouping) styled to look like a plain
+             highlightable row rather than a literal radio circle, since the
+             mock shows no radio dot on this step - only Select Position
+             does. -->
+        <Style x:Key="ModuleRowStyle" TargetType="RadioButton">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Row" Background="{StaticResource CardBackgroundBrush}"
+                                BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1.5"
+                                CornerRadius="10" Padding="14,12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="14" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Width="40" Height="36" CornerRadius="8" Background="{StaticResource ScreenBackgroundBrush}">
+                                    <TextBlock Text="&#xE749;" FontFamily="{StaticResource IconFontFamily}" FontSize="16"
+                                               Foreground="{StaticResource TextSecondaryBrush}"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <ContentPresenter Grid.Column="2" VerticalAlignment="Center" />
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Row" Property="BorderBrush" Value="{StaticResource JobsAccentBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Numeric keypad key. -->
+        <Style x:Key="KeypadButtonStyle" TargetType="Button">
+            <Setter Property="MinHeight" Value="48" />
+            <Setter Property="Background" Value="{StaticResource ScreenBackgroundBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Margin" Value="4" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Border Background="{StaticResource OverlayScrimBrush}" MouseDown="OnScrimMouseDown" />
+
+        <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="16"
+                Width="520" MaxHeight="640" HorizontalAlignment="Center" VerticalAlignment="Center"
+                Padding="28">
+            <StackPanel>
+                <TextBlock Text="Add Module" FontSize="22" FontWeight="Medium"
+                           Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock Text="Add a machine module to the line." FontSize="14"
+                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,16" />
+                <Border Background="{StaticResource CardBorderBrush}" Height="1" Margin="0,0,0,18" />
+
+                <!-- ===== Step 1: Module Selection ===== -->
+                <StackPanel x:Name="ModuleStepPanel">
+                    <TextBlock Text="Available Modules:" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,10" />
+                    <ScrollViewer MaxHeight="320" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl x:Name="ModuleOptionsItemsControl">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type models:ModuleTypeOptionInfo}">
+                                    <RadioButton GroupName="AddModuleType" Style="{StaticResource ModuleRowStyle}"
+                                                 Margin="0,0,0,10"
+                                                 IsChecked="{Binding IsSelected, Mode=OneTime}"
+                                                 Checked="OnModuleOptionChecked">
+                                        <TextBlock Text="{Binding ModuleType}" FontSize="15" FontWeight="Medium"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                                    </RadioButton>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </StackPanel>
+
+                <!-- ===== Step 2: Position Selection ===== -->
+                <StackPanel x:Name="PositionStepPanel" Visibility="Collapsed">
+                    <TextBlock FontSize="14" Margin="0,0,0,16">
+                        <Run Text="Module Selected: " Foreground="{StaticResource TextPrimaryBrush}" FontWeight="SemiBold" />
+                        <Run x:Name="PositionStepModuleText" Text="-" Foreground="{StaticResource JobsAccentBrush}" FontWeight="SemiBold" />
+                    </TextBlock>
+                    <TextBlock Text="Select Position:" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,10" />
+                    <ItemsControl x:Name="PositionOptionsItemsControl">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type models:LinePositionOptionInfo}">
+                                <RadioButton GroupName="AddModulePosition" MinHeight="52"
+                                             Style="{StaticResource OptionRadioButtonStyle}"
+                                             Checked="OnPositionOptionChecked">
+                                    <TextBlock Text="{Binding DisplayLabel}" FontSize="15"
+                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                </RadioButton>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
+                <!-- ===== Step 3: Technician Confirmation ===== -->
+                <StackPanel x:Name="ConfirmStepPanel" Visibility="Collapsed">
+                    <TextBlock Text="Preview Changes:" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,10" />
+                    <Border Background="{StaticResource ScreenBackgroundBrush}" CornerRadius="8" Padding="14,12" Margin="0,0,0,16">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,6">
+                                <TextBlock Text="Selected Module:" FontSize="13" Foreground="{StaticResource TextMutedBrush}" />
+                                <TextBlock x:Name="ConfirmModuleText" Text="-" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Right" />
+                            </Grid>
+                            <Grid>
+                                <TextBlock Text="Position:" FontSize="13" Foreground="{StaticResource TextMutedBrush}" />
+                                <TextBlock x:Name="ConfirmPositionText" Text="-" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Right" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="Enter Technician Code:" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,8" />
+                    <Border Background="{StaticResource ScreenBackgroundBrush}" CornerRadius="8"
+                            BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" Margin="0,0,0,12">
+                        <TextBox x:Name="TechnicianCodeTextBox" Background="Transparent" BorderThickness="0"
+                                 Padding="12,12" FontSize="16" Height="48" VerticalContentAlignment="Center"
+                                 IsReadOnly="True" />
+                    </Border>
+
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Button Grid.Row="0" Grid.Column="0" Style="{StaticResource KeypadButtonStyle}" Tag="1" Click="OnDigitClick">1</Button>
+                        <Button Grid.Row="0" Grid.Column="1" Style="{StaticResource KeypadButtonStyle}" Tag="2" Click="OnDigitClick">2</Button>
+                        <Button Grid.Row="0" Grid.Column="2" Style="{StaticResource KeypadButtonStyle}" Tag="3" Click="OnDigitClick">3</Button>
+
+                        <Button Grid.Row="1" Grid.Column="0" Style="{StaticResource KeypadButtonStyle}" Tag="4" Click="OnDigitClick">4</Button>
+                        <Button Grid.Row="1" Grid.Column="1" Style="{StaticResource KeypadButtonStyle}" Tag="5" Click="OnDigitClick">5</Button>
+                        <Button Grid.Row="1" Grid.Column="2" Style="{StaticResource KeypadButtonStyle}" Tag="6" Click="OnDigitClick">6</Button>
+
+                        <Button Grid.Row="2" Grid.Column="0" Style="{StaticResource KeypadButtonStyle}" Tag="7" Click="OnDigitClick">7</Button>
+                        <Button Grid.Row="2" Grid.Column="1" Style="{StaticResource KeypadButtonStyle}" Tag="8" Click="OnDigitClick">8</Button>
+                        <Button Grid.Row="2" Grid.Column="2" Style="{StaticResource KeypadButtonStyle}" Tag="9" Click="OnDigitClick">9</Button>
+
+                        <Button Grid.Row="3" Grid.Column="0" Style="{StaticResource KeypadButtonStyle}" Click="OnClearClick">Clear</Button>
+                        <Button Grid.Row="3" Grid.Column="1" Style="{StaticResource KeypadButtonStyle}" Tag="0" Click="OnDigitClick">0</Button>
+                        <Button Grid.Row="3" Grid.Column="2" Style="{StaticResource KeypadButtonStyle}" Click="OnBackspaceClick">&#9003; Backspace</Button>
+                    </Grid>
+                </StackPanel>
+
+                <!-- ===== Cancel / Continue / Confirm ===== -->
+                <Grid Margin="0,20,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="14" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" MinHeight="52" Click="OnCancelClick">
+                        <TextBlock Text="Cancel" FontSize="15" FontWeight="Medium" />
+                    </Button>
+                    <Button x:Name="ModuleContinueButton" Grid.Column="2" MinHeight="52"
+                            Background="{StaticResource JobsAccentBrush}" Foreground="{StaticResource JobsAccentForegroundBrush}"
+                            BorderThickness="0" Click="OnModuleContinueClick">
+                        <TextBlock Text="Continue" FontSize="15" FontWeight="Medium" />
+                    </Button>
+                    <Button x:Name="PositionContinueButton" Grid.Column="2" MinHeight="52"
+                            Background="{StaticResource JobsAccentBrush}" Foreground="{StaticResource JobsAccentForegroundBrush}"
+                            BorderThickness="0" IsEnabled="False" Visibility="Collapsed" Click="OnPositionContinueClick">
+                        <TextBlock Text="Continue" FontSize="15" FontWeight="Medium" />
+                    </Button>
+                    <Button x:Name="ConfirmButton" Grid.Column="2" MinHeight="52"
+                            Background="{StaticResource JobsAccentBrush}" Foreground="{StaticResource JobsAccentForegroundBrush}"
+                            BorderThickness="0" Visibility="Collapsed" Click="OnConfirmClick">
+                        <TextBlock Text="Confirm" FontSize="15" FontWeight="Medium" />
+                    </Button>
+                </Grid>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>
