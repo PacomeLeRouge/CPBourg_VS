@@ -741,6 +741,35 @@ card was short. All four are Home-screen fixes in `DashboardView.xaml(.cs)`:
    one now opens the Add Module wizard, same as the Line Actions "Add Module"
    button. Refactored the shared open path into `OpenAddModuleWizard()`.
 
+### v23 — STFO individual machine configuration screen
+
+**New: `Views/StfoConfigurationView.xaml(.cs)`** - the Individual Machine
+Configuration wizard for the STFO (booklet maker), reached by tapping the STFO
+tile on the Home dashboard (`DashboardView.NavigateToStfoRequested` ->
+`MainWindow.NavigateToStfo`). Matches the approved high-fidelity mock of the
+first ("Menu") step:
+
+- A five-step tab bar - **1. Menu / 2. Stitching / 3. Folding / 4. Trimming /
+  5. Conveyor** - with the active step filled navy; tapping a tab jumps to it.
+- A **Status / Machine / Job** strip (coloured dots + document icon).
+- A **Live Preview** card with a vector illustration of the STFO line (feeder
+  unit + booklet maker + output tray), drawn from existing theme tokens so it
+  re-skins with the app.
+- A footer: **Back / Reset / Save / Next**. Back on the first step (and Finish
+  on the last) returns to the dashboard; Next / the tabs walk the steps and the
+  shell header title follows (`STFO - Stitching`, etc.). Save / Reset show a
+  brief inline confirmation. All local - no WFM connection needed.
+
+The per-step settings forms (Stitching etc.) are future work, so steps 2-5
+currently share the Menu overview and differ by the highlighted tab, the title,
+the Next label, and a step caption. Only the STFO tile navigates (it's the only
+module screen that exists); the other dashboard tiles are inert for now.
+
+Wiring: `MainWindow` hosts `StfoScreen` alongside the other content screens and
+hides it from every `NavigateTo(...)` branch; `DashboardView` raises
+`NavigateToStfoRequested` from a tile tap (`OnMachineTileClick`, guarded to the
+STFO short code).
+
 ### Languages (FR-10)
 
 The stage labels in `Startup/StartupStage.cs` are the strings that will move to

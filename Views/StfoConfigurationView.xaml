@@ -1,0 +1,263 @@
+<UserControl x:Class="CPBourg.NextGenGui.Views.StfoConfigurationView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource ScreenBackgroundBrush}">
+
+    <!--
+        Individual Machine Configuration - STFO (booklet maker) job settings.
+
+        Reached from the Home dashboard by tapping the STFO machine tile (see
+        DashboardView.NavigateToStfoRequested -> MainWindow.NavigateToStfo).
+        A five-step wizard - Menu / Stitching / Folding / Trimming / Conveyor -
+        that walks the operator through the per-job settings for the STFO. This
+        matches the approved high-fidelity mock of the first ("Menu") step.
+
+        The step tab bar, the Status / Machine / Job strip, and the Live
+        Preview (a vector illustration of the booklet-maker line) are shared by
+        every step; the per-step settings forms (Stitching etc.) are future
+        work, so steps 2-5 currently show the same overview with a step
+        caption. Back / Reset / Save / Next drive the wizard locally - there is
+        no WFM connection in this build (see the dashboard controls, FR-03).
+
+        ICON NOTE: glyphs reuse Segoe MDL2 Assets codepoints already used
+        elsewhere in this app - ChevronLeft/Right (back / next, E76B/E76C),
+        Refresh (reset, E72C), Save (E74E), document (job, E8A5).
+
+        COLOUR NOTE: the machine illustration is drawn from existing theme
+        tokens (light body = CardBorderBrush, dark body = TextSecondaryBrush,
+        screens = HeaderBackgroundBrush, details = TextMutedBrush) so it
+        re-skins with the rest of the app - nothing here hard-codes a colour.
+    -->
+
+    <UserControl.Resources>
+
+        <!-- Step tab. Active state (navy fill / white text) is applied in
+             code-behind (RefreshUi) rather than a trigger, since the active
+             step is driven by _currentStep, not control state. -->
+        <Style x:Key="StepTabButtonStyle" TargetType="Button">
+            <Setter Property="MinHeight" Value="54" />
+            <Setter Property="FontSize" Value="19" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Outline footer button (Back / Reset / Next). -->
+        <Style x:Key="FooterButtonStyle" TargetType="Button">
+            <Setter Property="MinHeight" Value="58" />
+            <Setter Property="MinWidth" Value="150" />
+            <Setter Property="FontSize" Value="17" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bg" Background="{TemplateBinding Background}"
+                                BorderBrush="{StaticResource OutlineButtonBorderBrush}" BorderThickness="1"
+                                CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="18,0" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{StaticResource ScreenBackgroundBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bg" Property="Opacity" Value="0.5" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Primary (navy) footer button (Save). -->
+        <Style x:Key="PrimaryFooterButtonStyle" TargetType="Button">
+            <Setter Property="MinHeight" Value="58" />
+            <Setter Property="MinWidth" Value="150" />
+            <Setter Property="FontSize" Value="17" />
+            <Setter Property="FontWeight" Value="Medium" />
+            <Setter Property="Foreground" Value="{StaticResource HeaderTextPrimaryBrush}" />
+            <Setter Property="Background" Value="{StaticResource HeaderBackgroundBrush}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bg" Background="{TemplateBinding Background}" CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="18,0" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Opacity" Value="0.9" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="24,20,24,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="14" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="14" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="16" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- ================= Step tab bar ================= -->
+        <Border Grid.Row="0" Style="{StaticResource CardStyle}" Padding="6">
+            <UniformGrid Columns="5">
+                <Button x:Name="StepTab0" Style="{StaticResource StepTabButtonStyle}" Content="1. Menu" Click="OnStepTabClick" Tag="0" />
+                <Button x:Name="StepTab1" Style="{StaticResource StepTabButtonStyle}" Content="2. Stitching" Click="OnStepTabClick" Tag="1" />
+                <Button x:Name="StepTab2" Style="{StaticResource StepTabButtonStyle}" Content="3. Folding" Click="OnStepTabClick" Tag="2" />
+                <Button x:Name="StepTab3" Style="{StaticResource StepTabButtonStyle}" Content="4. Trimming" Click="OnStepTabClick" Tag="3" />
+                <Button x:Name="StepTab4" Style="{StaticResource StepTabButtonStyle}" Content="5. Conveyor" Click="OnStepTabClick" Tag="4" />
+            </UniformGrid>
+        </Border>
+
+        <!-- ================= Status / Machine / Job strip ================= -->
+        <Border Grid.Row="2" Style="{StaticResource CardStyle}" Padding="20,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="1" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="1" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Ellipse Width="12" Height="12" Fill="{StaticResource StatusIdleBrush}" VerticalAlignment="Center" />
+                    <TextBlock Margin="12,0,0,0" FontSize="20" VerticalAlignment="Center">
+                        <Run Text="Status: " FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" /><Run x:Name="StatusValueRun" Text="Ready" Foreground="{StaticResource TextSecondaryBrush}" />
+                    </TextBlock>
+                </StackPanel>
+
+                <Border Grid.Column="1" Background="{StaticResource CardBorderBrush}" Width="1" Margin="0,2" />
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="20,0,0,0">
+                    <Ellipse Width="12" Height="12" Fill="{StaticResource StatusRunningBrush}" VerticalAlignment="Center" />
+                    <TextBlock Margin="12,0,0,0" FontSize="20" VerticalAlignment="Center">
+                        <Run Text="Machine: " FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" /><Run x:Name="MachineValueRun" Text="Ready" Foreground="{StaticResource TextSecondaryBrush}" />
+                    </TextBlock>
+                </StackPanel>
+
+                <Border Grid.Column="3" Background="{StaticResource CardBorderBrush}" Width="1" Margin="0,2" />
+
+                <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" Margin="20,0,0,0">
+                    <TextBlock Text="&#xE8A5;" FontFamily="{StaticResource IconFontFamily}" FontSize="20"
+                               Foreground="{StaticResource JobsAccentBrush}" VerticalAlignment="Center" />
+                    <TextBlock Margin="12,0,0,0" FontSize="20" VerticalAlignment="Center">
+                        <Run Text="Job: " FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" /><Run x:Name="JobValueRun" Text="[Job Name]" Foreground="{StaticResource TextSecondaryBrush}" />
+                    </TextBlock>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ================= Live Preview ================= -->
+        <Border Grid.Row="4" Style="{StaticResource CardStyle}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="Live Preview" FontSize="17" FontWeight="Medium"
+                           Foreground="{StaticResource TextPrimaryBrush}" />
+
+                <Grid Grid.Row="1">
+                    <!-- Vector illustration of the STFO booklet-maker line
+                         (feeder unit + booklet maker + output tray). -->
+                    <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="20"
+                             HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Canvas Width="640" Height="300">
+                            <!-- ===== Feeder unit (light) ===== -->
+                            <Ellipse Canvas.Left="95" Canvas.Top="258" Width="22" Height="22" Fill="{StaticResource TextSecondaryBrush}" />
+                            <Ellipse Canvas.Left="225" Canvas.Top="258" Width="22" Height="22" Fill="{StaticResource TextSecondaryBrush}" />
+                            <Rectangle Canvas.Left="70" Canvas.Top="120" Width="200" Height="145" RadiusX="8" RadiusY="8"
+                                       Fill="{StaticResource CardBorderBrush}" Stroke="{StaticResource TextMutedBrush}" StrokeThickness="1.5" />
+                            <Rectangle Canvas.Left="95" Canvas.Top="165" Width="70" Height="10" RadiusX="4" RadiusY="4" Fill="{StaticResource TextMutedBrush}" />
+                            <Rectangle Canvas.Left="95" Canvas.Top="200" Width="70" Height="10" RadiusX="4" RadiusY="4" Fill="{StaticResource TextMutedBrush}" />
+                            <Rectangle Canvas.Left="150" Canvas.Top="92" Width="8" Height="32" Fill="{StaticResource TextMutedBrush}" />
+                            <Rectangle Canvas.Left="118" Canvas.Top="62" Width="74" Height="44" RadiusX="4" RadiusY="4" Fill="{StaticResource HeaderBackgroundBrush}" />
+
+                            <!-- ===== Booklet maker unit (dark) ===== -->
+                            <Ellipse Canvas.Left="315" Canvas.Top="258" Width="22" Height="22" Fill="{StaticResource TextSecondaryBrush}" />
+                            <Ellipse Canvas.Left="470" Canvas.Top="258" Width="22" Height="22" Fill="{StaticResource TextSecondaryBrush}" />
+                            <Rectangle Canvas.Left="278" Canvas.Top="128" Width="250" Height="137" RadiusX="8" RadiusY="8" Fill="{StaticResource TextSecondaryBrush}" />
+                            <Rectangle Canvas.Left="290" Canvas.Top="112" Width="80" Height="28" RadiusX="6" RadiusY="6" Fill="{StaticResource TextMutedBrush}" />
+                            <Ellipse Canvas.Left="452" Canvas.Top="182" Width="52" Height="52" Stroke="{StaticResource TextMutedBrush}" StrokeThickness="3" Fill="Transparent" />
+                            <Ellipse Canvas.Left="470" Canvas.Top="200" Width="16" Height="16" Fill="{StaticResource TextMutedBrush}" />
+                            <Rectangle Canvas.Left="430" Canvas.Top="90" Width="8" Height="40" Fill="{StaticResource TextMutedBrush}" />
+                            <Rectangle Canvas.Left="398" Canvas.Top="58" Width="78" Height="50" RadiusX="4" RadiusY="4" Fill="{StaticResource HeaderBackgroundBrush}" />
+
+                            <!-- ===== Output tray ===== -->
+                            <Rectangle Canvas.Left="528" Canvas.Top="185" Width="100" Height="22" RadiusX="3" RadiusY="3" Fill="{StaticResource TextSecondaryBrush}" />
+                            <Rectangle Canvas.Left="528" Canvas.Top="178" Width="100" Height="8" RadiusX="2" RadiusY="2" Fill="{StaticResource TextMutedBrush}" />
+                        </Canvas>
+                    </Viewbox>
+
+                    <TextBlock x:Name="StepCaptionText" Text="" VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                               Margin="0,0,0,4" FontSize="14" Foreground="{StaticResource TextMutedBrush}" />
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!-- ================= Footer actions ================= -->
+        <Grid Grid.Row="6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Style="{StaticResource FooterButtonStyle}" Click="OnBackClick">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#xE76B;" FontFamily="{StaticResource IconFontFamily}" FontSize="16" VerticalAlignment="Center" />
+                    <TextBlock Text="Back" Margin="10,0,0,0" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+
+            <Button Grid.Column="2" Style="{StaticResource FooterButtonStyle}" Click="OnResetClick">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#xE72C;" FontFamily="{StaticResource IconFontFamily}" FontSize="16" VerticalAlignment="Center" />
+                    <TextBlock Text="Reset" Margin="10,0,0,0" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+
+            <TextBlock Grid.Column="3" x:Name="FooterStatusText" Text="" HorizontalAlignment="Center" VerticalAlignment="Center"
+                       FontSize="14" Foreground="{StaticResource StatusRunningBrush}" />
+
+            <Button Grid.Column="4" Style="{StaticResource PrimaryFooterButtonStyle}" Click="OnSaveClick">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#xE74E;" FontFamily="{StaticResource IconFontFamily}" FontSize="16" VerticalAlignment="Center" />
+                    <TextBlock Text="Save" Margin="10,0,0,0" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+
+            <Button Grid.Column="6" x:Name="NextButton" Style="{StaticResource FooterButtonStyle}" Click="OnNextClick">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock x:Name="NextButtonText" Text="Next: Stitching" VerticalAlignment="Center" />
+                    <TextBlock Text="&#xE76C;" FontFamily="{StaticResource IconFontFamily}" FontSize="16" Margin="10,0,0,0" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+        </Grid>
+    </Grid>
+</UserControl>

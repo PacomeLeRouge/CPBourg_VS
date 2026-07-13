@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using CPBourg.NextGenGui.Models;
 
@@ -40,6 +41,10 @@ namespace CPBourg.NextGenGui.Views
         /// <summary>Raised when View Errors is clicked - MainWindow navigates
         /// to the Errors & Information screen.</summary>
         public event EventHandler NavigateToErrorsRequested;
+
+        /// <summary>Raised when the STFO machine tile is tapped - MainWindow
+        /// opens the STFO individual-machine configuration wizard.</summary>
+        public event EventHandler NavigateToStfoRequested;
 
         // Maps a configurable module type (the Machine Line Configuration
         // catalog) to its Home-dashboard tile short code, in display order.
@@ -88,6 +93,19 @@ namespace CPBourg.NextGenGui.Views
             }
 
             MachineTilesControl.ItemsSource = tiles;
+        }
+
+        // Tapping a machine tile opens that module's configuration. Only the
+        // STFO screen exists in this prototype, so only the STFO tile
+        // navigates; the other tiles are inert for now.
+        private void OnMachineTileClick(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is FrameworkElement element &&
+                element.DataContext is MachineTileInfo tile &&
+                tile.ShortCode == "STFO")
+            {
+                NavigateToStfoRequested?.Invoke(this, EventArgs.Empty);
+            }
         }
 
         /// <summary>
