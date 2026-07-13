@@ -656,6 +656,42 @@ reference mock uses a plain connector arrow, this screen deliberately uses
 literal Unicode characters (→, ▶) instead of guessing another icon
 codepoint, same reasoning as the flag emoji in `ChangeValueDialog`.
 
+### v20 — Home dashboard: full-screen vs windowed scaling fixes
+
+The dashboard is authored fluid (star-sized rows/columns, no fixed canvas -
+see v5). That fills the width correctly, but several cards laid their content
+out top-aligned, so the extra vertical height a full-screen window has over a
+compact windowed / 1024x768 one showed up as empty white space. The machine
+tiles had the opposite problem - a fixed tile height that got clipped when the
+card was short. All four are Home-screen fixes in `DashboardView.xaml(.cs)`:
+
+1. **Counter & Productivity: footer stat strip now reaches the bottom.** The
+   spacer rows below the completed-sets block are now star-height with a
+   `MinHeight` floor. At the compact windowed / tablet size they collapse to
+   the same fixed gaps as before; any extra height (full screen) is absorbed
+   between the sections so the grey stat strip sits at the bottom of the card
+   instead of leaving empty white space under it. The header-to-number gap
+   stays fixed so those two always read as one group.
+
+2. **Current Jobs: no more empty gap under the buttons.** The card root became
+   a three-row `Grid` (title / job summary / buttons) instead of a top-aligned
+   `StackPanel`. The job-summary box takes the leftover height and the New job
+   / Load job buttons stay pinned to the bottom.
+
+3. **Active Alerts: no more empty gap under the button.** Same idea - a
+   two-row `Grid` with the alert block centred in the remaining space, so full
+   screen no longer leaves a large white gap beneath "View errors".
+
+4. **Machines: tiles no longer clip in windowed mode; only STFO is online.**
+   The tile row is wrapped in a `Viewbox` (`Stretch="Uniform"`,
+   `StretchDirection="DownOnly"`) so it scales down to fit whenever the card is
+   short - windowed mode and the 1024x768 tablet, where the fixed tile height
+   was previously "3/4 cut off". When there is room (full screen) the tiles
+   stay at their natural size, top-anchored as before. Separately, per operator
+   feedback, every module except **STFO** is now shown Offline (greyed out) in
+   the sample data (`DashboardView.xaml.cs` `LoadSampleMachines`) - STFO is the
+   single active/controllable module in this prototype.
+
 ### Languages (FR-10)
 
 The stage labels in `Startup/StartupStage.cs` are the strings that will move to
