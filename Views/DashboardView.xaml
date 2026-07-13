@@ -16,7 +16,8 @@
              more compact size so tiles do not clip in windowed mode. -->
 		<DataTemplate DataType="{x:Type models:MachineTileInfo}">
 			<Border Background="{Binding Status, Converter={StaticResource StatusToBgBrush}}"
-                    CornerRadius="10" Margin="4" Padding="12" MinHeight="78">
+                    CornerRadius="10" Margin="4" Padding="12" MinHeight="78"
+                    Cursor="Hand" MouseLeftButtonUp="OnMachineTileClick">
 				<Grid>
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="Auto" />

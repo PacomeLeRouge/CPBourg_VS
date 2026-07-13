@@ -21,6 +21,13 @@ namespace CPBourg.NextGenGui.Views
 
             Dashboard.NavigateToJobsRequested += (s, e) => NavigateTo("Job / File Menu");
             Dashboard.NavigateToErrorsRequested += (s, e) => NavigateTo("Error & Information");
+            Dashboard.NavigateToStfoRequested += (s, e) => NavigateToStfo();
+
+            // The STFO wizard drives the shell header title as its step
+            // changes, and asks to return to the dashboard on Back-from-first /
+            // Finish.
+            StfoScreen.TitleChanged += (s, title) => PageTitleText.Text = title;
+            StfoScreen.CloseRequested += (s, e) => NavigateTo("Home");
 
             // Keep the Dashboard's Active Alerts card in sync with the real
             // Errors & Information state - both on every change, and once
@@ -81,6 +88,7 @@ namespace CPBourg.NextGenGui.Views
                 JobsScreen.Visibility = Visibility.Collapsed;
                 ErrorsScreen.Visibility = Visibility.Collapsed;
                 MachineLineConfigScreen.Visibility = Visibility.Collapsed;
+                StfoScreen.Visibility = Visibility.Collapsed;
                 PageTitleText.Text = "Home";
             }
             else if (itemName == "Settings / Preferences")
@@ -90,6 +98,7 @@ namespace CPBourg.NextGenGui.Views
                 JobsScreen.Visibility = Visibility.Collapsed;
                 ErrorsScreen.Visibility = Visibility.Collapsed;
                 MachineLineConfigScreen.Visibility = Visibility.Collapsed;
+                StfoScreen.Visibility = Visibility.Collapsed;
                 PageTitleText.Text = "Settings";
             }
             else if (itemName == "Job / File Menu")
@@ -99,6 +108,7 @@ namespace CPBourg.NextGenGui.Views
                 JobsScreen.Visibility = Visibility.Visible;
                 ErrorsScreen.Visibility = Visibility.Collapsed;
                 MachineLineConfigScreen.Visibility = Visibility.Collapsed;
+                StfoScreen.Visibility = Visibility.Collapsed;
                 PageTitleText.Text = "Jobs / File Menu";
             }
             else if (itemName == "Error & Information")
@@ -108,6 +118,7 @@ namespace CPBourg.NextGenGui.Views
                 JobsScreen.Visibility = Visibility.Collapsed;
                 ErrorsScreen.Visibility = Visibility.Visible;
                 MachineLineConfigScreen.Visibility = Visibility.Collapsed;
+                StfoScreen.Visibility = Visibility.Collapsed;
                 PageTitleText.Text = "Errors";
             }
             else if (itemName == "Machine Line Configuration")
@@ -117,12 +128,30 @@ namespace CPBourg.NextGenGui.Views
                 JobsScreen.Visibility = Visibility.Collapsed;
                 ErrorsScreen.Visibility = Visibility.Collapsed;
                 MachineLineConfigScreen.Visibility = Visibility.Visible;
+                StfoScreen.Visibility = Visibility.Collapsed;
                 PageTitleText.Text = "Machine Line Configuration";
             }
             else
             {
                 PageTitleText.Text = itemName;
             }
+        }
+
+        /// <summary>
+        /// Opens the STFO individual-machine configuration wizard - reached by
+        /// tapping the STFO tile on the Home dashboard, not the global menu.
+        /// Entry always starts on the first (Menu) step; the page title then
+        /// tracks the wizard step via <see cref="StfoConfigurationView.TitleChanged"/>.
+        /// </summary>
+        private void NavigateToStfo()
+        {
+            Dashboard.Visibility = Visibility.Collapsed;
+            SettingsScreen.Visibility = Visibility.Collapsed;
+            JobsScreen.Visibility = Visibility.Collapsed;
+            ErrorsScreen.Visibility = Visibility.Collapsed;
+            MachineLineConfigScreen.Visibility = Visibility.Collapsed;
+            StfoScreen.Visibility = Visibility.Visible;
+            StfoScreen.ResetToStart();
         }
 
         private void UpdateDashboardAlertsSummary()
