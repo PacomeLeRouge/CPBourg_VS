@@ -236,9 +236,22 @@ namespace CPBourg.NextGenGui.Views
                 Child = icon,
             };
 
-            var grid = new Grid { Width = 68, Height = 118, Margin = new Thickness(6, 0, 6, 0) };
+            var grid = new Grid
+            {
+                Width = 68,
+                Height = 118,
+                Margin = new Thickness(6, 0, 6, 0),
+                Background = Brushes.Transparent,   // make the whole tile hit-testable, not just the shapes
+                Cursor = Cursors.Hand,
+                ToolTip = "Add a module",
+            };
             grid.Children.Add(rect);
             grid.Children.Add(iconCircle);
+
+            // The "+" hint tiles bookending the strip are also a way to add a
+            // module, matching the two Add Module buttons.
+            grid.MouseLeftButtonUp += (s, e) => OpenAddModuleWizard();
+
             return grid;
         }
 
@@ -305,7 +318,12 @@ namespace CPBourg.NextGenGui.Views
 
         // ================= Line Actions =================
 
-        private void OnAddModuleClick(object sender, RoutedEventArgs e)
+        private void OnAddModuleClick(object sender, RoutedEventArgs e) => OpenAddModuleWizard();
+
+        // Shared by the Line Actions "Add Module" button, the empty-state
+        // "Add Module" button, and the dashed "+" hint tiles that bookend the
+        // carousel strip - all of them open the Add Module wizard.
+        private void OpenAddModuleWizard()
         {
             string anchorModuleType = _machines.Count > 0 ? _machines[_focusedIndex].ModuleType : null;
             AddModuleWizardDialogControl.Open(Catalog.Select(c => c.ModuleType), anchorModuleType);
