@@ -49,11 +49,16 @@ namespace CPBourg.NextGenGui.Views
             // Sample train matching PRD 3.1 (BSF feeder, BME/STFO booklet
             // maker, BSE square edge, BTR trimmer) - shown here with the
             // short codes used in the reference mock.
+            //
+            // Only the STFO module is online in this prototype; every other
+            // module is shown Offline (greyed out) per operator feedback -
+            // the STFO is the single active/controllable module here. Replace
+            // with real per-module status from the WFM once wired in.
             var machines = new List<MachineTileInfo>
             {
-                new MachineTileInfo("BSF", MachineStatus.Running),
+                new MachineTileInfo("BSF", MachineStatus.Offline),
                 new MachineTileInfo("STFO", MachineStatus.Running),
-                new MachineTileInfo("BSE", MachineStatus.Idle),
+                new MachineTileInfo("BSE", MachineStatus.Offline),
                 new MachineTileInfo("TR", MachineStatus.Offline),
             };
             MachineTilesControl.ItemsSource = machines;

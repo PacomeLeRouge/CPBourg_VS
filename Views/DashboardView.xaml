@@ -95,15 +95,24 @@
 				<!-- Counter and Productivity card -->
 				<Border Grid.Row="0" Style="{StaticResource CardStyle}">
 					<Grid>
+						<!-- The spacer rows below the completed-sets block use star
+                             heights with a MinHeight floor: at the compact
+                             windowed / 1024x768 size they collapse to the same
+                             fixed gaps as before, but any extra height (full
+                             screen) is absorbed here so the content spreads to
+                             fill the card and the footer stat strip sits at the
+                             bottom - instead of leaving empty white space below
+                             it. The header-to-number gap (row 1) stays fixed so
+                             those two always read as one group. -->
 						<Grid.RowDefinitions>
 							<RowDefinition Height="Auto" />
 							<RowDefinition Height="18" />
 							<RowDefinition Height="Auto" />
-							<RowDefinition Height="16" />
+							<RowDefinition Height="*" MinHeight="16" />
 							<RowDefinition Height="1" />
-							<RowDefinition Height="16" />
+							<RowDefinition Height="*" MinHeight="16" />
 							<RowDefinition Height="Auto" />
-							<RowDefinition Height="18" />
+							<RowDefinition Height="*" MinHeight="18" />
 							<RowDefinition Height="Auto" />
 						</Grid.RowDefinitions>
 
@@ -223,19 +232,33 @@
 					</Grid>
 				</Border>
 
-				<!-- Machines card -->
+				<!-- Machines card.
+                     The tile row lives inside a Viewbox (Uniform, DownOnly) so
+                     it scales DOWN to fit whenever this card is short - e.g. in
+                     windowed mode and on the 1024x768 tablet, where a fixed
+                     tile height previously got clipped ("3/4 cut off"). When
+                     there is room (full screen / taller windows) the tiles stay
+                     at their natural size, centred in the card instead of
+                     clumping against the title. -->
 				<Border Grid.Row="2" Style="{StaticResource CardStyle}">
-					<StackPanel>
-						<TextBlock Text="Machines" Foreground="{StaticResource TextPrimaryBrush}"
+					<Grid>
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="*" />
+						</Grid.RowDefinitions>
+						<TextBlock Grid.Row="0" Text="Machines" Foreground="{StaticResource TextPrimaryBrush}"
                                    FontSize="18" FontWeight="Medium" Margin="0,0,0,14" />
-						<ItemsControl x:Name="MachineTilesControl">
-							<ItemsControl.ItemsPanel>
-								<ItemsPanelTemplate>
-									<UniformGrid Columns="4" />
-								</ItemsPanelTemplate>
-							</ItemsControl.ItemsPanel>
-						</ItemsControl>
-					</StackPanel>
+						<Viewbox Grid.Row="1" Stretch="Uniform" StretchDirection="DownOnly"
+                                 HorizontalAlignment="Stretch" VerticalAlignment="Top">
+							<ItemsControl x:Name="MachineTilesControl" Width="600">
+								<ItemsControl.ItemsPanel>
+									<ItemsPanelTemplate>
+										<UniformGrid Columns="4" />
+									</ItemsPanelTemplate>
+								</ItemsControl.ItemsPanel>
+							</ItemsControl>
+						</Viewbox>
+					</Grid>
 				</Border>
 			</Grid>
 
@@ -247,14 +270,24 @@
 					<RowDefinition Height="1*" />
 				</Grid.RowDefinitions>
 
-				<!-- Current Jobs card -->
+				<!-- Current Jobs card.
+                     Grid rows (title / job summary / buttons) instead of a
+                     StackPanel so the job-summary box takes the leftover height
+                     and the action buttons stay pinned to the bottom. Full
+                     screen used to leave a large empty gap under the buttons;
+                     now the summary box grows to absorb it. -->
 				<Border Grid.Row="0" Style="{StaticResource CardStyle}" Padding="18">
-					<StackPanel>
-						<TextBlock Text="Current Jobs" Foreground="{StaticResource TextPrimaryBrush}"
+					<Grid>
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="*" />
+							<RowDefinition Height="Auto" />
+						</Grid.RowDefinitions>
+						<TextBlock Grid.Row="0" Text="Current Jobs" Foreground="{StaticResource TextPrimaryBrush}"
                                    FontSize="17" FontWeight="Medium" Margin="0,0,0,12" />
 
-						<Border Background="{StaticResource ScreenBackgroundBrush}" CornerRadius="8" Padding="14" Margin="0,0,0,14">
-							<Grid>
+						<Border Grid.Row="1" Background="{StaticResource ScreenBackgroundBrush}" CornerRadius="8" Padding="14" Margin="0,0,0,14">
+							<Grid VerticalAlignment="Center">
 								<Grid.ColumnDefinitions>
 									<ColumnDefinition Width="Auto" />
 									<ColumnDefinition Width="*" />
@@ -287,7 +320,7 @@
 							</Grid>
 						</Border>
 
-						<Grid>
+						<Grid Grid.Row="2">
 							<Grid.ColumnDefinitions>
 								<ColumnDefinition Width="*" />
 								<ColumnDefinition Width="10" />
@@ -308,15 +341,23 @@
 								</StackPanel>
 							</Button>
 						</Grid>
-					</StackPanel>
+					</Grid>
 				</Border>
 
-				<!-- Active Alerts card -->
+				<!-- Active Alerts card.
+                     Title stays at the top; the alert block is centred in the
+                     remaining space (Grid rows instead of a top-aligned
+                     StackPanel) so full screen no longer leaves a large empty
+                     gap beneath the button. -->
 				<Border Grid.Row="2" Style="{StaticResource CardStyle}" Padding="18">
-					<StackPanel>
-						<TextBlock Text="Active Alerts" Foreground="{StaticResource TextPrimaryBrush}"
+					<Grid>
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="*" />
+						</Grid.RowDefinitions>
+						<TextBlock Grid.Row="0" Text="Active Alerts" Foreground="{StaticResource TextPrimaryBrush}"
                                    FontSize="17" FontWeight="Medium" Margin="0,0,0,14" />
-						<Grid>
+						<Grid Grid.Row="1" VerticalAlignment="Center">
 							<Grid.ColumnDefinitions>
 								<ColumnDefinition Width="Auto" />
 								<ColumnDefinition Width="*" />
@@ -340,7 +381,7 @@
 								</Button>
 							</StackPanel>
 						</Grid>
-					</StackPanel>
+					</Grid>
 				</Border>
 			</Grid>
 		</Grid>
