@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -38,30 +39,51 @@ namespace CPBourg.NextGenGui.Views
         /// to the Errors & Information screen.</summary>
         public event EventHandler NavigateToErrorsRequested;
 
+        // Maps a configurable module type (the Machine Line Configuration
+        // catalog) to its Home-dashboard tile short code, in display order.
+        // A tile is shown online (Running) when its module is on the line and
+        // offline (greyed out) otherwise - see SetOnlineModules. Codes match
+        // the reference mock (BSF feeder, STFO booklet maker, BSE stacker,
+        // TR trimmer).
+        private static readonly (string ModuleType, string ShortCode)[] ModuleTiles =
+        {
+            ("Feeder", "BSF"),
+            ("Booklet Maker", "STFO"),
+            ("Stacker", "BSE"),
+            ("Trimmer", "TR"),
+        };
+
         public DashboardView()
         {
             InitializeComponent();
-            LoadSampleMachines();
+
+            // Default to only the Booklet Maker (STFO) online, matching the
+            // default machine line. MainWindow re-syncs this from the real
+            // line at startup and whenever the line changes.
+            SetOnlineModules(new[] { "Booklet Maker" });
         }
 
-        private void LoadSampleMachines()
+        /// <summary>
+        /// Shows a machine tile online (Running) when its module type is on
+        /// the machine line, and offline (greyed out) otherwise. MainWindow
+        /// wires this to <see cref="MachineLineConfigurationView.LineChanged"/>
+        /// so adding a Feeder / Stacker / Trimmer on the configuration screen
+        /// brings the matching tile online here, and removing it greys it out.
+        /// </summary>
+        public void SetOnlineModules(IEnumerable<string> moduleTypesOnLine)
         {
-            // Sample train matching PRD 3.1 (BSF feeder, BME/STFO booklet
-            // maker, BSE square edge, BTR trimmer) - shown here with the
-            // short codes used in the reference mock.
-            //
-            // Only the STFO module is online in this prototype; every other
-            // module is shown Offline (greyed out) per operator feedback -
-            // the STFO is the single active/controllable module here. Replace
-            // with real per-module status from the WFM once wired in.
-            var machines = new List<MachineTileInfo>
+            var onLine = new HashSet<string>(moduleTypesOnLine ?? Enumerable.Empty<string>());
+
+            var tiles = new List<MachineTileInfo>();
+            foreach (var tile in ModuleTiles)
             {
-                new MachineTileInfo("BSF", MachineStatus.Offline),
-                new MachineTileInfo("STFO", MachineStatus.Running),
-                new MachineTileInfo("BSE", MachineStatus.Offline),
-                new MachineTileInfo("TR", MachineStatus.Offline),
-            };
-            MachineTilesControl.ItemsSource = machines;
+                var status = onLine.Contains(tile.ModuleType)
+                    ? MachineStatus.Running
+                    : MachineStatus.Offline;
+                tiles.Add(new MachineTileInfo(tile.ShortCode, status));
+            }
+
+            MachineTilesControl.ItemsSource = tiles;
         }
 
         /// <summary>

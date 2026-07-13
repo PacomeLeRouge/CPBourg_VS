@@ -3,7 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:CPBourg.NextGenGui.Views"
         Title="C.P. Bourg - NextGen Operator Interface"
-        WindowState="Maximized"
+        WindowState="Normal"
+        WindowStartupLocation="CenterScreen"
+        Width="1280" Height="820"
         MinWidth="1180" MinHeight="760"
         Background="{StaticResource ScreenBackgroundBrush}"
         FontFamily="{StaticResource BrandFontFamily}">
@@ -12,10 +14,13 @@
         Application shell: header bar + dashboard content + global menu
         overlay.
 
-        MinWidth/MinHeight above stop the window from being resized smaller
-        than the header and action bar's natural minimum size - without
-        this, restoring the window down in windowed mode could clip buttons
-        that had nowhere left to go (Grid columns don't wrap or scroll).
+        The app opens windowed (WindowState="Normal") at a fixed default
+        size, centred on screen, rather than maximized - the operator can
+        still maximize it. MinWidth/MinHeight stop the window from being
+        resized smaller than the header and action bar's natural minimum
+        size - without this, restoring the window down in windowed mode
+        could clip buttons that had nowhere left to go (Grid columns don't
+        wrap or scroll).
 
         Everything fills the actual window (no fixed design canvas / Viewbox
         - see the v5 README note for why that was removed).
