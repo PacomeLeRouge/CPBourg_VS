@@ -37,6 +37,7 @@ namespace CPBourg.NextGenGui.Views
         };
 
         private const int StitchingStep = 1;
+        private const int FoldingStep = 2;
 
         private readonly Button[] _stepTabs;
         private int _currentStep;
@@ -47,6 +48,11 @@ namespace CPBourg.NextGenGui.Views
 
         private Button[] _modeButtons;
         private TextBlock[] _modeLabels;
+
+        // Folding parameters (defaults match the controls set in XAML).
+        private bool _foldEnabled = true;
+        private double _foldPosition = 10;
+        private string _pressureMode = "Manual";
 
         // Suppresses the TextChanged handlers that fire while InitializeComponent
         // sets each field's initial text, before the rest of the tree exists.
@@ -72,6 +78,13 @@ namespace CPBourg.NextGenGui.Views
             RefreshStitchModeButtons();
             UpdateStitchSummary();
             RedrawStitchPreview();
+
+            _foldPosition = FoldPositionSlider.Value;
+            FoldPositionValueText.Text = Fmt(_foldPosition, "0.0");
+            RefreshFoldChoiceButtons();
+            UpdateFoldSummary();
+            RedrawFoldPreview();
+
             RefreshUi();
         }
 
@@ -104,8 +117,10 @@ namespace CPBourg.NextGenGui.Views
             }
 
             bool isStitching = _currentStep == StitchingStep;
+            bool isFolding = _currentStep == FoldingStep;
             StitchingContent.Visibility = isStitching ? Visibility.Visible : Visibility.Collapsed;
-            OverviewContent.Visibility = isStitching ? Visibility.Collapsed : Visibility.Visible;
+            FoldingContent.Visibility = isFolding ? Visibility.Visible : Visibility.Collapsed;
+            OverviewContent.Visibility = (!isStitching && !isFolding) ? Visibility.Visible : Visibility.Collapsed;
 
             StepCaptionText.Text = StepCaptions[_currentStep];
 
@@ -371,6 +386,199 @@ namespace CPBourg.NextGenGui.Views
                 TextAlignment = alignment,
             };
             canvas.Children.Add(Positioned(block, x, y));
+        }
+
+        // ================= Folding form =================
+
+        private void OnFoldFunctionClick(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is string tag)
+            {
+                _foldEnabled = tag == "Enabled";
+                RefreshFoldChoiceButtons();
+                UpdateFoldSummary();
+                RedrawFoldPreview();
+            }
+        }
+
+        private void OnPressureModeClick(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is string mode)
+            {
+                _pressureMode = mode;
+                RefreshFoldChoiceButtons();
+                UpdateFoldSummary();
+            }
+        }
+
+        private void OnFoldMinusClick(object sender, RoutedEventArgs e)
+        {
+            FoldPositionSlider.Value = Math.Max(FoldPositionSlider.Minimum, FoldPositionSlider.Value - 1);
+        }
+
+        private void OnFoldPlusClick(object sender, RoutedEventArgs e)
+        {
+            FoldPositionSlider.Value = Math.Min(FoldPositionSlider.Maximum, FoldPositionSlider.Value + 1);
+        }
+
+        private void OnFoldPositionChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (!_loaded)
+            {
+                return;
+            }
+
+            _foldPosition = FoldPositionSlider.Value;
+            FoldPositionValueText.Text = Fmt(_foldPosition, "0.0");
+            UpdateFoldSummary();
+            RedrawFoldPreview();
+        }
+
+        private void OnPressureChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            // Pressure level is internal state only in this prototype; the mode
+            // (Auto / Default / Manual) is what the summary reflects.
+        }
+
+        private void RefreshFoldChoiceButtons()
+        {
+            SetChoiceSelected(FoldEnabledButton, _foldEnabled);
+            SetChoiceSelected(FoldDisabledButton, !_foldEnabled);
+            SetChoiceSelected(PressureAutoButton, _pressureMode == "Auto");
+            SetChoiceSelected(PressureDefaultButton, _pressureMode == "Default");
+            SetChoiceSelected(PressureManualButton, _pressureMode == "Manual");
+
+            // Fold position only matters when folding is on; pressure is only
+            // hand-set in Manual mode (Auto/Default drive it automatically).
+            FoldMinusButton.IsEnabled = _foldEnabled;
+            FoldPlusButton.IsEnabled = _foldEnabled;
+            FoldPositionSlider.IsEnabled = _foldEnabled;
+            PressureSlider.IsEnabled = _pressureMode == "Manual";
+        }
+
+        private void SetChoiceSelected(Button button, bool selected)
+        {
+            button.Background = (Brush)FindResource(selected ? "JobsAccentBrush" : "CardBackgroundBrush");
+            button.Foreground = (Brush)FindResource(selected ? "JobsAccentForegroundBrush" : "TextPrimaryBrush");
+            button.BorderBrush = (Brush)FindResource(selected ? "JobsAccentBrush" : "OutlineButtonBorderBrush");
+        }
+
+        private void UpdateFoldSummary()
+        {
+            FoldSummaryFolding.Text = _foldEnabled ? "Enabled" : "Disabled";
+            FoldSummaryPosition.Text = Fmt(_foldPosition, "0.00") + " mm";
+            FoldSummaryPressure.Text = _pressureMode;
+        }
+
+        // ---- Folding live preview ----
+        //
+        // An open booklet with a movable dashed fold line: the line (and the
+        // "Fold direction" arrow) shift to whichever side is selected via the
+        // fold position, and the offset arrow beneath shows the distance from
+        // centre. Positive = Forward (fold shifts right); negative = Backward
+        // (left).
+
+        private void RedrawFoldPreview()
+        {
+            var canvas = FoldPreviewCanvas;
+            canvas.Children.Clear();
+
+            var pageFill = (Brush)FindResource("CardBackgroundBrush");
+            var stroke = (Brush)FindResource("TextSecondaryBrush");
+            var grey = (Brush)FindResource("CardBorderBrush");
+            var muted = (Brush)FindResource("TextMutedBrush");
+            var navy = (Brush)FindResource("HeaderBackgroundBrush");
+            var labelBrush = (Brush)FindResource("TextSecondaryBrush");
+
+            const double cx = 170;
+
+            // Open booklet - left page recedes, right page faces the viewer.
+            AddPolygon(canvas, new double[,] { { 170, 102 }, { 96, 74 }, { 96, 210 }, { 170, 250 } }, pageFill, stroke);
+            AddPolygon(canvas, new double[,] { { 170, 102 }, { 250, 120 }, { 250, 252 }, { 170, 250 } }, pageFill, stroke);
+
+            // Sample content on the front page.
+            AddLine(canvas, 192, 152, 236, 152, grey, 5);
+            AddLine(canvas, 192, 167, 236, 167, grey, 5);
+            AddLine(canvas, 192, 182, 230, 182, grey, 5);
+            AddRect(canvas, 196, 200, 26, 34, grey);
+
+            if (_foldEnabled)
+            {
+                const double pxPerMm = 1.4;
+                double foldX = Clamp(cx + _foldPosition * pxPerMm, 104, 246);
+
+                canvas.Children.Add(new Line
+                {
+                    X1 = foldX,
+                    Y1 = 86,
+                    X2 = foldX,
+                    Y2 = 256,
+                    Stroke = muted,
+                    StrokeThickness = 1.5,
+                    StrokeDashArray = new DoubleCollection { 4, 3 },
+                });
+
+                double half = Clamp(Math.Abs(_foldPosition) * pxPerMm, 26, 120);
+                AddHArrow(canvas, cx - half, cx + half, 284, navy, true);
+                AddLabel(canvas, "Fold offset (from center)", cx - 120, 296, 240, labelBrush, TextAlignment.Center);
+
+                if (Math.Abs(_foldPosition) > 0.001)
+                {
+                    AddLabel(canvas, "Fold direction", 246, 126, 92, labelBrush, TextAlignment.Center);
+                    if (_foldPosition > 0)
+                    {
+                        AddHArrow(canvas, 262, 300, 158, navy, false);
+                    }
+                    else
+                    {
+                        AddHArrow(canvas, 300, 262, 158, navy, false);
+                    }
+                }
+            }
+            else
+            {
+                AddLabel(canvas, "Folding disabled", cx - 120, 286, 240, muted, TextAlignment.Center);
+            }
+        }
+
+        private void AddPolygon(Canvas canvas, double[,] points, Brush fill, Brush stroke)
+        {
+            var polygon = new Polygon { Fill = fill, Stroke = stroke, StrokeThickness = 1.5 };
+            var collection = new PointCollection();
+            for (int i = 0; i < points.GetLength(0); i++)
+            {
+                collection.Add(new Point(points[i, 0], points[i, 1]));
+            }
+            polygon.Points = collection;
+            canvas.Children.Add(polygon);
+        }
+
+        private void AddRect(Canvas canvas, double x, double y, double w, double h, Brush fill)
+        {
+            canvas.Children.Add(Positioned(new Rectangle { Width = w, Height = h, Fill = fill }, x, y));
+        }
+
+        private void AddHArrow(Canvas canvas, double x1, double x2, double y, Brush brush, bool doubleHead)
+        {
+            AddLine(canvas, x1, y, x2, y, brush, 2);
+            int dir = x2 >= x1 ? 1 : -1;
+            AddArrowHead(canvas, x2, y, dir, brush);
+            if (doubleHead)
+            {
+                AddArrowHead(canvas, x1, y, -dir, brush);
+            }
+        }
+
+        private void AddArrowHead(Canvas canvas, double tipX, double y, int dir, Brush brush)
+        {
+            var head = new Polygon { Fill = brush };
+            head.Points = new PointCollection
+            {
+                new Point(tipX, y),
+                new Point(tipX - dir * 10, y - 6),
+                new Point(tipX - dir * 10, y + 6),
+            };
+            canvas.Children.Add(head);
         }
     }
 }

@@ -157,6 +157,89 @@
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="Margin" Value="10,0,0,0" />
         </Style>
+
+        <!-- Segmented choice button (Fold Function, Pressure Mode). Selected
+             state (blue fill / white text) is applied in code-behind. -->
+        <Style x:Key="ChoiceButtonStyle" TargetType="Button">
+            <Setter Property="MinHeight" Value="52" />
+            <Setter Property="Padding" Value="20,0" />
+            <Setter Property="FontSize" Value="17" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource OutlineButtonBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Stepper +/- button. -->
+        <Style x:Key="StepperButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="56" />
+            <Setter Property="Height" Value="52" />
+            <Setter Property="FontSize" Value="24" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bg" Background="{TemplateBinding Background}"
+                                BorderBrush="{StaticResource OutlineButtonBorderBrush}" BorderThickness="1" CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{StaticResource ScreenBackgroundBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bg" Property="Opacity" Value="0.4" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Minimal horizontal slider: rounded track + round thumb. -->
+        <Style x:Key="LineSliderStyle" TargetType="Slider">
+            <Setter Property="Height" Value="24" />
+            <Setter Property="MinWidth" Value="120" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid VerticalAlignment="Center">
+                            <Border Height="6" CornerRadius="3" Background="{StaticResource ProgressTrackBrush}" />
+                            <Track x:Name="PART_Track">
+                                <Track.Thumb>
+                                    <Thumb Width="20" Height="20">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Ellipse Fill="{StaticResource HeaderBackgroundBrush}"
+                                                         Stroke="{StaticResource CardBackgroundBrush}" StrokeThickness="1" />
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
     <Grid Margin="24,20,24,20">
@@ -536,6 +619,186 @@
                                 <TextBlock Grid.Column="1" Text="mm" Style="{StaticResource UnitLabelStyle}" />
                             </Grid>
                         </Grid>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- ===== Folding (step 3) ===== -->
+            <Grid x:Name="FoldingContent" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="10*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="13*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Live Preview (dynamic fold) -->
+                <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Text="Live Preview" FontSize="17" FontWeight="Medium"
+                                   Foreground="{StaticResource TextPrimaryBrush}" />
+
+                        <Viewbox Grid.Row="1" Stretch="Uniform" StretchDirection="DownOnly" Margin="6,10"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Canvas x:Name="FoldPreviewCanvas" Width="340" Height="340" />
+                        </Viewbox>
+
+                        <Border Grid.Row="2" Background="{StaticResource ScreenBackgroundBrush}" CornerRadius="8" Padding="14,10">
+                            <StackPanel>
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Rectangle Grid.Column="0" Width="18" Height="14" Stroke="{StaticResource TextMutedBrush}" StrokeThickness="1.5" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="Folding" FontSize="15" FontWeight="Medium" Margin="12,0,0,0"
+                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" x:Name="FoldSummaryFolding" Text="Enabled" FontSize="15"
+                                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                                </Grid>
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="&#x2194;" FontSize="16" Foreground="{StaticResource TextMutedBrush}"
+                                               VerticalAlignment="Center" Width="18" TextAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="Fold Position" FontSize="15" FontWeight="Medium" Margin="12,0,0,0"
+                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" x:Name="FoldSummaryPosition" Text="10.00 mm" FontSize="15"
+                                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                                </Grid>
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Ellipse Grid.Column="0" Width="16" Height="16" Stroke="{StaticResource TextMutedBrush}" StrokeThickness="1.5" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="Pressure Mode" FontSize="15" FontWeight="Medium" Margin="12,0,0,0"
+                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" x:Name="FoldSummaryPressure" Text="Manual" FontSize="15"
+                                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- Folding Settings (form) -->
+                <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="20" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="16" />
+                            <RowDefinition Height="1" />
+                            <RowDefinition Height="16" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="14" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="12" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="6" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="16" />
+                            <RowDefinition Height="1" />
+                            <RowDefinition Height="16" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="12" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="6" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Text="Folding Settings" FontSize="18" FontWeight="Medium"
+                                   Foreground="{StaticResource TextPrimaryBrush}" />
+
+                        <!-- Fold Function -->
+                        <Grid Grid.Row="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Fold Function:" FontSize="17" FontWeight="Medium"
+                                       Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                            <Button Grid.Column="1" x:Name="FoldEnabledButton" Style="{StaticResource ChoiceButtonStyle}" MinWidth="150" Content="Enabled" Tag="Enabled" Click="OnFoldFunctionClick" />
+                            <Button Grid.Column="3" x:Name="FoldDisabledButton" Style="{StaticResource ChoiceButtonStyle}" MinWidth="150" Content="Disabled" Tag="Disabled" Click="OnFoldFunctionClick" />
+                        </Grid>
+
+                        <Border Grid.Row="4" Background="{StaticResource CardBorderBrush}" Height="1" />
+
+                        <!-- Fold Position -->
+                        <TextBlock Grid.Row="6" Text="Fold Position" FontSize="17" FontWeight="Medium"
+                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                        <StackPanel Grid.Row="8" Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Button x:Name="FoldMinusButton" Style="{StaticResource StepperButtonStyle}" Content="&#8722;" Click="OnFoldMinusClick" />
+                            <Border Width="180" Height="52" Margin="10,0" CornerRadius="8" BorderThickness="1"
+                                    BorderBrush="{StaticResource OutlineButtonBorderBrush}" Background="{StaticResource CardBackgroundBrush}">
+                                <TextBlock x:Name="FoldPositionValueText" Text="10.0" FontSize="22"
+                                           Foreground="{StaticResource TextPrimaryBrush}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <Button x:Name="FoldPlusButton" Style="{StaticResource StepperButtonStyle}" Content="+" Click="OnFoldPlusClick" />
+                            <TextBlock Text="mm" Style="{StaticResource UnitLabelStyle}" />
+                        </StackPanel>
+                        <Grid Grid.Row="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Backward (-)" FontSize="14" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" />
+                            <Slider Grid.Column="1" x:Name="FoldPositionSlider" Style="{StaticResource LineSliderStyle}" Margin="14,0"
+                                    Minimum="-50" Maximum="50" Value="10" ValueChanged="OnFoldPositionChanged" />
+                            <TextBlock Grid.Column="2" Text="Forward (+)" FontSize="14" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" />
+                        </Grid>
+                        <TextBlock Grid.Row="12" Text="Adjust fold forward (+) or backward (-) from center" FontSize="13"
+                                   Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" />
+
+                        <Border Grid.Row="14" Background="{StaticResource CardBorderBrush}" Height="1" />
+
+                        <!-- Pressure Mode -->
+                        <Grid Grid.Row="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Pressure Mode" FontSize="17" FontWeight="Medium"
+                                       Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                            <Button Grid.Column="2" x:Name="PressureAutoButton" Style="{StaticResource ChoiceButtonStyle}" MinWidth="120" Content="Auto" Tag="Auto" Click="OnPressureModeClick" />
+                            <Button Grid.Column="4" x:Name="PressureDefaultButton" Style="{StaticResource ChoiceButtonStyle}" MinWidth="120" Content="Default" Tag="Default" Click="OnPressureModeClick" />
+                            <Button Grid.Column="6" x:Name="PressureManualButton" Style="{StaticResource ChoiceButtonStyle}" MinWidth="120" Content="Manual" Tag="Manual" Click="OnPressureModeClick" />
+                        </Grid>
+                        <Grid Grid.Row="18">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Less pressure" FontSize="14" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" />
+                            <Slider Grid.Column="1" x:Name="PressureSlider" Style="{StaticResource LineSliderStyle}" Margin="14,0"
+                                    Minimum="0" Maximum="1" Value="0.45" ValueChanged="OnPressureChanged" />
+                            <TextBlock Grid.Column="2" Text="More pressure" FontSize="14" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" />
+                        </Grid>
+                        <TextBlock Grid.Row="20" Text="Auto mode will adjust pressure based on booklet thickness" FontSize="13"
+                                   Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" />
                     </Grid>
                 </Border>
             </Grid>
