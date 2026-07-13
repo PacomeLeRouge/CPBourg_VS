@@ -770,6 +770,31 @@ hides it from every `NavigateTo(...)` branch; `DashboardView` raises
 `NavigateToStfoRequested` from a tile tap (`OnMachineTileClick`, guarded to the
 STFO short code).
 
+### v24 — STFO Stitching step (interactive form + live preview)
+
+Built out step 2 (**Stitching**) of the STFO wizard
+(`Views/StfoConfigurationView.xaml(.cs)`), matching the approved
+high-fidelity mock. The step tab bar and Status/Machine/Job strip stay shared;
+the content area now swaps between the machine-line overview (Menu + the
+not-yet-built steps 3-5) and the Stitching two-column layout.
+
+- **Stitching Parameters form (right):** Paper Width / Length fields, a
+  five-option **Stitch Mode** selector (Saddle / Top / Right Corner / Left
+  Corner / None, each a small drawn icon; the selected one is highlighted in
+  the app blue), and Spacing / Horizontal Offset / Vertical Offset fields.
+- **Live Preview (left) is dynamic** and redraws on every change
+  (`RedrawStitchPreview`): the sheet is drawn to the current **W x L aspect**
+  with **width and length dimension lines** (the "sizing on the pages" that was
+  requested), and the **stitch marks change with the selected mode** - a dashed
+  spine + a pair of saddle stitches (their gap = the Spacing value), a top pair,
+  a single corner stitch, or "No stitching" - shifted by the horizontal /
+  vertical offsets. A summary table underneath echoes the chosen values.
+- Footer Back now reads **Back: {previous step}** past the first step; Save /
+  Reset show a brief inline confirmation. All local - no WFM.
+
+Steps 3-5 still share the Menu overview until their forms are designed. The
+shell header title continues to track the step (`STFO - Stitching`).
+
 ### Languages (FR-10)
 
 The stage labels in `Startup/StartupStage.cs` are the strings that will move to

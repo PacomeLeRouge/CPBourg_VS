@@ -8,32 +8,28 @@
 
         Reached from the Home dashboard by tapping the STFO machine tile (see
         DashboardView.NavigateToStfoRequested -> MainWindow.NavigateToStfo).
-        A five-step wizard - Menu / Stitching / Folding / Trimming / Conveyor -
-        that walks the operator through the per-job settings for the STFO. This
-        matches the approved high-fidelity mock of the first ("Menu") step.
+        A five-step wizard - Menu / Stitching / Folding / Trimming / Conveyor.
 
-        The step tab bar, the Status / Machine / Job strip, and the Live
-        Preview (a vector illustration of the booklet-maker line) are shared by
-        every step; the per-step settings forms (Stitching etc.) are future
-        work, so steps 2-5 currently show the same overview with a step
-        caption. Back / Reset / Save / Next drive the wizard locally - there is
-        no WFM connection in this build (see the dashboard controls, FR-03).
+        The step tab bar and the Status / Machine / Job strip are shared by
+        every step. Step 1 (Menu) and steps 3-5 (not yet built) show the
+        machine-line overview; step 2 (Stitching) shows the interactive
+        stitching form (right) driving a live preview (left) that reflects the
+        chosen paper size, stitch mode, spacing and offsets - see the
+        RedrawStitchPreview code-behind. Everything is local; there is no WFM
+        connection in this build.
 
         ICON NOTE: glyphs reuse Segoe MDL2 Assets codepoints already used
-        elsewhere in this app - ChevronLeft/Right (back / next, E76B/E76C),
-        Refresh (reset, E72C), Save (E74E), document (job, E8A5).
+        elsewhere - ChevronLeft/Right (E76B/E76C), Refresh (E72C), Save
+        (E74E), document (E8A5). Stitch-mode and summary icons are drawn as
+        small vector shapes rather than guessing new glyph codepoints.
 
-        COLOUR NOTE: the machine illustration is drawn from existing theme
-        tokens (light body = CardBorderBrush, dark body = TextSecondaryBrush,
-        screens = HeaderBackgroundBrush, details = TextMutedBrush) so it
-        re-skins with the rest of the app - nothing here hard-codes a colour.
+        COLOUR NOTE: navy (HeaderBackgroundBrush) marks the active step / Save;
+        the app blue (JobsAccentBrush) marks the selected stitch mode. The
+        illustrations use existing theme tokens so they re-skin with the app.
     -->
 
     <UserControl.Resources>
 
-        <!-- Step tab. Active state (navy fill / white text) is applied in
-             code-behind (RefreshUi) rather than a trigger, since the active
-             step is driven by _currentStep, not control state. -->
         <Style x:Key="StepTabButtonStyle" TargetType="Button">
             <Setter Property="MinHeight" Value="54" />
             <Setter Property="FontSize" Value="19" />
@@ -51,7 +47,6 @@
             </Setter>
         </Style>
 
-        <!-- Outline footer button (Back / Reset / Next). -->
         <Style x:Key="FooterButtonStyle" TargetType="Button">
             <Setter Property="MinHeight" Value="58" />
             <Setter Property="MinWidth" Value="150" />
@@ -71,16 +66,12 @@
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="Bg" Property="Background" Value="{StaticResource ScreenBackgroundBrush}" />
                             </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="Bg" Property="Opacity" Value="0.5" />
-                            </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
 
-        <!-- Primary (navy) footer button (Save). -->
         <Style x:Key="PrimaryFooterButtonStyle" TargetType="Button">
             <Setter Property="MinHeight" Value="58" />
             <Setter Property="MinWidth" Value="150" />
@@ -103,6 +94,68 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+        </Style>
+
+        <!-- Numeric parameter field. -->
+        <Style x:Key="NumberBoxStyle" TargetType="TextBox">
+            <Setter Property="MinHeight" Value="52" />
+            <Setter Property="FontSize" Value="22" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource OutlineButtonBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource JobsAccentBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Stitch-mode selector tile. Selected state (blue border/fill/label)
+             is applied in code-behind (RefreshStitchModeButtons). -->
+        <Style x:Key="StitchModeButtonStyle" TargetType="Button">
+            <Setter Property="Margin" Value="5,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10" Padding="6,10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ParamLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+
+        <Style x:Key="UnitLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="10,0,0,0" />
         </Style>
     </UserControl.Resources>
 
@@ -142,7 +195,7 @@
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <Ellipse Width="12" Height="12" Fill="{StaticResource StatusIdleBrush}" VerticalAlignment="Center" />
                     <TextBlock Margin="12,0,0,0" FontSize="20" VerticalAlignment="Center">
-                        <Run Text="Status: " FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" /><Run x:Name="StatusValueRun" Text="Ready" Foreground="{StaticResource TextSecondaryBrush}" />
+                        <Run Text="Status: " FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" /><Run Text="Ready" Foreground="{StaticResource TextSecondaryBrush}" />
                     </TextBlock>
                 </StackPanel>
 
@@ -151,7 +204,7 @@
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="20,0,0,0">
                     <Ellipse Width="12" Height="12" Fill="{StaticResource StatusRunningBrush}" VerticalAlignment="Center" />
                     <TextBlock Margin="12,0,0,0" FontSize="20" VerticalAlignment="Center">
-                        <Run Text="Machine: " FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" /><Run x:Name="MachineValueRun" Text="Ready" Foreground="{StaticResource TextSecondaryBrush}" />
+                        <Run Text="Machine: " FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" /><Run Text="Ready" Foreground="{StaticResource TextSecondaryBrush}" />
                     </TextBlock>
                 </StackPanel>
 
@@ -161,60 +214,332 @@
                     <TextBlock Text="&#xE8A5;" FontFamily="{StaticResource IconFontFamily}" FontSize="20"
                                Foreground="{StaticResource JobsAccentBrush}" VerticalAlignment="Center" />
                     <TextBlock Margin="12,0,0,0" FontSize="20" VerticalAlignment="Center">
-                        <Run Text="Job: " FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" /><Run x:Name="JobValueRun" Text="[Job Name]" Foreground="{StaticResource TextSecondaryBrush}" />
+                        <Run Text="Job: " FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" /><Run Text="[Job Name]" Foreground="{StaticResource TextSecondaryBrush}" />
                     </TextBlock>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- ================= Live Preview ================= -->
-        <Border Grid.Row="4" Style="{StaticResource CardStyle}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
+        <!-- ================= Per-step content ================= -->
+        <Grid Grid.Row="4">
 
-                <TextBlock Grid.Row="0" Text="Live Preview" FontSize="17" FontWeight="Medium"
-                           Foreground="{StaticResource TextPrimaryBrush}" />
+            <!-- ===== Overview (Menu + not-yet-built steps): machine line ===== -->
+            <Border x:Name="OverviewContent" Style="{StaticResource CardStyle}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
 
-                <Grid Grid.Row="1">
-                    <!-- Vector illustration of the STFO booklet-maker line
-                         (feeder unit + booklet maker + output tray). -->
-                    <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="20"
-                             HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <Canvas Width="640" Height="300">
-                            <!-- ===== Feeder unit (light) ===== -->
-                            <Ellipse Canvas.Left="95" Canvas.Top="258" Width="22" Height="22" Fill="{StaticResource TextSecondaryBrush}" />
-                            <Ellipse Canvas.Left="225" Canvas.Top="258" Width="22" Height="22" Fill="{StaticResource TextSecondaryBrush}" />
-                            <Rectangle Canvas.Left="70" Canvas.Top="120" Width="200" Height="145" RadiusX="8" RadiusY="8"
-                                       Fill="{StaticResource CardBorderBrush}" Stroke="{StaticResource TextMutedBrush}" StrokeThickness="1.5" />
-                            <Rectangle Canvas.Left="95" Canvas.Top="165" Width="70" Height="10" RadiusX="4" RadiusY="4" Fill="{StaticResource TextMutedBrush}" />
-                            <Rectangle Canvas.Left="95" Canvas.Top="200" Width="70" Height="10" RadiusX="4" RadiusY="4" Fill="{StaticResource TextMutedBrush}" />
-                            <Rectangle Canvas.Left="150" Canvas.Top="92" Width="8" Height="32" Fill="{StaticResource TextMutedBrush}" />
-                            <Rectangle Canvas.Left="118" Canvas.Top="62" Width="74" Height="44" RadiusX="4" RadiusY="4" Fill="{StaticResource HeaderBackgroundBrush}" />
+                    <TextBlock Grid.Row="0" Text="Live Preview" FontSize="17" FontWeight="Medium"
+                               Foreground="{StaticResource TextPrimaryBrush}" />
 
-                            <!-- ===== Booklet maker unit (dark) ===== -->
-                            <Ellipse Canvas.Left="315" Canvas.Top="258" Width="22" Height="22" Fill="{StaticResource TextSecondaryBrush}" />
-                            <Ellipse Canvas.Left="470" Canvas.Top="258" Width="22" Height="22" Fill="{StaticResource TextSecondaryBrush}" />
-                            <Rectangle Canvas.Left="278" Canvas.Top="128" Width="250" Height="137" RadiusX="8" RadiusY="8" Fill="{StaticResource TextSecondaryBrush}" />
-                            <Rectangle Canvas.Left="290" Canvas.Top="112" Width="80" Height="28" RadiusX="6" RadiusY="6" Fill="{StaticResource TextMutedBrush}" />
-                            <Ellipse Canvas.Left="452" Canvas.Top="182" Width="52" Height="52" Stroke="{StaticResource TextMutedBrush}" StrokeThickness="3" Fill="Transparent" />
-                            <Ellipse Canvas.Left="470" Canvas.Top="200" Width="16" Height="16" Fill="{StaticResource TextMutedBrush}" />
-                            <Rectangle Canvas.Left="430" Canvas.Top="90" Width="8" Height="40" Fill="{StaticResource TextMutedBrush}" />
-                            <Rectangle Canvas.Left="398" Canvas.Top="58" Width="78" Height="50" RadiusX="4" RadiusY="4" Fill="{StaticResource HeaderBackgroundBrush}" />
+                    <Grid Grid.Row="1">
+                        <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="20"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Canvas Width="640" Height="300">
+                                <Ellipse Canvas.Left="95" Canvas.Top="258" Width="22" Height="22" Fill="{StaticResource TextSecondaryBrush}" />
+                                <Ellipse Canvas.Left="225" Canvas.Top="258" Width="22" Height="22" Fill="{StaticResource TextSecondaryBrush}" />
+                                <Rectangle Canvas.Left="70" Canvas.Top="120" Width="200" Height="145" RadiusX="8" RadiusY="8"
+                                           Fill="{StaticResource CardBorderBrush}" Stroke="{StaticResource TextMutedBrush}" StrokeThickness="1.5" />
+                                <Rectangle Canvas.Left="95" Canvas.Top="165" Width="70" Height="10" RadiusX="4" RadiusY="4" Fill="{StaticResource TextMutedBrush}" />
+                                <Rectangle Canvas.Left="95" Canvas.Top="200" Width="70" Height="10" RadiusX="4" RadiusY="4" Fill="{StaticResource TextMutedBrush}" />
+                                <Rectangle Canvas.Left="150" Canvas.Top="92" Width="8" Height="32" Fill="{StaticResource TextMutedBrush}" />
+                                <Rectangle Canvas.Left="118" Canvas.Top="62" Width="74" Height="44" RadiusX="4" RadiusY="4" Fill="{StaticResource HeaderBackgroundBrush}" />
+                                <Ellipse Canvas.Left="315" Canvas.Top="258" Width="22" Height="22" Fill="{StaticResource TextSecondaryBrush}" />
+                                <Ellipse Canvas.Left="470" Canvas.Top="258" Width="22" Height="22" Fill="{StaticResource TextSecondaryBrush}" />
+                                <Rectangle Canvas.Left="278" Canvas.Top="128" Width="250" Height="137" RadiusX="8" RadiusY="8" Fill="{StaticResource TextSecondaryBrush}" />
+                                <Rectangle Canvas.Left="290" Canvas.Top="112" Width="80" Height="28" RadiusX="6" RadiusY="6" Fill="{StaticResource TextMutedBrush}" />
+                                <Ellipse Canvas.Left="452" Canvas.Top="182" Width="52" Height="52" Stroke="{StaticResource TextMutedBrush}" StrokeThickness="3" Fill="Transparent" />
+                                <Ellipse Canvas.Left="470" Canvas.Top="200" Width="16" Height="16" Fill="{StaticResource TextMutedBrush}" />
+                                <Rectangle Canvas.Left="430" Canvas.Top="90" Width="8" Height="40" Fill="{StaticResource TextMutedBrush}" />
+                                <Rectangle Canvas.Left="398" Canvas.Top="58" Width="78" Height="50" RadiusX="4" RadiusY="4" Fill="{StaticResource HeaderBackgroundBrush}" />
+                                <Rectangle Canvas.Left="528" Canvas.Top="185" Width="100" Height="22" RadiusX="3" RadiusY="3" Fill="{StaticResource TextSecondaryBrush}" />
+                                <Rectangle Canvas.Left="528" Canvas.Top="178" Width="100" Height="8" RadiusX="2" RadiusY="2" Fill="{StaticResource TextMutedBrush}" />
+                            </Canvas>
+                        </Viewbox>
 
-                            <!-- ===== Output tray ===== -->
-                            <Rectangle Canvas.Left="528" Canvas.Top="185" Width="100" Height="22" RadiusX="3" RadiusY="3" Fill="{StaticResource TextSecondaryBrush}" />
-                            <Rectangle Canvas.Left="528" Canvas.Top="178" Width="100" Height="8" RadiusX="2" RadiusY="2" Fill="{StaticResource TextMutedBrush}" />
-                        </Canvas>
-                    </Viewbox>
-
-                    <TextBlock x:Name="StepCaptionText" Text="" VerticalAlignment="Bottom" HorizontalAlignment="Center"
-                               Margin="0,0,0,4" FontSize="14" Foreground="{StaticResource TextMutedBrush}" />
+                        <TextBlock x:Name="StepCaptionText" Text="" VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                                   Margin="0,0,0,4" FontSize="14" Foreground="{StaticResource TextMutedBrush}" />
+                    </Grid>
                 </Grid>
+            </Border>
+
+            <!-- ===== Stitching (step 2) ===== -->
+            <Grid x:Name="StitchingContent" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="10*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="13*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Live Preview (dynamic) -->
+                <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Text="Live Preview" FontSize="17" FontWeight="Medium"
+                                   Foreground="{StaticResource TextPrimaryBrush}" />
+
+                        <Viewbox Grid.Row="1" Stretch="Uniform" StretchDirection="DownOnly" Margin="6,10"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Canvas x:Name="StitchPreviewCanvas" Width="340" Height="360" />
+                        </Viewbox>
+
+                        <!-- Summary -->
+                        <Border Grid.Row="2" Background="{StaticResource ScreenBackgroundBrush}" CornerRadius="8" Padding="14,10">
+                            <StackPanel>
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Rectangle Grid.Column="0" Width="18" Height="14" Stroke="{StaticResource TextMutedBrush}" StrokeThickness="1.5" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="Paper Size (W x L)" FontSize="15" FontWeight="Medium" Margin="12,0,0,0"
+                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" x:Name="SummaryPaperSize" Text="210 x 297 mm" FontSize="15"
+                                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                                </Grid>
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="&#xE8A5;" FontFamily="{StaticResource IconFontFamily}" FontSize="16"
+                                               Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Width="18" TextAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="Stitch Mode" FontSize="15" FontWeight="Medium" Margin="12,0,0,0"
+                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" x:Name="SummaryStitchMode" Text="Saddle" FontSize="15"
+                                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                                </Grid>
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="&#x2195;" FontSize="16" Foreground="{StaticResource TextMutedBrush}"
+                                               VerticalAlignment="Center" Width="18" TextAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="Spacing" FontSize="15" FontWeight="Medium" Margin="12,0,0,0"
+                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" x:Name="SummarySpacing" Text="10.0 mm" FontSize="15"
+                                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                                </Grid>
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="&#x2194;" FontSize="16" Foreground="{StaticResource TextMutedBrush}"
+                                               VerticalAlignment="Center" Width="18" TextAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="Horizontal Offset" FontSize="15" FontWeight="Medium" Margin="12,0,0,0"
+                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" x:Name="SummaryHOffset" Text="0.0 mm" FontSize="15"
+                                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                                </Grid>
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="&#x2195;" FontSize="16" Foreground="{StaticResource TextMutedBrush}"
+                                               VerticalAlignment="Center" Width="18" TextAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="Vertical Offset" FontSize="15" FontWeight="Medium" Margin="12,0,0,0"
+                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" x:Name="SummaryVOffset" Text="0.0 mm" FontSize="15"
+                                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- Stitching Parameters (form) -->
+                <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="18" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="22" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="10" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="24" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="18" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="18" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Text="Stitching Parameters" FontSize="18" FontWeight="Medium"
+                                   Foreground="{StaticResource TextPrimaryBrush}" />
+
+                        <!-- Paper Width / Length -->
+                        <Grid Grid.Row="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="24" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Paper Width (W)" Style="{StaticResource ParamLabelStyle}" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0" x:Name="PaperWidthBox" Style="{StaticResource NumberBoxStyle}" Text="210.0" TextChanged="OnParamChanged" />
+                                    <TextBlock Grid.Column="1" Text="mm" Style="{StaticResource UnitLabelStyle}" />
+                                </Grid>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Paper Length (L)" Style="{StaticResource ParamLabelStyle}" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0" x:Name="PaperLengthBox" Style="{StaticResource NumberBoxStyle}" Text="297.0" TextChanged="OnParamChanged" />
+                                    <TextBlock Grid.Column="1" Text="mm" Style="{StaticResource UnitLabelStyle}" />
+                                </Grid>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Stitch Mode -->
+                        <TextBlock Grid.Row="4" Text="Stitch Mode" Style="{StaticResource ParamLabelStyle}" Margin="0" />
+                        <UniformGrid Grid.Row="6" Columns="5">
+                            <Button x:Name="ModeSaddle" Style="{StaticResource StitchModeButtonStyle}" Tag="Saddle" Click="OnStitchModeClick">
+                                <StackPanel>
+                                    <Viewbox Width="46" Height="46">
+                                        <Canvas Width="46" Height="46">
+                                            <Rectangle Canvas.Left="9" Canvas.Top="12" Width="13" Height="24" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.5" />
+                                            <Rectangle Canvas.Left="24" Canvas.Top="12" Width="13" Height="24" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.5" />
+                                            <Line X1="23" Y1="10" X2="23" Y2="38" Stroke="{StaticResource TextMutedBrush}" StrokeThickness="1.2" StrokeDashArray="2,2" />
+                                            <Rectangle Canvas.Left="21.5" Canvas.Top="17" Width="3" Height="5" Fill="{StaticResource TextSecondaryBrush}" />
+                                            <Rectangle Canvas.Left="21.5" Canvas.Top="27" Width="3" Height="5" Fill="{StaticResource TextSecondaryBrush}" />
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock x:Name="ModeSaddleLabel" Text="Saddle" FontSize="14" HorizontalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource TextSecondaryBrush}" />
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="ModeTop" Style="{StaticResource StitchModeButtonStyle}" Tag="Top" Click="OnStitchModeClick">
+                                <StackPanel>
+                                    <Viewbox Width="46" Height="46">
+                                        <Canvas Width="46" Height="46">
+                                            <Rectangle Canvas.Left="14" Canvas.Top="10" Width="18" Height="28" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.5" />
+                                            <Rectangle Canvas.Left="19" Canvas.Top="7" Width="8" Height="5" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.5" />
+                                            <Rectangle Canvas.Left="19" Canvas.Top="14" Width="3" Height="4" Fill="{StaticResource TextSecondaryBrush}" />
+                                            <Rectangle Canvas.Left="24" Canvas.Top="14" Width="3" Height="4" Fill="{StaticResource TextSecondaryBrush}" />
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock x:Name="ModeTopLabel" Text="Top" FontSize="14" HorizontalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource TextSecondaryBrush}" />
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="ModeRightCorner" Style="{StaticResource StitchModeButtonStyle}" Tag="Right Corner" Click="OnStitchModeClick">
+                                <StackPanel>
+                                    <Viewbox Width="46" Height="46">
+                                        <Canvas Width="46" Height="46">
+                                            <Rectangle Canvas.Left="12" Canvas.Top="10" Width="18" Height="28" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.5" />
+                                            <Line X1="25" Y1="13" X2="30" Y2="18" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="2.5" />
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock x:Name="ModeRightCornerLabel" Text="Right Corner" FontSize="13" HorizontalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource TextSecondaryBrush}" />
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="ModeLeftCorner" Style="{StaticResource StitchModeButtonStyle}" Tag="Left Corner" Click="OnStitchModeClick">
+                                <StackPanel>
+                                    <Viewbox Width="46" Height="46">
+                                        <Canvas Width="46" Height="46">
+                                            <Rectangle Canvas.Left="16" Canvas.Top="10" Width="18" Height="28" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.5" />
+                                            <Line X1="16" Y1="18" X2="21" Y2="13" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="2.5" />
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock x:Name="ModeLeftCornerLabel" Text="Left Corner" FontSize="13" HorizontalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource TextSecondaryBrush}" />
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="ModeNone" Style="{StaticResource StitchModeButtonStyle}" Tag="None" Click="OnStitchModeClick">
+                                <StackPanel>
+                                    <Viewbox Width="46" Height="46">
+                                        <Canvas Width="46" Height="46">
+                                            <Ellipse Canvas.Left="8" Canvas.Top="8" Width="30" Height="30" Stroke="{StaticResource StatusErrorBrush}" StrokeThickness="3" />
+                                            <Line X1="13" Y1="33" X2="33" Y2="13" Stroke="{StaticResource StatusErrorBrush}" StrokeThickness="3" />
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock x:Name="ModeNoneLabel" Text="None" FontSize="14" HorizontalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource TextSecondaryBrush}" />
+                                </StackPanel>
+                            </Button>
+                        </UniformGrid>
+
+                        <!-- Spacing -->
+                        <Grid Grid.Row="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Spacing Between Stitches" FontSize="17" FontWeight="Medium"
+                                       Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                            <Grid Grid.Column="1">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0" x:Name="SpacingBox" Style="{StaticResource NumberBoxStyle}" Text="10.0" TextChanged="OnParamChanged" />
+                                <TextBlock Grid.Column="1" Text="mm" Style="{StaticResource UnitLabelStyle}" />
+                            </Grid>
+                        </Grid>
+
+                        <!-- Horizontal offset -->
+                        <Grid Grid.Row="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                                <Run Text="Horizontal Offset Stitch " FontSize="17" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}" /><Run Text="(Left -/ Right +)" FontSize="14" Foreground="{StaticResource TextMutedBrush}" />
+                            </TextBlock>
+                            <Grid Grid.Column="1">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0" x:Name="HOffsetBox" Style="{StaticResource NumberBoxStyle}" Text="0.0" TextChanged="OnParamChanged" />
+                                <TextBlock Grid.Column="1" Text="mm" Style="{StaticResource UnitLabelStyle}" />
+                            </Grid>
+                        </Grid>
+
+                        <!-- Vertical offset -->
+                        <Grid Grid.Row="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                                <Run Text="Vertical Offset Stitch " FontSize="17" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}" /><Run Text="(Front - / Rear +)" FontSize="14" Foreground="{StaticResource TextMutedBrush}" />
+                            </TextBlock>
+                            <Grid Grid.Column="1">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0" x:Name="VOffsetBox" Style="{StaticResource NumberBoxStyle}" Text="0.0" TextChanged="OnParamChanged" />
+                                <TextBlock Grid.Column="1" Text="mm" Style="{StaticResource UnitLabelStyle}" />
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                </Border>
             </Grid>
-        </Border>
+        </Grid>
 
         <!-- ================= Footer actions ================= -->
         <Grid Grid.Row="6">
@@ -231,7 +556,7 @@
             <Button Grid.Column="0" Style="{StaticResource FooterButtonStyle}" Click="OnBackClick">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="&#xE76B;" FontFamily="{StaticResource IconFontFamily}" FontSize="16" VerticalAlignment="Center" />
-                    <TextBlock Text="Back" Margin="10,0,0,0" VerticalAlignment="Center" />
+                    <TextBlock x:Name="BackButtonText" Text="Back" Margin="10,0,0,0" VerticalAlignment="Center" />
                 </StackPanel>
             </Button>
 
