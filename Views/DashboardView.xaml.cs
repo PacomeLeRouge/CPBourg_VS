@@ -9,9 +9,11 @@ using CPBourg.NextGenGui.Models;
 namespace CPBourg.NextGenGui.Views
 {
     /// <summary>
-    /// Home dashboard. Populated with sample data for the prototype; most
-    /// buttons here are intentionally stubs (FR-03 interaction is "Should"
-    /// priority and depends on the WFM connection, not yet wired in).
+    /// Home dashboard. Populated with sample data for the prototype. The
+    /// counter and line-control buttons (preset +/-, Reset to zero, Set
+    /// target, Start / Pause / Stop, Purge) act on local mockup state so the
+    /// interface is fully usable with no WFM connection; swap them for
+    /// WFM-backed commands once that link exists (FR-03).
     ///
     /// New Job / Load Job and View Errors are real navigation, not stubs:
     /// they raise <see cref="NavigateToJobsRequested"/> / <see
@@ -61,6 +63,8 @@ namespace CPBourg.NextGenGui.Views
             // default machine line. MainWindow re-syncs this from the real
             // line at startup and whenever the line changes.
             SetOnlineModules(new[] { "Booklet Maker" });
+
+            UpdateCounterDisplay();
         }
 
         /// <summary>
@@ -143,22 +147,85 @@ namespace CPBourg.NextGenGui.Views
             AlertsSubtitleText.Text = subtitle;
         }
 
-        private void ShowStub(string actionName)
+        // ================= Counter / line controls =================
+        //
+        // These act on local mockup state only - there is no WFM connection in
+        // this build, so instead of the old "not connected to the WFM" stubs
+        // the controls now do real, visible work (adjust the counters, change
+        // the job status). Swap these for WFM-backed commands once that link
+        // exists (FR-03).
+
+        private const int PresetStep = 500;
+
+        private int _completedSets = 5234;
+        private int _presetTarget;   // 0 == unlimited (shown as the infinity glyph)
+
+        private void UpdateCounterDisplay()
         {
-            LastActionText.Text = "Last action: " + actionName +
-                " (stub - not yet connected to the WFM)";
+            string completed = _completedSets.ToString("N0");
+            CompletedSetsText.Text = completed;
+            MiniCompletedSetsText.Text = completed;
+            UpdatePresetDisplay();
         }
 
-        private void OnCounterDecrementClick(object sender, RoutedEventArgs e) => ShowStub("Decrease preset");
-        private void OnCounterIncrementClick(object sender, RoutedEventArgs e) => ShowStub("Increase preset");
-        private void OnResetToZeroClick(object sender, RoutedEventArgs e) => ShowStub("Reset to zero");
-        private void OnSetTargetClick(object sender, RoutedEventArgs e) => ShowStub("Set target");
+        private void UpdatePresetDisplay()
+        {
+            string target = _presetTarget == 0 ? "\u221E" : _presetTarget.ToString("N0");
+            PresetValueText.Text = "0 / " + target;
+            MiniPresetText.Text = target;
+        }
+
+        private void SetJobStatus(string label, string foregroundKey, string backgroundKey)
+        {
+            JobStatusText.Text = label;
+            JobStatusText.Foreground = (Brush)FindResource(foregroundKey);
+            JobStatusPill.Background = (Brush)FindResource(backgroundKey);
+            ShowAction("Line " + label.ToLowerInvariant() + ".");
+        }
+
+        private void ShowAction(string message)
+        {
+            LastActionText.Text = message;
+        }
+
+        private void OnCounterDecrementClick(object sender, RoutedEventArgs e)
+        {
+            _presetTarget = Math.Max(0, _presetTarget - PresetStep);
+            UpdatePresetDisplay();
+            ShowAction(_presetTarget == 0
+                ? "Preset cleared (no limit)."
+                : "Preset set to " + _presetTarget.ToString("N0") + " sets.");
+        }
+
+        private void OnCounterIncrementClick(object sender, RoutedEventArgs e)
+        {
+            _presetTarget += PresetStep;
+            UpdatePresetDisplay();
+            ShowAction("Preset set to " + _presetTarget.ToString("N0") + " sets.");
+        }
+
+        private void OnResetToZeroClick(object sender, RoutedEventArgs e)
+        {
+            _completedSets = 0;
+            UpdateCounterDisplay();
+            ShowAction("Completed sets reset to zero.");
+        }
+
+        private void OnSetTargetClick(object sender, RoutedEventArgs e)
+        {
+            // Set a production target just above the current count (next 1,000).
+            _presetTarget = ((_completedSets / 1000) + 1) * 1000;
+            UpdatePresetDisplay();
+            ShowAction("Target set to " + _presetTarget.ToString("N0") + " sets.");
+        }
+
         private void OnNewJobClick(object sender, RoutedEventArgs e) => NavigateToJobsRequested?.Invoke(this, EventArgs.Empty);
         private void OnLoadJobClick(object sender, RoutedEventArgs e) => NavigateToJobsRequested?.Invoke(this, EventArgs.Empty);
         private void OnViewErrorsClick(object sender, RoutedEventArgs e) => NavigateToErrorsRequested?.Invoke(this, EventArgs.Empty);
-        private void OnPurgeClick(object sender, RoutedEventArgs e) => ShowStub("Purge / clear after jam");
-        private void OnStartClick(object sender, RoutedEventArgs e) => ShowStub("Start");
-        private void OnPauseClick(object sender, RoutedEventArgs e) => ShowStub("Pause");
-        private void OnStopClick(object sender, RoutedEventArgs e) => ShowStub("Stop");
+
+        private void OnPurgeClick(object sender, RoutedEventArgs e) => ShowAction("Line purged - cleared after jam.");
+        private void OnStartClick(object sender, RoutedEventArgs e) => SetJobStatus("Running", "StatusRunningBrush", "StatusRunningBgBrush");
+        private void OnPauseClick(object sender, RoutedEventArgs e) => SetJobStatus("Paused", "WarningBrush", "WarningBgBrush");
+        private void OnStopClick(object sender, RoutedEventArgs e) => SetJobStatus("Stopped", "StatusErrorBrush", "StatusErrorBgBrush");
     }
 }

@@ -723,6 +723,24 @@ card was short. All four are Home-screen fixes in `DashboardView.xaml(.cs)`:
    the matching tile (BSF / BSE / TR) online - removing it greys it back out.
    The dashboard's machine tiles are no longer a hard-coded list.
 
+### v22 — functional mockup controls (no WFM needed) + carousel "+" tiles add modules
+
+1. **Dashboard counter / line controls now actually do something.** They used
+   to be stubs that printed "(stub - not yet connected to the WFM)". With no
+   WFM in this build they now act on local mockup state: preset +/- adjust the
+   preset target (shown in both the preset field and the mini stat strip),
+   Reset to zero clears the completed-sets counter, Set target sets a target
+   just above the current count, and Start / Pause / Stop recolour the Current
+   Job status pill (Running / Paused / Stopped). Purge and the others report a
+   plain confirmation on the status line instead of a WFM stub message.
+   (Startup already succeeds without a real WFM - the "Connecting to WFM"
+   splash phase is simulated and never blocks - so nothing is gated on it.)
+
+2. **The dashed "+" hint tiles in Machine Line Configuration add modules.**
+   The tiles bookending the carousel strip were decorative; clicking either
+   one now opens the Add Module wizard, same as the Line Actions "Add Module"
+   button. Refactored the shared open path into `OpenAddModuleWizard()`.
+
 ### Languages (FR-10)
 
 The stage labels in `Startup/StartupStage.cs` are the strings that will move to

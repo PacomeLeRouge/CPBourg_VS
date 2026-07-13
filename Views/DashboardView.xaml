@@ -202,7 +202,7 @@
                                                Foreground="{StaticResource TextMutedBrush}" FontSize="24" VerticalAlignment="Center" />
 									<StackPanel Margin="8,0,0,0">
 										<TextBlock Text="Completed sets" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
-										<TextBlock Text="5,234" Foreground="{StaticResource TextPrimaryBrush}" FontSize="14" FontWeight="Medium" />
+										<TextBlock x:Name="MiniCompletedSetsText" Text="5,234" Foreground="{StaticResource TextPrimaryBrush}" FontSize="14" FontWeight="Medium" />
 									</StackPanel>
 								</StackPanel>
 
@@ -213,7 +213,7 @@
                                                Foreground="{StaticResource TextMutedBrush}" FontSize="24" VerticalAlignment="Center" />
 									<StackPanel Margin="8,0,0,0">
 										<TextBlock Text="Preset" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
-										<TextBlock Text="&#8734;" Foreground="{StaticResource TextPrimaryBrush}" FontSize="14" FontWeight="Medium" />
+										<TextBlock x:Name="MiniPresetText" Text="&#8734;" Foreground="{StaticResource TextPrimaryBrush}" FontSize="14" FontWeight="Medium" />
 									</StackPanel>
 								</StackPanel>
 
@@ -303,7 +303,7 @@
 									<StackPanel Orientation="Horizontal">
 										<TextBlock x:Name="JobNameText" Text="Sample Job A"
                                                    Foreground="{StaticResource TextPrimaryBrush}" FontSize="14" FontWeight="Medium" />
-										<Border Background="{StaticResource StatusRunningBgBrush}" CornerRadius="9" Padding="8,3" Margin="8,0,0,0">
+										<Border x:Name="JobStatusPill" Background="{StaticResource StatusRunningBgBrush}" CornerRadius="9" Padding="8,3" Margin="8,0,0,0">
 											<TextBlock x:Name="JobStatusText" Text="Running"
                                                        Foreground="{StaticResource StatusRunningBrush}" FontSize="11" FontWeight="Medium" />
 										</Border>
@@ -442,8 +442,9 @@
 			</Border>
 		</UniformGrid>
 
-		<!-- Demo feedback line - shows which stub action was last triggered.
-             Remove once real WFM commands are wired in (FR-03). -->
+		<!-- Status line - confirms the last control action (Start / Pause /
+             Stop / Purge / preset / target). These act on local mockup state;
+             swap for WFM-backed commands once that link exists (FR-03). -->
 		<TextBlock Grid.Row="3" x:Name="LastActionText" Text=""
                    Foreground="{StaticResource TextMutedBrush}" FontSize="12"
                    HorizontalAlignment="Center" />
