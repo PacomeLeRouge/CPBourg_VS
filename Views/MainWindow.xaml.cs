@@ -29,6 +29,12 @@ namespace CPBourg.NextGenGui.Views
             ErrorsScreen.MessagesChanged += (s, e) => UpdateDashboardAlertsSummary();
             UpdateDashboardAlertsSummary();
 
+            // Keep the Dashboard's Machines tiles in sync with the machine
+            // line: a module shows online there only while it's on the line.
+            // Sync once now for the default line, then on every change.
+            MachineLineConfigScreen.LineChanged += (s, e) => UpdateDashboardMachines();
+            UpdateDashboardMachines();
+
             _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             _clockTimer.Tick += (s, e) => UpdateClock();
             _clockTimer.Start();
@@ -124,6 +130,11 @@ namespace CPBourg.NextGenGui.Views
             Dashboard.UpdateAlertsSummary(
                 ErrorsScreen.CriticalCount, ErrorsScreen.WarningCount,
                 ErrorsScreen.InfoCount, ErrorsScreen.TotalCount);
+        }
+
+        private void UpdateDashboardMachines()
+        {
+            Dashboard.SetOnlineModules(MachineLineConfigScreen.LineModuleTypes);
         }
 
         private void UpdateClock()

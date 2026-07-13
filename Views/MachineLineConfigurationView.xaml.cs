@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -41,6 +42,17 @@ namespace CPBourg.NextGenGui.Views
         private readonly List<MachineLineItemInfo> _machines = new List<MachineLineItemInfo>();
         private int _focusedIndex = -1;
 
+        /// <summary>
+        /// Raised whenever the set of modules on the line changes (add /
+        /// remove / replace). MainWindow uses this to keep the Home
+        /// dashboard's Machines tiles in sync - only modules actually on the
+        /// line show as online there.
+        /// </summary>
+        public event EventHandler LineChanged;
+
+        /// <summary>Module types currently on the line, in order.</summary>
+        public IEnumerable<string> LineModuleTypes => _machines.Select(m => m.ModuleType);
+
         public MachineLineConfigurationView()
         {
             InitializeComponent();
@@ -51,10 +63,13 @@ namespace CPBourg.NextGenGui.Views
 
         private void LoadSampleLine()
         {
-            _machines.Add(CreateMachine("Feeder"));
+            // Start with just the Booklet Maker (the STFO) on the line; the
+            // operator adds Feeder / Stacker / Trimmer as needed. The Home
+            // dashboard reflects this - only modules actually on the line show
+            // as online there (MainWindow wires LineChanged ->
+            // DashboardView.SetOnlineModules).
             _machines.Add(CreateMachine("Booklet Maker"));
-            _machines.Add(CreateMachine("Stacker"));
-            _focusedIndex = 1;
+            _focusedIndex = 0;
         }
 
         private MachineLineItemInfo CreateMachine(string moduleType)
@@ -73,6 +88,12 @@ namespace CPBourg.NextGenGui.Views
             RefreshSelectedModule();
             RefreshConfigurationStatus();
             RefreshLineActionsEnabled();
+
+            // RefreshAll is only called when the line composition changes
+            // (initial load, add, remove, replace) - carousel navigation
+            // calls the individual refreshers instead - so this is the right
+            // place to notify listeners that the online modules changed.
+            LineChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private void RefreshCarousel()

@@ -27,10 +27,12 @@
         LAYOUT NOTE: Configuration Status used to stack under Selected
         Module in the left column, which at the window's enforced minimum
         size (MinWidth/MinHeight in MainWindow.xaml) added up to more
-        height than was available and got clipped in windowed mode. Moving
-        it into the right column (which had unused space below the Line
-        Actions buttons) both fixes that overflow and gives Machine Line /
-        Selected Module room to breathe.
+        height than was available and got clipped in windowed mode. It now
+        lives in the right column under Line Actions. All four cards share a
+        single 3-column x 3-row grid (rather than two independent per-column
+        grids) so they line up as a clean 2x2 - top row Machine Line / Line
+        Actions at a shared height, bottom row Selected Module / Configuration
+        Status at a shared height, tops and bottoms aligned across columns.
 
         ICON NOTE: glyphs reuse Segoe MDL2 Assets codepoints already
         confirmed elsewhere in this app (plus , minus , checkmark
@@ -61,6 +63,11 @@
             <Setter Property="MinHeight" Value="60" />
             <Setter Property="Margin" Value="0,0,0,12" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <!-- Inset the content so the action icon no longer hugs the left
+                 border, and keep icon + label centred vertically now that the
+                 buttons stretch to fill the card. -->
+            <Setter Property="Padding" Value="16,10" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
     </UserControl.Resources>
 
@@ -78,17 +85,23 @@
                 <ColumnDefinition Width="16" />
                 <ColumnDefinition Width="1*" />
             </Grid.ColumnDefinitions>
+            <!-- One shared row grid for all four cards (instead of two
+                 independent per-column grids) so they line up as a clean 2x2:
+                 the top row (Machine Line / Line Actions) shares a single
+                 height and the bottom row (Selected Module / Configuration
+                 Status) shares another, so their tops AND bottoms align across
+                 both columns. Previously each column sized its own rows, which
+                 left the cards staggered - Line Actions shorter than Machine
+                 Line, and Configuration Status both higher and shorter than
+                 Selected Module. -->
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="28" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
-            <!-- ===== Left column: Machine Line / Selected Module ===== -->
-            <Grid Grid.Column="0">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="28" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-
-                <!-- ===== Machine Line (carousel) ===== -->
-                <Border Grid.Row="0" Style="{StaticResource CardStyle}">
+            <!-- ===== Machine Line (carousel) ===== -->
+            <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource CardStyle}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -157,7 +170,7 @@
                 </Border>
 
                 <!-- ===== Selected Module ===== -->
-                <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+                <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource CardStyle}">
                     <StackPanel>
                         <TextBlock Text="Selected Module" Style="{StaticResource CardTitleTextStyle}" />
 
@@ -232,24 +245,24 @@
                         </Grid>
                     </StackPanel>
                 </Border>
-            </Grid>
 
-            <!-- ===== Right column: Line Actions (top) / Configuration Status (bottom-right) =====
-                 The middle spacer row is "*" so Configuration Status settles toward the
-                 bottom of the column, but it's capped with MaxHeight so tall/maximized
-                 windows don't stretch it into a big empty gap between the two cards. -->
-            <Grid Grid.Column="2">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" MaxHeight="28" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
+                <!-- ===== Line Actions =====
+                     Buttons live in their own star-height rows so they spread
+                     to fill this card, which now shares the (taller) top-row
+                     height with Machine Line - a plain top-aligned StackPanel
+                     would have left empty space at the bottom. -->
+                <Border Grid.Row="0" Grid.Column="2" Style="{StaticResource CardStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="Line Actions" Style="{StaticResource CardTitleTextStyle}" />
 
-                <Border Grid.Row="0" Style="{StaticResource CardStyle}">
-                    <StackPanel>
-                        <TextBlock Text="Line Actions" Style="{StaticResource CardTitleTextStyle}" />
-
-                        <Button x:Name="AddModuleButton" Style="{StaticResource LineActionButtonStyle}" Click="OnAddModuleClick">
+                        <Button Grid.Row="1" x:Name="AddModuleButton" Style="{StaticResource LineActionButtonStyle}" Click="OnAddModuleClick">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -266,7 +279,7 @@
                             </Grid>
                         </Button>
 
-                        <Button x:Name="RemoveModuleButton" Style="{StaticResource LineActionButtonStyle}" Click="OnRemoveModuleClick">
+                        <Button Grid.Row="2" x:Name="RemoveModuleButton" Style="{StaticResource LineActionButtonStyle}" Click="OnRemoveModuleClick">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -283,7 +296,7 @@
                             </Grid>
                         </Button>
 
-                        <Button x:Name="ReplaceModuleButton" Style="{StaticResource LineActionButtonStyle}" Click="OnReplaceModuleClick">
+                        <Button Grid.Row="3" x:Name="ReplaceModuleButton" Style="{StaticResource LineActionButtonStyle}" Click="OnReplaceModuleClick">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -299,7 +312,7 @@
                             </Grid>
                         </Button>
 
-                        <Button x:Name="ReviewChangesButton" Style="{StaticResource LineActionButtonStyle}" Click="OnReviewChangesClick">
+                        <Button Grid.Row="4" x:Name="ReviewChangesButton" Style="{StaticResource LineActionButtonStyle}" Click="OnReviewChangesClick">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -315,12 +328,15 @@
                                            Margin="14,0,0,0" VerticalAlignment="Center" />
                             </Grid>
                         </Button>
-                    </StackPanel>
+                    </Grid>
                 </Border>
 
-                <!-- ===== Configuration Status ===== -->
-                <Border Grid.Row="2" Style="{StaticResource CardStyle}">
-                    <StackPanel>
+                <!-- ===== Configuration Status =====
+                     Shares the bottom-row height with Selected Module (the
+                     taller card), so its content is centred vertically to sit
+                     nicely in the matched height instead of leaving a gap. -->
+                <Border Grid.Row="2" Grid.Column="2" Style="{StaticResource CardStyle}">
+                    <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="Configuration Status" Style="{StaticResource CardTitleTextStyle}" Margin="0" />
                         <Grid Margin="0,12,0,0">
                             <Grid.ColumnDefinitions>
@@ -338,7 +354,6 @@
                         </Grid>
                     </StackPanel>
                 </Border>
-            </Grid>
         </Grid>
 
         <!-- Demo feedback line for pure stubs (Review Changes) and the Add Module wizard's

@@ -692,6 +692,37 @@ card was short. All four are Home-screen fixes in `DashboardView.xaml(.cs)`:
    the sample data (`DashboardView.xaml.cs` `LoadSampleMachines`) - STFO is the
    single active/controllable module in this prototype.
 
+### v21 — windowed by default, Machine Line Configuration alignment, line-driven dashboard tiles
+
+1. **App opens windowed, not maximized.** `MainWindow` now starts with
+   `WindowState="Normal"` at a fixed default size (1280x820), centred on
+   screen (`WindowStartupLocation="CenterScreen"`). The operator can still
+   maximize it; `MinWidth`/`MinHeight` are unchanged.
+
+2. **Machine Line Configuration: the four cards now line up as a clean 2x2.**
+   The screen used two independent per-column grids, so the cards were
+   staggered - Line Actions was shorter than Machine Line, and Configuration
+   Status sat both higher and shorter than Selected Module, leaving an awkward
+   gap. They now share one 3-column x 3-row grid, so the top row (Machine Line
+   / Line Actions) shares a single height and the bottom row (Selected Module /
+   Configuration Status) shares another - tops and bottoms aligned across both
+   columns. Supporting tweaks: the Line Actions buttons live in star-height
+   rows so they spread to fill the taller card instead of leaving empty space;
+   `LineActionButtonStyle` gained `Padding`/`VerticalContentAlignment` so the
+   action icons no longer hug the left border; and Configuration Status centres
+   its content in the shared bottom-row height.
+
+3. **Default line is just the Booklet Maker (STFO), and the dashboard follows
+   the line.** `MachineLineConfigurationView` now starts with a single Booklet
+   Maker module instead of Feeder + Booklet Maker + Stacker. It exposes
+   `LineModuleTypes` and a `LineChanged` event; `MainWindow` wires that to the
+   new `DashboardView.SetOnlineModules(...)`, which lights up a Home "Machines"
+   tile (Running) only while its module type is on the line and greys it out
+   (Offline) otherwise. So out of the box only STFO is online on the dashboard,
+   and adding a Feeder / Stacker / Trimmer on the configuration screen brings
+   the matching tile (BSF / BSE / TR) online - removing it greys it back out.
+   The dashboard's machine tiles are no longer a hard-coded list.
+
 ### Languages (FR-10)
 
 The stage labels in `Startup/StartupStage.cs` are the strings that will move to
