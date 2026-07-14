@@ -64,6 +64,8 @@ namespace CPBourg.NextGenGui.Views
         {
             InitializeComponent();
 
+            CounterInputDialog.ValueConfirmed += OnCounterValueConfirmed;
+
             // Default to only the Booklet Maker (STFO) online, matching the
             // default machine line. MainWindow re-syncs this from the real
             // line at startup and whenever the line changes.
@@ -173,23 +175,31 @@ namespace CPBourg.NextGenGui.Views
         // the job status). Swap these for WFM-backed commands once that link
         // exists (FR-03).
 
-        private const int PresetStep = 500;
+        private const int CounterStep = 1;
 
-        private int _completedSets = 5234;
+        private int _completedSets;
         private int _presetTarget;   // 0 == unlimited (shown as the infinity glyph)
+        private CounterInputKind _pendingCounterInput;
+
+        private enum CounterInputKind
+        {
+            CompletedSets,
+            PresetTarget,
+        }
 
         private void UpdateCounterDisplay()
         {
             string completed = _completedSets.ToString("N0");
             CompletedSetsText.Text = completed;
             MiniCompletedSetsText.Text = completed;
+            JobCompletedText.Text = completed;
             UpdatePresetDisplay();
         }
 
         private void UpdatePresetDisplay()
         {
             string target = _presetTarget == 0 ? "\u221E" : _presetTarget.ToString("N0");
-            PresetValueText.Text = "0 / " + target;
+            PresetValueText.Text = target;
             MiniPresetText.Text = target;
         }
 
@@ -208,7 +218,7 @@ namespace CPBourg.NextGenGui.Views
 
         private void OnCounterDecrementClick(object sender, RoutedEventArgs e)
         {
-            _presetTarget = Math.Max(0, _presetTarget - PresetStep);
+            _presetTarget = Math.Max(0, _presetTarget - CounterStep);
             UpdatePresetDisplay();
             ShowAction(_presetTarget == 0
                 ? "Preset cleared (no limit)."
@@ -217,9 +227,68 @@ namespace CPBourg.NextGenGui.Views
 
         private void OnCounterIncrementClick(object sender, RoutedEventArgs e)
         {
-            _presetTarget += PresetStep;
+            if (_presetTarget < NumericInputDialog.MaximumValue)
+            {
+                _presetTarget += CounterStep;
+            }
             UpdatePresetDisplay();
             ShowAction("Preset set to " + _presetTarget.ToString("N0") + " sets.");
+        }
+
+        private void OnCompletedDecrementClick(object sender, RoutedEventArgs e)
+        {
+            _completedSets = Math.Max(0, _completedSets - CounterStep);
+            UpdateCounterDisplay();
+            ShowAction("Completed sets adjusted to " + _completedSets.ToString("N0") + ".");
+        }
+
+        private void OnCompletedIncrementClick(object sender, RoutedEventArgs e)
+        {
+            if (_completedSets < NumericInputDialog.MaximumValue)
+            {
+                _completedSets += CounterStep;
+            }
+            UpdateCounterDisplay();
+            ShowAction("Completed sets adjusted to " + _completedSets.ToString("N0") + ".");
+        }
+
+        private void OnCompletedInputClick(object sender, RoutedEventArgs e)
+        {
+            _pendingCounterInput = CounterInputKind.CompletedSets;
+            CounterInputDialog.Open(
+                "Set Completed Sets",
+                "Completed sets",
+                "Enter how many sets the machine has completed so far.",
+                _completedSets,
+                zeroMeansUnlimited: false);
+        }
+
+        private void OnPresetInputClick(object sender, RoutedEventArgs e)
+        {
+            _pendingCounterInput = CounterInputKind.PresetTarget;
+            CounterInputDialog.Open(
+                "Set Production Preset",
+                "Sets to make",
+                "Enter the total number of sets the machine should make.",
+                _presetTarget,
+                zeroMeansUnlimited: true);
+        }
+
+        private void OnCounterValueConfirmed(object sender, int value)
+        {
+            if (_pendingCounterInput == CounterInputKind.CompletedSets)
+            {
+                _completedSets = value;
+                UpdateCounterDisplay();
+                ShowAction("Completed sets set to " + _completedSets.ToString("N0") + ".");
+                return;
+            }
+
+            _presetTarget = value;
+            UpdatePresetDisplay();
+            ShowAction(_presetTarget == 0
+                ? "Preset cleared (unlimited production)."
+                : "Preset set to " + _presetTarget.ToString("N0") + " sets.");
         }
 
         private void OnResetToZeroClick(object sender, RoutedEventArgs e)
@@ -231,10 +300,7 @@ namespace CPBourg.NextGenGui.Views
 
         private void OnSetTargetClick(object sender, RoutedEventArgs e)
         {
-            // Set a production target just above the current count (next 1,000).
-            _presetTarget = ((_completedSets / 1000) + 1) * 1000;
-            UpdatePresetDisplay();
-            ShowAction("Target set to " + _presetTarget.ToString("N0") + " sets.");
+            OnPresetInputClick(sender, e);
         }
 
         private void OnNewJobClick(object sender, RoutedEventArgs e) => NavigateToJobsRequested?.Invoke(this, EventArgs.Empty);

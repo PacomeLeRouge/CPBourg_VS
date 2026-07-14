@@ -112,16 +112,17 @@ New supporting types:
   theme's status brushes. Kept in `Views`, not `Models`, so the model layer
   has no `System.Windows.Media` reference.
 
-**All dashboard data is hard-coded sample data** (`DashboardView.xaml.cs`
-`LoadSampleMachines()`, and the job fields in the XAML). Replace with values
-sourced from the WFM once the connection exists (FR-01, FR-02).
+**Dashboard machine/job data is still sample data.** The Counter and
+Productivity values now use functional local state: completed sets starts at
+zero, completed/preset values support +/- and keypad entry, and preset zero is
+unlimited. Replace these local values with WFM-reported counters once the
+connection exists (FR-01, FR-02).
 
-**All dashboard buttons are stubs.** Clicking Start/Pause/Stop/Purge, New
-Job/Load Job, View Errors, Set Target, or the preset +/- controls just
-updates a small "Last action: ..." line at the bottom of the screen so you
-can see the click registered. Wire these to real WFM commands once FR-03 is
-implemented; the click handlers are already named and isolated in
-`DashboardView.xaml.cs` for that purpose.
+**Dashboard controls are functional prototype controls.** Counter changes,
+Start/Pause/Stop/Purge, and their visible status feedback work locally; job
+and error buttons navigate to their implemented screens. The machine-command
+handlers remain deliberately isolated in `DashboardView.xaml.cs` so their
+local behavior can be replaced with real WFM commands for FR-03.
 
 **Global menu navigation is also a stub.** Only Home (this dashboard) exists
 today; other items just update the header's page title as a placeholder.
@@ -889,6 +890,27 @@ tiles, and Back / Reset / Save / Confirm footer actions.
   `ScrollViewer` was removed, so the footer is always visible without a mouse
   wheel or scrollbar.
 
+### v29 - Functional completed-sets and production-preset counters
+
+The Home dashboard's **Counter and Productivity** card now starts with
+**Completed Sets = 0** instead of the old 5,234 sample value. Completed sets
+and the production preset are both fully interactive in the local prototype:
+
+- Each value has touch-sized **- / value / +** controls. Minus and plus adjust
+  by exactly one, never go below zero, and are capped at 999,999,999.
+- Tapping either value opens the reusable `NumericInputDialog`, a touchscreen
+  keypad for direct whole-number entry. The existing **Set target** button
+  opens the preset keypad as an additional shortcut.
+- A preset of **0 means unlimited production** and is displayed as the
+  infinity symbol (`∞`) in both the main controls and the mini summary strip.
+- **Reset to zero** remains a one-tap reset for completed sets. Changes also
+  update the mini summary and the Current Job completed count so the dashboard
+  does not show conflicting values.
+
+These counters remain local UI state until the WFM counter/command service is
+connected; the handlers are isolated in `DashboardView.xaml.cs` for that
+future integration.
+
 ### Languages (FR-10)
 
 The stage labels in `Startup/StartupStage.cs` are the strings that will move to
@@ -920,6 +942,7 @@ inline for the prototype and marked with a comment.
 | `Views/MachineLineConfigurationView.xaml(.cs)` | Machine Line Configuration screen (Empty / Single / Overview states) |
 | `Views/TechnicianInterfaceView.xaml(.cs)` | Responsive Technician Interface screen and saved control state |
 | `Views/TechnicalAccessDialog.xaml(.cs)` | Masked numeric technician-code keypad overlay |
+| `Views/NumericInputDialog.xaml(.cs)` | Reusable touchscreen keypad for non-negative whole-number entry |
 | `Views/GlobalMenuView.xaml(.cs)` | Slide-out global navigation overlay |
 | `Views/MachineStatusToBrushConverter.cs` | Maps `MachineStatus` to theme brushes |
 | `Views/NullToCollapsedConverter.cs` | Hides an element when a bound string is null/empty |
