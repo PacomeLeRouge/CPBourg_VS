@@ -1001,6 +1001,168 @@
                     </StackPanel>
                 </Border>
             </Grid>
+
+            <!-- ===== Conveyor (step 5) ===== -->
+            <Grid x:Name="ConveyorContent" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="10*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="13*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Live Preview (dynamic spacing / offset) -->
+                <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Text="Live Preview" FontSize="17" FontWeight="Medium"
+                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4" />
+
+                        <TextBlock Grid.Row="1" Text="Booklet Spacing" FontSize="15" FontWeight="Medium"
+                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                        <Viewbox Grid.Row="2" Stretch="Uniform" StretchDirection="DownOnly" Margin="0,6"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Canvas x:Name="SpacingPreviewCanvas" Width="300" Height="110" />
+                        </Viewbox>
+
+                        <TextBlock Grid.Row="3" Text="Booklet Offset" FontSize="15" FontWeight="Medium"
+                                   Foreground="{StaticResource TextPrimaryBrush}" />
+                        <Viewbox Grid.Row="4" Stretch="Uniform" StretchDirection="DownOnly" Margin="0,6"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Canvas x:Name="OffsetPreviewCanvas" Width="300" Height="110" />
+                        </Viewbox>
+
+                        <Border Grid.Row="5" Background="{StaticResource ScreenBackgroundBrush}" CornerRadius="8" Padding="14,10" Margin="0,8,0,0">
+                            <StackPanel>
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="&#x2194;" FontSize="16" Foreground="{StaticResource TextMutedBrush}"
+                                               VerticalAlignment="Center" Width="18" TextAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="Booklet Spacing" FontSize="15" FontWeight="Medium" Margin="12,0,0,0"
+                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" x:Name="ConvSummarySpacing" Text="8" FontSize="15"
+                                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                                </Grid>
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="&#x21C4;" FontSize="16" Foreground="{StaticResource TextMutedBrush}"
+                                               VerticalAlignment="Center" Width="18" TextAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="Booklet Offset" FontSize="15" FontWeight="Medium" Margin="12,0,0,0"
+                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" x:Name="ConvSummaryOffset" Text="10" FontSize="15"
+                                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                                </Grid>
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="&#x26A0;" FontSize="15" Foreground="{StaticResource TextMutedBrush}"
+                                               VerticalAlignment="Center" Width="18" TextAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="Conveyor Full Detection" FontSize="15" FontWeight="Medium" Margin="12,0,0,0"
+                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" x:Name="ConvSummaryDetection" Text="Enabled" FontSize="15"
+                                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- Conveyor Settings (form) -->
+                <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Conveyor Settings" FontSize="18" FontWeight="Medium"
+                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,16" />
+
+                        <!-- Booklet Spacing -->
+                        <TextBlock Text="Booklet Spacing" FontSize="17" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}" />
+                        <TextBlock Text="Adjust the output conveyor advance (1 to 30) to set the space between booklets"
+                                   FontSize="13" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" Margin="0,4,0,10" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="16" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="16" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Width="76" Height="52" CornerRadius="8" BorderThickness="1"
+                                    BorderBrush="{StaticResource OutlineButtonBorderBrush}" Background="{StaticResource CardBackgroundBrush}">
+                                <TextBlock x:Name="SpacingValueText" Text="8" FontSize="22" Foreground="{StaticResource TextPrimaryBrush}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <Button Grid.Column="2" x:Name="SpacingMinus" Style="{StaticResource StepperButtonStyle}" Content="&#8722;" Click="OnSpacingMinus" />
+                            <Slider Grid.Column="4" x:Name="SpacingSlider" Style="{StaticResource LineSliderStyle}"
+                                    Minimum="1" Maximum="30" Value="8" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="OnSpacingSliderChanged" />
+                            <Button Grid.Column="6" x:Name="SpacingPlus" Style="{StaticResource StepperButtonStyle}" Content="+" Click="OnSpacingPlus" />
+                        </Grid>
+                        <TextBlock Text="1 = small space, 29 = long space, 30 = continuous advance"
+                                   FontSize="13" Foreground="{StaticResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,8,0,0" />
+
+                        <Border Height="1" Background="{StaticResource CardBorderBrush}" Margin="0,18" />
+
+                        <!-- Booklet Offset -->
+                        <TextBlock Text="Booklet Offset" FontSize="17" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}" />
+                        <TextBlock Text="Offset every X booklet to make counting easier"
+                                   FontSize="13" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,10" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="16" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="16" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Width="76" Height="52" CornerRadius="8" BorderThickness="1"
+                                    BorderBrush="{StaticResource OutlineButtonBorderBrush}" Background="{StaticResource CardBackgroundBrush}">
+                                <TextBlock x:Name="OffsetValueText" Text="10" FontSize="22" Foreground="{StaticResource TextPrimaryBrush}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <Button Grid.Column="2" x:Name="OffsetMinus" Style="{StaticResource StepperButtonStyle}" Content="&#8722;" Click="OnOffsetMinus" />
+                            <Slider Grid.Column="4" x:Name="OffsetSlider" Style="{StaticResource LineSliderStyle}"
+                                    Minimum="1" Maximum="30" Value="10" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="OnOffsetSliderChanged" />
+                            <Button Grid.Column="6" x:Name="OffsetPlus" Style="{StaticResource StepperButtonStyle}" Content="+" Click="OnOffsetPlus" />
+                        </Grid>
+
+                        <Border Height="1" Background="{StaticResource CardBorderBrush}" Margin="0,18" />
+
+                        <!-- Conveyor Full Detection -->
+                        <TextBlock Text="Conveyor Full Detection" FontSize="17" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}" />
+                        <TextBlock Text="Choose whether to stop when the machine conveyor is full"
+                                   FontSize="13" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,10" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="0" x:Name="FullDetectionEnabledButton" Style="{StaticResource ChoiceButtonStyle}" Content="Enabled" Tag="Enabled" Click="OnFullDetectionClick" />
+                            <Button Grid.Column="2" x:Name="FullDetectionDisabledButton" Style="{StaticResource ChoiceButtonStyle}" Content="Disabled" Tag="Disabled" Click="OnFullDetectionClick" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </Grid>
         </Grid>
 
         <!-- ================= Footer actions ================= -->

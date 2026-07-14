@@ -39,6 +39,7 @@ namespace CPBourg.NextGenGui.Views
         private const int StitchingStep = 1;
         private const int FoldingStep = 2;
         private const int TrimmingStep = 3;
+        private const int ConveyorStep = 4;
 
         private readonly Button[] _stepTabs;
         private int _currentStep;
@@ -63,6 +64,11 @@ namespace CPBourg.NextGenGui.Views
 
         private Button[] _clampButtons;
         private TextBlock[] _clampLabels;
+
+        // Conveyor parameters (defaults match the controls set in XAML).
+        private int _bookletSpacing = 8;
+        private int _bookletOffset = 10;
+        private bool _fullDetection = true;
 
         // Suppresses the TextChanged handlers that fire while InitializeComponent
         // sets each field's initial text, before the rest of the tree exists.
@@ -101,6 +107,14 @@ namespace CPBourg.NextGenGui.Views
             UpdateTrimSummary();
             RedrawTrimPreview();
 
+            _bookletSpacing = (int)Math.Round(SpacingSlider.Value);
+            _bookletOffset = (int)Math.Round(OffsetSlider.Value);
+            SpacingValueText.Text = _bookletSpacing.ToString(CultureInfo.InvariantCulture);
+            OffsetValueText.Text = _bookletOffset.ToString(CultureInfo.InvariantCulture);
+            RefreshConveyorChoiceButtons();
+            UpdateConveyorSummary();
+            RedrawConveyorPreview();
+
             RefreshUi();
         }
 
@@ -135,17 +149,21 @@ namespace CPBourg.NextGenGui.Views
             bool isStitching = _currentStep == StitchingStep;
             bool isFolding = _currentStep == FoldingStep;
             bool isTrimming = _currentStep == TrimmingStep;
+            bool isConveyor = _currentStep == ConveyorStep;
             StitchingContent.Visibility = isStitching ? Visibility.Visible : Visibility.Collapsed;
             FoldingContent.Visibility = isFolding ? Visibility.Visible : Visibility.Collapsed;
             TrimmingContent.Visibility = isTrimming ? Visibility.Visible : Visibility.Collapsed;
-            OverviewContent.Visibility = (!isStitching && !isFolding && !isTrimming) ? Visibility.Visible : Visibility.Collapsed;
+            ConveyorContent.Visibility = isConveyor ? Visibility.Visible : Visibility.Collapsed;
+            OverviewContent.Visibility = (!isStitching && !isFolding && !isTrimming && !isConveyor) ? Visibility.Visible : Visibility.Collapsed;
 
             StepCaptionText.Text = StepCaptions[_currentStep];
 
             BackButtonText.Text = _currentStep == 0 ? "Back" : "Back: " + StepNames[_currentStep - 1];
 
+            // Last step commits the whole configuration (Confirm) rather than
+            // advancing.
             bool isLast = _currentStep == StepNames.Length - 1;
-            NextButtonText.Text = isLast ? "Finish" : "Next: " + StepNames[_currentStep + 1];
+            NextButtonText.Text = isLast ? "Confirm" : "Next: " + StepNames[_currentStep + 1];
 
             FooterStatusText.Text = string.Empty;
 
@@ -809,6 +827,222 @@ namespace CPBourg.NextGenGui.Views
                 new Point(x + 6, tipY - dir * 10),
             };
             canvas.Children.Add(head);
+        }
+
+        // ================= Conveyor form =================
+
+        private void OnSpacingSliderChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (!_loaded)
+            {
+                return;
+            }
+
+            _bookletSpacing = (int)Math.Round(SpacingSlider.Value);
+            SpacingValueText.Text = _bookletSpacing.ToString(CultureInfo.InvariantCulture);
+            UpdateConveyorSummary();
+            RedrawConveyorPreview();
+        }
+
+        private void OnSpacingMinus(object sender, RoutedEventArgs e)
+        {
+            SpacingSlider.Value = Math.Max(SpacingSlider.Minimum, Math.Round(SpacingSlider.Value) - 1);
+        }
+
+        private void OnSpacingPlus(object sender, RoutedEventArgs e)
+        {
+            SpacingSlider.Value = Math.Min(SpacingSlider.Maximum, Math.Round(SpacingSlider.Value) + 1);
+        }
+
+        private void OnOffsetSliderChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (!_loaded)
+            {
+                return;
+            }
+
+            _bookletOffset = (int)Math.Round(OffsetSlider.Value);
+            OffsetValueText.Text = _bookletOffset.ToString(CultureInfo.InvariantCulture);
+            UpdateConveyorSummary();
+            RedrawConveyorPreview();
+        }
+
+        private void OnOffsetMinus(object sender, RoutedEventArgs e)
+        {
+            OffsetSlider.Value = Math.Max(OffsetSlider.Minimum, Math.Round(OffsetSlider.Value) - 1);
+        }
+
+        private void OnOffsetPlus(object sender, RoutedEventArgs e)
+        {
+            OffsetSlider.Value = Math.Min(OffsetSlider.Maximum, Math.Round(OffsetSlider.Value) + 1);
+        }
+
+        private void OnFullDetectionClick(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is string tag)
+            {
+                _fullDetection = tag == "Enabled";
+                RefreshConveyorChoiceButtons();
+                UpdateConveyorSummary();
+            }
+        }
+
+        private void RefreshConveyorChoiceButtons()
+        {
+            SetChoiceSelected(FullDetectionEnabledButton, _fullDetection);
+            SetChoiceSelected(FullDetectionDisabledButton, !_fullDetection);
+        }
+
+        private void UpdateConveyorSummary()
+        {
+            ConvSummarySpacing.Text = _bookletSpacing.ToString(CultureInfo.InvariantCulture);
+            ConvSummaryOffset.Text = _bookletOffset.ToString(CultureInfo.InvariantCulture);
+            ConvSummaryDetection.Text = _fullDetection ? "Enabled" : "Disabled";
+        }
+
+        // ---- Conveyor live preview ----
+        //
+        // Two conveyor illustrations. Top: booklets standing on the belt with
+        // the gap between them scaled to the Booklet Spacing value (1 = tight,
+        // 30 = wide), dimensioned with the value. Bottom: booklets with every
+        // Nth one nudged forward to show the Booklet Offset grouping.
+
+        private void RedrawConveyorPreview()
+        {
+            DrawSpacingPreview();
+            DrawOffsetPreview();
+        }
+
+        private void DrawSpacingPreview()
+        {
+            var canvas = SpacingPreviewCanvas;
+            canvas.Children.Clear();
+
+            var stroke = (Brush)FindResource("TextSecondaryBrush");
+            var white = (Brush)FindResource("CardBackgroundBrush");
+            var grey = (Brush)FindResource("CardBorderBrush");
+            var green = (Brush)FindResource("StatusRunningBrush");
+            var navy = (Brush)FindResource("HeaderBackgroundBrush");
+
+            double topY = canvas.Height - 22;
+            AddRect(canvas, 12, topY, 276, 14, grey);
+
+            const double bw = 16, bh = 34;
+            double gap = 4 + (_bookletSpacing - 1) / 29.0 * 30; // 4..34 px
+            double x = 26, first = -1, second = -1;
+            int guard = 0;
+            while (x + bw <= 284 && guard < 40)
+            {
+                DrawStandingBooklet(canvas, x, topY - bh, bw, bh, white, stroke, green, grey);
+                if (first < 0) first = x;
+                else if (second < 0) second = x;
+                x += bw + gap;
+                guard++;
+            }
+
+            if (second >= 0)
+            {
+                double leftEdge = first + bw;
+                double rightEdge = second;
+                double midX = (leftEdge + rightEdge) / 2;
+                double ay = 18;
+                AddNumberBox(canvas, midX, 8, _bookletSpacing.ToString(CultureInfo.InvariantCulture));
+                if (rightEdge - leftEdge > 26)
+                {
+                    AddHArrow(canvas, leftEdge, midX - 16, ay, navy, false);
+                    AddHArrow(canvas, rightEdge, midX + 16, ay, navy, false);
+                }
+            }
+        }
+
+        private void DrawOffsetPreview()
+        {
+            var canvas = OffsetPreviewCanvas;
+            canvas.Children.Clear();
+
+            var stroke = (Brush)FindResource("TextSecondaryBrush");
+            var white = (Brush)FindResource("CardBackgroundBrush");
+            var grey = (Brush)FindResource("CardBorderBrush");
+            var green = (Brush)FindResource("StatusRunningBrush");
+            var muted = (Brush)FindResource("TextMutedBrush");
+            var navy = (Brush)FindResource("HeaderBackgroundBrush");
+
+            double topY = canvas.Height - 22;
+            AddRect(canvas, 12, topY, 276, 14, grey);
+
+            const double bw = 16, bh = 34, gap = 8;
+            double x = 26;
+            int i = 0, guard = 0;
+            while (x + bw <= 284 && guard < 40)
+            {
+                bool offset = _bookletOffset > 0 && (i + 1) % _bookletOffset == 0;
+                double by = offset ? topY - bh + 8 : topY - bh;
+                if (offset)
+                {
+                    canvas.Children.Add(new Line
+                    {
+                        X1 = x - 6,
+                        Y1 = topY - bh - 4,
+                        X2 = x - 6,
+                        Y2 = topY + 12,
+                        Stroke = muted,
+                        StrokeThickness = 1,
+                        StrokeDashArray = new DoubleCollection { 3, 3 },
+                    });
+                }
+                DrawStandingBooklet(canvas, x, by, bw, bh, white, stroke, green, grey);
+                x += bw + gap + (offset ? 10 : 0);
+                i++;
+                guard++;
+            }
+
+            AddNumberBox(canvas, 150, 8, _bookletOffset.ToString(CultureInfo.InvariantCulture));
+            AddHArrow(canvas, 150 - 16, 40, 18, navy, false);
+            AddHArrow(canvas, 150 + 16, 262, 18, navy, false);
+        }
+
+        private void DrawStandingBooklet(Canvas canvas, double x, double y, double bw, double bh, Brush fill, Brush stroke, Brush green, Brush grey)
+        {
+            canvas.Children.Add(Positioned(new Rectangle
+            {
+                Width = bw,
+                Height = bh,
+                RadiusX = 2,
+                RadiusY = 2,
+                Fill = fill,
+                Stroke = stroke,
+                StrokeThickness = 1.2,
+            }, x, y));
+            AddRect(canvas, x, y + bh - 4, bw, 4, green);
+            AddLine(canvas, x + 3, y + 5, x + bw - 3, y + 5, grey, 1);
+        }
+
+        private void AddNumberBox(Canvas canvas, double cx, double top, string text)
+        {
+            var white = (Brush)FindResource("CardBackgroundBrush");
+            var stroke = (Brush)FindResource("OutlineButtonBorderBrush");
+            var textBrush = (Brush)FindResource("TextPrimaryBrush");
+
+            const double w = 28, h = 20;
+            canvas.Children.Add(Positioned(new Rectangle
+            {
+                Width = w,
+                Height = h,
+                RadiusX = 3,
+                RadiusY = 3,
+                Fill = white,
+                Stroke = stroke,
+                StrokeThickness = 1,
+            }, cx - w / 2, top));
+            canvas.Children.Add(Positioned(new TextBlock
+            {
+                Text = text,
+                Width = w,
+                FontSize = 13,
+                FontWeight = FontWeights.Medium,
+                Foreground = textBrush,
+                TextAlignment = TextAlignment.Center,
+            }, cx - w / 2, top + 2));
         }
     }
 }
