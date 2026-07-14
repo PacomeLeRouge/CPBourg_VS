@@ -820,6 +820,29 @@ Steps 4-5 (Trimming, Conveyor) still share the Menu overview until their
 designs arrive. Footer Back reads **Back: Stitching**; header title tracks the
 step (`STFO - Folding`).
 
+### v26 — STFO Trimming step (interactive form + dynamic length preview)
+
+Built out step 4 (**Trimming**) of the STFO wizard
+(`Views/StfoConfigurationView.xaml(.cs)`), matching the approved
+high-fidelity mock. Only steps 1-3 previously had bespoke content; the
+content area now also swaps in the Trimming layout for step 4.
+
+- **Trimming Settings form (right):** a **Trim Function** Enabled / Disabled
+  toggle, a **Final Booklet Length** field with `-` / `+` steppers, a **Clamp
+  Conveyor Height** Auto / Maximum / Minimum tile selector (drawn icons,
+  selected one outlined blue), and a **Chip Blower** On / Off toggle.
+- **Live Preview (left) is dynamic** (`RedrawTrimPreview`): the booklet is
+  drawn front-on with its **width scaled to the Final Booklet Length** and a
+  dimension line that updates live; when trimming is on, the trimmed fore-edge
+  strip is shown. A side view of the clamp conveyor sits below, its height
+  marker reflecting the selected clamp mode. A summary table echoes the
+  values. Disabling trimming greys out the length / clamp controls.
+
+Reuses the `ChoiceButtonStyle`, `StepperButtonStyle`, `NumberBoxStyle` and the
+stitch-mode tile style. Step 5 (Conveyor) still shares the Menu overview until
+its design arrives. Footer Back reads **Back: Folding**; header title tracks
+the step (`STFO - Trimming`).
+
 ### Languages (FR-10)
 
 The stage labels in `Startup/StartupStage.cs` are the strings that will move to

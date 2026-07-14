@@ -38,6 +38,7 @@ namespace CPBourg.NextGenGui.Views
 
         private const int StitchingStep = 1;
         private const int FoldingStep = 2;
+        private const int TrimmingStep = 3;
 
         private readonly Button[] _stepTabs;
         private int _currentStep;
@@ -53,6 +54,15 @@ namespace CPBourg.NextGenGui.Views
         private bool _foldEnabled = true;
         private double _foldPosition = 10;
         private string _pressureMode = "Manual";
+
+        // Trimming parameters (defaults match the controls set in XAML).
+        private bool _trimEnabled = true;
+        private double _finalLength = 205;
+        private string _clampHeight = "Auto";
+        private bool _chipBlower = true;
+
+        private Button[] _clampButtons;
+        private TextBlock[] _clampLabels;
 
         // Suppresses the TextChanged handlers that fire while InitializeComponent
         // sets each field's initial text, before the rest of the tree exists.
@@ -84,6 +94,12 @@ namespace CPBourg.NextGenGui.Views
             RefreshFoldChoiceButtons();
             UpdateFoldSummary();
             RedrawFoldPreview();
+
+            _clampButtons = new[] { ClampAutoButton, ClampMaximumButton, ClampMinimumButton };
+            _clampLabels = new[] { ClampAutoLabel, ClampMaximumLabel, ClampMinimumLabel };
+            RefreshTrimChoiceButtons();
+            UpdateTrimSummary();
+            RedrawTrimPreview();
 
             RefreshUi();
         }
@@ -118,9 +134,11 @@ namespace CPBourg.NextGenGui.Views
 
             bool isStitching = _currentStep == StitchingStep;
             bool isFolding = _currentStep == FoldingStep;
+            bool isTrimming = _currentStep == TrimmingStep;
             StitchingContent.Visibility = isStitching ? Visibility.Visible : Visibility.Collapsed;
             FoldingContent.Visibility = isFolding ? Visibility.Visible : Visibility.Collapsed;
-            OverviewContent.Visibility = (!isStitching && !isFolding) ? Visibility.Visible : Visibility.Collapsed;
+            TrimmingContent.Visibility = isTrimming ? Visibility.Visible : Visibility.Collapsed;
+            OverviewContent.Visibility = (!isStitching && !isFolding && !isTrimming) ? Visibility.Visible : Visibility.Collapsed;
 
             StepCaptionText.Text = StepCaptions[_currentStep];
 
@@ -577,6 +595,218 @@ namespace CPBourg.NextGenGui.Views
                 new Point(tipX, y),
                 new Point(tipX - dir * 10, y - 6),
                 new Point(tipX - dir * 10, y + 6),
+            };
+            canvas.Children.Add(head);
+        }
+
+        // ================= Trimming form =================
+
+        private void OnTrimFunctionClick(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is string tag)
+            {
+                _trimEnabled = tag == "Enabled";
+                RefreshTrimChoiceButtons();
+                UpdateTrimSummary();
+                RedrawTrimPreview();
+            }
+        }
+
+        private void OnChipBlowerClick(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is string tag)
+            {
+                _chipBlower = tag == "On";
+                RefreshTrimChoiceButtons();
+                UpdateTrimSummary();
+            }
+        }
+
+        private void OnClampHeightClick(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is string mode)
+            {
+                _clampHeight = mode;
+                RefreshClampButtons();
+                UpdateTrimSummary();
+                RedrawTrimPreview();
+            }
+        }
+
+        private void OnFinalLengthChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!_loaded)
+            {
+                return;
+            }
+
+            _finalLength = ParseOr(FinalLengthBox.Text, _finalLength);
+            UpdateTrimSummary();
+            RedrawTrimPreview();
+        }
+
+        private void OnFinalLengthMinus(object sender, RoutedEventArgs e)
+        {
+            SetFinalLength(ParseOr(FinalLengthBox.Text, _finalLength) - 1);
+        }
+
+        private void OnFinalLengthPlus(object sender, RoutedEventArgs e)
+        {
+            SetFinalLength(ParseOr(FinalLengthBox.Text, _finalLength) + 1);
+        }
+
+        private void SetFinalLength(double value)
+        {
+            // Setting the box text raises OnFinalLengthChanged, which updates
+            // the state, summary and preview.
+            FinalLengthBox.Text = Fmt(Clamp(value, 50, 350), "0.0");
+        }
+
+        private void RefreshTrimChoiceButtons()
+        {
+            SetChoiceSelected(TrimEnabledButton, _trimEnabled);
+            SetChoiceSelected(TrimDisabledButton, !_trimEnabled);
+            SetChoiceSelected(ChipOnButton, _chipBlower);
+            SetChoiceSelected(ChipOffButton, !_chipBlower);
+            RefreshClampButtons();
+
+            // Length and clamp height only matter while trimming is on.
+            FinalLengthMinus.IsEnabled = _trimEnabled;
+            FinalLengthPlus.IsEnabled = _trimEnabled;
+            FinalLengthBox.IsEnabled = _trimEnabled;
+            foreach (var button in _clampButtons)
+            {
+                button.IsEnabled = _trimEnabled;
+            }
+        }
+
+        private void RefreshClampButtons()
+        {
+            var selBorder = (Brush)FindResource("JobsAccentBrush");
+            var selBg = (Brush)FindResource("StatusIdleBgBrush");
+            var selText = (Brush)FindResource("JobsAccentBrush");
+            var normBorder = (Brush)FindResource("CardBorderBrush");
+            var normBg = (Brush)FindResource("CardBackgroundBrush");
+            var normText = (Brush)FindResource("TextSecondaryBrush");
+
+            for (int i = 0; i < _clampButtons.Length; i++)
+            {
+                bool isSelected = (string)_clampButtons[i].Tag == _clampHeight;
+                _clampButtons[i].BorderBrush = isSelected ? selBorder : normBorder;
+                _clampButtons[i].BorderThickness = new Thickness(isSelected ? 2 : 1);
+                _clampButtons[i].Background = isSelected ? selBg : normBg;
+                _clampLabels[i].Foreground = isSelected ? selText : normText;
+                _clampLabels[i].FontWeight = isSelected ? FontWeights.SemiBold : FontWeights.Normal;
+            }
+        }
+
+        private void UpdateTrimSummary()
+        {
+            TrimSummaryTrimming.Text = _trimEnabled ? "Enabled" : "Disabled";
+            TrimSummaryLength.Text = Fmt(_finalLength, "0.0") + " mm";
+            TrimSummaryClamp.Text = _clampHeight == "Auto" ? "Automatic" : _clampHeight;
+            TrimSummaryChip.Text = _chipBlower ? "On" : "Off";
+        }
+
+        // ---- Trimming live preview ----
+        //
+        // Top: the booklet drawn front-on, its width scaled to the final
+        // booklet length (with a dimension line and, when trimming is on, the
+        // trimmed fore-edge strip). Bottom: a side view of the clamp conveyor
+        // whose height marker reflects the selected clamp mode.
+
+        private void RedrawTrimPreview()
+        {
+            var canvas = TrimPreviewCanvas;
+            canvas.Children.Clear();
+
+            var stroke = (Brush)FindResource("TextSecondaryBrush");
+            var fill = (Brush)FindResource("CardBackgroundBrush");
+            var grey = (Brush)FindResource("CardBorderBrush");
+            var muted = (Brush)FindResource("TextMutedBrush");
+            var navy = (Brush)FindResource("HeaderBackgroundBrush");
+            var label = (Brush)FindResource("TextSecondaryBrush");
+
+            // Top booklet - width tracks the final length.
+            const double pxPerMm = 0.73;
+            double w = Clamp(_finalLength * pxPerMm, 80, 190);
+            double h = 118;
+            double bx = 150 - w / 2;
+            double by = 64;
+
+            canvas.Children.Add(Positioned(new Rectangle
+            {
+                Width = w,
+                Height = h,
+                RadiusX = 5,
+                RadiusY = 5,
+                Fill = fill,
+                Stroke = stroke,
+                StrokeThickness = 1.5,
+            }, bx, by));
+            AddLine(canvas, bx + 6, by + 6, bx + 6, by + h - 6, muted, 1);
+            AddLine(canvas, bx + 18, by + 34, bx + w - 14, by + 34, grey, 4);
+            AddLine(canvas, bx + 18, by + 50, bx + w - 14, by + 50, grey, 4);
+            AddLine(canvas, bx + 18, by + 66, bx + w - 30, by + 66, grey, 4);
+
+            AddHArrow(canvas, bx, bx + w, by - 16, navy, true);
+            AddLabel(canvas, Fmt(_finalLength, "0.0") + " mm", bx - 30, by - 38, w + 60, label, TextAlignment.Center);
+
+            if (_trimEnabled)
+            {
+                double tx = bx + w + 10;
+                canvas.Children.Add(new Line
+                {
+                    X1 = tx,
+                    Y1 = by - 4,
+                    X2 = tx,
+                    Y2 = by + h + 4,
+                    Stroke = muted,
+                    StrokeThickness = 1.5,
+                    StrokeDashArray = new DoubleCollection { 4, 3 },
+                });
+                AddRect(canvas, tx + 6, by, 8, h, grey);
+            }
+
+            // Bottom side view of the clamp conveyor.
+            const double baseY = 300;
+            canvas.Children.Add(Positioned(new Rectangle
+            {
+                Width = 120,
+                Height = 16,
+                RadiusX = 2,
+                RadiusY = 2,
+                Fill = fill,
+                Stroke = stroke,
+                StrokeThickness = 1.2,
+            }, 80, 244));
+            AddLine(canvas, 86, 250, 200, 250, grey, 1.5);
+            AddLine(canvas, 86, 255, 200, 255, grey, 1.5);
+            AddPolygon(canvas, new double[,] { { 70, 300 }, { 220, 300 }, { 220, 262 } }, grey, stroke);
+            if (_trimEnabled)
+            {
+                AddRect(canvas, 232, 250, 8, 50, grey);
+            }
+
+            double heightMarker = _clampHeight == "Maximum" ? 66 : _clampHeight == "Minimum" ? 26 : 46;
+            AddVArrow(canvas, 256, baseY - heightMarker, baseY, navy);
+        }
+
+        private void AddVArrow(Canvas canvas, double x, double y1, double y2, Brush brush)
+        {
+            AddLine(canvas, x, y1, x, y2, brush, 2);
+            AddVHead(canvas, x, y2, y2 >= y1 ? 1 : -1, brush);
+            AddVHead(canvas, x, y1, y2 >= y1 ? -1 : 1, brush);
+        }
+
+        private void AddVHead(Canvas canvas, double x, double tipY, int dir, Brush brush)
+        {
+            var head = new Polygon { Fill = brush };
+            head.Points = new PointCollection
+            {
+                new Point(x, tipY),
+                new Point(x - 6, tipY - dir * 10),
+                new Point(x + 6, tipY - dir * 10),
             };
             canvas.Children.Add(head);
         }

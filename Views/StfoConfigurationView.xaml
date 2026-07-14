@@ -802,6 +802,205 @@
                     </Grid>
                 </Border>
             </Grid>
+
+            <!-- ===== Trimming (step 4) ===== -->
+            <Grid x:Name="TrimmingContent" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="10*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="13*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Live Preview (dynamic length) -->
+                <Border Grid.Column="0" Style="{StaticResource CardStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Text="Live Preview" FontSize="17" FontWeight="Medium"
+                                   Foreground="{StaticResource TextPrimaryBrush}" />
+
+                        <Viewbox Grid.Row="1" Stretch="Uniform" StretchDirection="DownOnly" Margin="6,10"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Canvas x:Name="TrimPreviewCanvas" Width="340" Height="340" />
+                        </Viewbox>
+
+                        <Border Grid.Row="2" Background="{StaticResource ScreenBackgroundBrush}" CornerRadius="8" Padding="14,10">
+                            <StackPanel>
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Rectangle Grid.Column="0" Width="18" Height="14" Stroke="{StaticResource TextMutedBrush}" StrokeThickness="1.5" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="Trimming" FontSize="15" FontWeight="Medium" Margin="12,0,0,0"
+                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" x:Name="TrimSummaryTrimming" Text="Enabled" FontSize="15"
+                                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                                </Grid>
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="&#x2194;" FontSize="16" Foreground="{StaticResource TextMutedBrush}"
+                                               VerticalAlignment="Center" Width="18" TextAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="Final Booklet Length" FontSize="15" FontWeight="Medium" Margin="12,0,0,0"
+                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" x:Name="TrimSummaryLength" Text="205.0 mm" FontSize="15"
+                                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                                </Grid>
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="&#x2195;" FontSize="16" Foreground="{StaticResource TextMutedBrush}"
+                                               VerticalAlignment="Center" Width="18" TextAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="Clamp Conveyor Height" FontSize="15" FontWeight="Medium" Margin="12,0,0,0"
+                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" x:Name="TrimSummaryClamp" Text="Automatic" FontSize="15"
+                                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                                </Grid>
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Ellipse Grid.Column="0" Width="16" Height="16" Stroke="{StaticResource TextMutedBrush}" StrokeThickness="1.5" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="Chip Blower" FontSize="15" FontWeight="Medium" Margin="12,0,0,0"
+                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" x:Name="TrimSummaryChip" Text="On" FontSize="15"
+                                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- Trimming Settings (form) -->
+                <Border Grid.Column="2" Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Trimming Settings" FontSize="18" FontWeight="Medium"
+                                   Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,18" />
+
+                        <!-- Trim Function -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Trim Function:" FontSize="17" FontWeight="Medium"
+                                       Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                            <Button Grid.Column="1" x:Name="TrimEnabledButton" Style="{StaticResource ChoiceButtonStyle}" MinWidth="150" Content="Enabled" Tag="Enabled" Click="OnTrimFunctionClick" />
+                            <Button Grid.Column="3" x:Name="TrimDisabledButton" Style="{StaticResource ChoiceButtonStyle}" MinWidth="150" Content="Disabled" Tag="Disabled" Click="OnTrimFunctionClick" />
+                        </Grid>
+
+                        <Border Height="1" Background="{StaticResource CardBorderBrush}" Margin="0,18" />
+
+                        <!-- Final Booklet Length -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Final Booklet Length" FontSize="17" FontWeight="Medium"
+                                       Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button x:Name="FinalLengthMinus" Style="{StaticResource StepperButtonStyle}" Content="&#8722;" Click="OnFinalLengthMinus" />
+                                <TextBox x:Name="FinalLengthBox" Style="{StaticResource NumberBoxStyle}" Width="150" Margin="10,0" Text="205.0" TextChanged="OnFinalLengthChanged" />
+                                <Button x:Name="FinalLengthPlus" Style="{StaticResource StepperButtonStyle}" Content="+" Click="OnFinalLengthPlus" />
+                                <TextBlock Text="mm" Style="{StaticResource UnitLabelStyle}" />
+                            </StackPanel>
+                        </Grid>
+                        <TextBlock Text="Enter the desired final length" FontSize="13" Foreground="{StaticResource TextMutedBrush}"
+                                   HorizontalAlignment="Right" Margin="0,8,0,0" />
+
+                        <Border Height="1" Background="{StaticResource CardBorderBrush}" Margin="0,18" />
+
+                        <!-- Clamp Conveyor Height -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="16" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock Text="Clamp Conveyor Height" FontSize="17" FontWeight="Medium"
+                                           Foreground="{StaticResource TextPrimaryBrush}" />
+                                <TextBlock Text="Trimmer height conveyor self adjusts in relation to booklet thickness"
+                                           FontSize="13" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" Margin="0,10,0,0" />
+                            </StackPanel>
+                            <UniformGrid Grid.Column="2" Columns="3" Width="330">
+                                <Button x:Name="ClampAutoButton" Style="{StaticResource StitchModeButtonStyle}" Tag="Auto" Click="OnClampHeightClick">
+                                    <StackPanel>
+                                        <Viewbox Width="60" Height="46">
+                                            <Canvas Width="60" Height="46">
+                                                <Rectangle Canvas.Left="12" Canvas.Top="4" Width="14" Height="14" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.4" />
+                                                <Rectangle Canvas.Left="34" Canvas.Top="4" Width="14" Height="14" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.4" />
+                                                <Polygon Points="8,42 26,42 26,28" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.4" Fill="Transparent" />
+                                                <Polygon Points="34,42 52,42 52,28" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.4" Fill="Transparent" />
+                                            </Canvas>
+                                        </Viewbox>
+                                        <TextBlock x:Name="ClampAutoLabel" Text="Auto" FontSize="14" HorizontalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource TextSecondaryBrush}" />
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="ClampMaximumButton" Style="{StaticResource StitchModeButtonStyle}" Tag="Maximum" Click="OnClampHeightClick">
+                                    <StackPanel>
+                                        <Viewbox Width="60" Height="46">
+                                            <Canvas Width="60" Height="46">
+                                                <Rectangle Canvas.Left="12" Canvas.Top="4" Width="14" Height="14" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.4" />
+                                                <Rectangle Canvas.Left="34" Canvas.Top="4" Width="14" Height="14" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.4" />
+                                                <Polygon Points="8,42 52,42 52,22" Fill="{StaticResource TextSecondaryBrush}" />
+                                            </Canvas>
+                                        </Viewbox>
+                                        <TextBlock x:Name="ClampMaximumLabel" Text="Maximum" FontSize="14" HorizontalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource TextSecondaryBrush}" />
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="ClampMinimumButton" Style="{StaticResource StitchModeButtonStyle}" Tag="Minimum" Click="OnClampHeightClick">
+                                    <StackPanel>
+                                        <Viewbox Width="60" Height="46">
+                                            <Canvas Width="60" Height="46">
+                                                <Rectangle Canvas.Left="12" Canvas.Top="4" Width="14" Height="14" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.4" />
+                                                <Rectangle Canvas.Left="34" Canvas.Top="4" Width="14" Height="14" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.4" />
+                                                <Polygon Points="8,42 52,42 52,36" Fill="{StaticResource CardBorderBrush}" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.2" />
+                                            </Canvas>
+                                        </Viewbox>
+                                        <TextBlock x:Name="ClampMinimumLabel" Text="Minimum" FontSize="14" HorizontalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource TextSecondaryBrush}" />
+                                    </StackPanel>
+                                </Button>
+                            </UniformGrid>
+                        </Grid>
+
+                        <Border Height="1" Background="{StaticResource CardBorderBrush}" Margin="0,18" />
+
+                        <!-- Chip Blower -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Chip Blower" FontSize="17" FontWeight="Medium"
+                                       Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                            <Button Grid.Column="1" x:Name="ChipOnButton" Style="{StaticResource ChoiceButtonStyle}" MinWidth="150" Content="On" Tag="On" Click="OnChipBlowerClick" />
+                            <Button Grid.Column="3" x:Name="ChipOffButton" Style="{StaticResource ChoiceButtonStyle}" MinWidth="150" Content="Off" Tag="Off" Click="OnChipBlowerClick" />
+                        </Grid>
+                        <TextBlock Text="Evacuates trim chips" FontSize="13" Foreground="{StaticResource TextMutedBrush}"
+                                   HorizontalAlignment="Center" Margin="0,10,0,0" />
+                    </StackPanel>
+                </Border>
+            </Grid>
         </Grid>
 
         <!-- ================= Footer actions ================= -->
