@@ -795,6 +795,31 @@ not-yet-built steps 3-5) and the Stitching two-column layout.
 Steps 3-5 still share the Menu overview until their forms are designed. The
 shell header title continues to track the step (`STFO - Stitching`).
 
+### v25 — STFO Folding step (interactive form + dynamic fold preview)
+
+Built out step 3 (**Folding**) of the STFO wizard
+(`Views/StfoConfigurationView.xaml(.cs)`), matching the approved
+high-fidelity mock. The content area now swaps between the machine-line
+overview (Menu + steps 4-5), the Stitching layout, and the Folding layout.
+
+- **Folding Settings form (right):** a **Fold Function** Enabled / Disabled
+  toggle, a **Fold Position** stepper (`-` / value / `+`) paired with a
+  Backward-to-Forward slider, and a **Pressure Mode** Auto / Default / Manual
+  selector with a Less-to-More slider (enabled only in Manual). Selected
+  choices fill blue.
+- **Live Preview (left) is dynamic** (`RedrawFoldPreview`): an open booklet
+  with a **dashed fold line that shifts to whichever side is selected** -
+  positive/Forward moves it right of centre, negative/Backward left - the
+  **"Fold direction" arrow flips** with the sign, and the offset arrow beneath
+  shows the **distance from centre**. Disabling folding removes the fold
+  indicators. A summary table echoes Folding / Fold Position / Pressure Mode.
+- New reusable styles: `ChoiceButtonStyle`, `StepperButtonStyle`,
+  `LineSliderStyle`.
+
+Steps 4-5 (Trimming, Conveyor) still share the Menu overview until their
+designs arrive. Footer Back reads **Back: Stitching**; header title tracks the
+step (`STFO - Folding`).
+
 ### Languages (FR-10)
 
 The stage labels in `Startup/StartupStage.cs` are the strings that will move to
