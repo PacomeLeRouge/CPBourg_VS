@@ -210,9 +210,22 @@
 							</StackPanel>
 
 							<Button x:Name="ConfirmCounterChangesButton" Padding="16,10" Height="52"
-							        Margin="14,22,0,0" Click="OnConfirmCounterChangesClick" IsEnabled="False"
-							        Background="{StaticResource JobsAccentBrush}"
-							        Foreground="{StaticResource JobsAccentForegroundBrush}" BorderThickness="0">
+							        Margin="14,22,0,0" Click="OnConfirmCounterChangesClick" IsEnabled="False">
+								<Button.Style>
+									<Style TargetType="Button">
+										<Setter Property="Background" Value="{StaticResource JobsAccentBrush}" />
+										<Setter Property="Foreground" Value="{StaticResource JobsAccentForegroundBrush}" />
+										<Setter Property="BorderThickness" Value="0" />
+										<Style.Triggers>
+											<Trigger Property="IsEnabled" Value="False">
+												<Setter Property="Background" Value="{StaticResource ProgressTrackBrush}" />
+												<Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+												<Setter Property="BorderBrush" Value="{StaticResource OutlineButtonBorderBrush}" />
+												<Setter Property="BorderThickness" Value="1" />
+											</Trigger>
+										</Style.Triggers>
+									</Style>
+								</Button.Style>
 								<StackPanel Orientation="Horizontal">
 									<TextBlock Text="&#xE73E;" FontFamily="{StaticResource IconFontFamily}" FontSize="18" VerticalAlignment="Center" />
 									<TextBlock Text="Confirm" FontSize="14" Margin="7,0,0,0" VerticalAlignment="Center" />
