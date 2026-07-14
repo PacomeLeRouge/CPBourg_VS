@@ -843,6 +843,30 @@ stitch-mode tile style. Step 5 (Conveyor) still shares the Menu overview until
 its design arrives. Footer Back reads **Back: Folding**; header title tracks
 the step (`STFO - Trimming`).
 
+### v27 — STFO Conveyor step (interactive form + dynamic spacing preview); wizard complete
+
+Built out step 5 (**Conveyor**) of the STFO wizard
+(`Views/StfoConfigurationView.xaml(.cs)`), matching the approved
+high-fidelity mock. All five steps now have bespoke content, so the Menu
+overview only shows on step 1.
+
+- **Conveyor Settings form (right):** **Booklet Spacing** (value box + `-`/`+`
+  steppers + a 1-30 slider) with its "1 = small space ... 30 = continuous
+  advance" caption, **Booklet Offset** (value box + steppers + slider), and a
+  **Conveyor Full Detection** Enabled / Disabled toggle.
+- **Live Preview (left) is dynamic** (`RedrawConveyorPreview`): the top
+  conveyor shows booklets standing on the belt with the **gap between them
+  scaled to the Booklet Spacing value** (dimensioned with the number); the
+  bottom conveyor nudges **every Nth booklet forward** to show the Booklet
+  Offset grouping. A summary table echoes the values.
+- The last-step footer CTA now reads **Confirm** (was "Finish") and returns to
+  the dashboard.
+
+The STFO individual-machine configuration wizard (Menu / Stitching / Folding /
+Trimming / Conveyor) is now complete end-to-end. Remaining polish for a later
+pass: header title wording ("Machine Line - ..." vs "STFO - ..."), unifying the
+navy/blue selection accent, and the mock's check badges on selected toggles.
+
 ### Languages (FR-10)
 
 The stage labels in `Startup/StartupStage.cs` are the strings that will move to
