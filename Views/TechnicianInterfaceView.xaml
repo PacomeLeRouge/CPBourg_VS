@@ -43,8 +43,19 @@
     </UserControl.Resources>
 
     <Grid Background="{StaticResource ScreenBackgroundBrush}">
-        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-            <Grid Margin="18" MinWidth="1080">
+        <!--
+            The 1280 x 748 design surface is the shell's original 1280 x 820
+            window minus its 72 px header. A Viewbox scales that complete
+            surface uniformly to the real client area (which is slightly
+            shorter once Windows adds its title bar), so the footer remains
+            visible in windowed mode and the layout grows proportionally in
+            fullscreen. Uniform scaling preserves card and icon proportions;
+            unlike the previous ScrollViewer, it never requires vertical
+            scrolling to reach an action.
+        -->
+        <Viewbox Stretch="Uniform" StretchDirection="Both"
+                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Grid Width="1244" Height="712" Margin="18">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="54" />
                     <RowDefinition Height="14" />
@@ -346,7 +357,7 @@
                     </Button>
                 </Grid>
             </Grid>
-        </ScrollViewer>
+        </Viewbox>
 
         <local:TechnicalAccessDialog x:Name="AccessDialog" />
     </Grid>
