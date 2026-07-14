@@ -1,0 +1,86 @@
+<UserControl x:Class="CPBourg.NextGenGui.Views.TechnicalAccessDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Visibility="Collapsed">
+    <UserControl.Resources>
+        <Style x:Key="AccessKeypadButtonStyle" TargetType="Button">
+            <Setter Property="MinHeight" Value="48" />
+            <Setter Property="Background" Value="{StaticResource ScreenBackgroundBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Margin" Value="4" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Border Background="{StaticResource OverlayScrimBrush}" MouseDown="OnScrimMouseDown" />
+        <Border Width="500" MaxHeight="620" Padding="28" CornerRadius="16"
+                Background="{StaticResource CardBackgroundBrush}"
+                HorizontalAlignment="Center" VerticalAlignment="Center">
+            <StackPanel>
+                <TextBlock Text="Technical Access" FontSize="22" FontWeight="Medium"
+                           Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock Text="Enter your technician code to unlock protected actions."
+                           FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+                           Margin="0,4,0,16" />
+                <Border Height="1" Background="{StaticResource CardBorderBrush}" Margin="0,0,0,18" />
+
+                <TextBlock Text="Enter Technician Code:" FontSize="14" FontWeight="SemiBold"
+                           Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,8" />
+                <Border Background="{StaticResource ScreenBackgroundBrush}" CornerRadius="8"
+                        BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1"
+                        Height="50" Margin="0,0,0,12">
+                    <TextBlock x:Name="MaskedCodeText" Text="" FontSize="22"
+                               Padding="12,8" VerticalAlignment="Center"
+                               Foreground="{StaticResource TextPrimaryBrush}" />
+                </Border>
+                <TextBlock x:Name="ValidationText" Text="Enter at least one digit."
+                           Foreground="{StaticResource StatusErrorBrush}" FontSize="13"
+                           Margin="4,0,0,8" Visibility="Collapsed" />
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Row="0" Grid.Column="0" Style="{StaticResource AccessKeypadButtonStyle}" Tag="1" Click="OnDigitClick">1</Button>
+                    <Button Grid.Row="0" Grid.Column="1" Style="{StaticResource AccessKeypadButtonStyle}" Tag="2" Click="OnDigitClick">2</Button>
+                    <Button Grid.Row="0" Grid.Column="2" Style="{StaticResource AccessKeypadButtonStyle}" Tag="3" Click="OnDigitClick">3</Button>
+                    <Button Grid.Row="1" Grid.Column="0" Style="{StaticResource AccessKeypadButtonStyle}" Tag="4" Click="OnDigitClick">4</Button>
+                    <Button Grid.Row="1" Grid.Column="1" Style="{StaticResource AccessKeypadButtonStyle}" Tag="5" Click="OnDigitClick">5</Button>
+                    <Button Grid.Row="1" Grid.Column="2" Style="{StaticResource AccessKeypadButtonStyle}" Tag="6" Click="OnDigitClick">6</Button>
+                    <Button Grid.Row="2" Grid.Column="0" Style="{StaticResource AccessKeypadButtonStyle}" Tag="7" Click="OnDigitClick">7</Button>
+                    <Button Grid.Row="2" Grid.Column="1" Style="{StaticResource AccessKeypadButtonStyle}" Tag="8" Click="OnDigitClick">8</Button>
+                    <Button Grid.Row="2" Grid.Column="2" Style="{StaticResource AccessKeypadButtonStyle}" Tag="9" Click="OnDigitClick">9</Button>
+                    <Button Grid.Row="3" Grid.Column="0" Style="{StaticResource AccessKeypadButtonStyle}" Click="OnClearClick">Clear</Button>
+                    <Button Grid.Row="3" Grid.Column="1" Style="{StaticResource AccessKeypadButtonStyle}" Tag="0" Click="OnDigitClick">0</Button>
+                    <Button Grid.Row="3" Grid.Column="2" Style="{StaticResource AccessKeypadButtonStyle}" Click="OnBackspaceClick">&#9003; Backspace</Button>
+                </Grid>
+
+                <Grid Margin="0,20,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="14" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" MinHeight="52" Click="OnCancelClick">
+                        <TextBlock Text="Cancel" FontSize="15" FontWeight="Medium" />
+                    </Button>
+                    <Button Grid.Column="2" MinHeight="52" Click="OnUnlockClick"
+                            Background="{StaticResource JobsAccentBrush}"
+                            Foreground="{StaticResource JobsAccentForegroundBrush}" BorderThickness="0">
+                        <TextBlock Text="Unlock" FontSize="15" FontWeight="Medium" />
+                    </Button>
+                </Grid>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

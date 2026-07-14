@@ -29,6 +29,8 @@ namespace CPBourg.NextGenGui.Views
             StfoScreen.TitleChanged += (s, title) => PageTitleText.Text = title;
             StfoScreen.CloseRequested += (s, e) => NavigateTo("Home");
 
+            TechnicianScreen.CloseRequested += (s, e) => NavigateTo("Home");
+
             // Keep the Dashboard's Active Alerts card in sync with the real
             // Errors & Information state - both on every change, and once
             // now for the initial counts (ErrorsScreen already loaded its
@@ -89,6 +91,7 @@ namespace CPBourg.NextGenGui.Views
                 ErrorsScreen.Visibility = Visibility.Collapsed;
                 MachineLineConfigScreen.Visibility = Visibility.Collapsed;
                 StfoScreen.Visibility = Visibility.Collapsed;
+                TechnicianScreen.Visibility = Visibility.Collapsed;
                 PageTitleText.Text = "Home";
             }
             else if (itemName == "Settings / Preferences")
@@ -99,6 +102,7 @@ namespace CPBourg.NextGenGui.Views
                 ErrorsScreen.Visibility = Visibility.Collapsed;
                 MachineLineConfigScreen.Visibility = Visibility.Collapsed;
                 StfoScreen.Visibility = Visibility.Collapsed;
+                TechnicianScreen.Visibility = Visibility.Collapsed;
                 PageTitleText.Text = "Settings";
             }
             else if (itemName == "Job / File Menu")
@@ -109,6 +113,7 @@ namespace CPBourg.NextGenGui.Views
                 ErrorsScreen.Visibility = Visibility.Collapsed;
                 MachineLineConfigScreen.Visibility = Visibility.Collapsed;
                 StfoScreen.Visibility = Visibility.Collapsed;
+                TechnicianScreen.Visibility = Visibility.Collapsed;
                 PageTitleText.Text = "Jobs / File Menu";
             }
             else if (itemName == "Error & Information")
@@ -119,6 +124,7 @@ namespace CPBourg.NextGenGui.Views
                 ErrorsScreen.Visibility = Visibility.Visible;
                 MachineLineConfigScreen.Visibility = Visibility.Collapsed;
                 StfoScreen.Visibility = Visibility.Collapsed;
+                TechnicianScreen.Visibility = Visibility.Collapsed;
                 PageTitleText.Text = "Errors";
             }
             else if (itemName == "Machine Line Configuration")
@@ -129,7 +135,19 @@ namespace CPBourg.NextGenGui.Views
                 ErrorsScreen.Visibility = Visibility.Collapsed;
                 MachineLineConfigScreen.Visibility = Visibility.Visible;
                 StfoScreen.Visibility = Visibility.Collapsed;
+                TechnicianScreen.Visibility = Visibility.Collapsed;
                 PageTitleText.Text = "Machine Line Configuration";
+            }
+            else if (itemName == "Technician Interface")
+            {
+                Dashboard.Visibility = Visibility.Collapsed;
+                SettingsScreen.Visibility = Visibility.Collapsed;
+                JobsScreen.Visibility = Visibility.Collapsed;
+                ErrorsScreen.Visibility = Visibility.Collapsed;
+                MachineLineConfigScreen.Visibility = Visibility.Collapsed;
+                StfoScreen.Visibility = Visibility.Collapsed;
+                TechnicianScreen.Visibility = Visibility.Visible;
+                PageTitleText.Text = "Technician Interface";
             }
             else
             {
@@ -151,6 +169,7 @@ namespace CPBourg.NextGenGui.Views
             ErrorsScreen.Visibility = Visibility.Collapsed;
             MachineLineConfigScreen.Visibility = Visibility.Collapsed;
             StfoScreen.Visibility = Visibility.Visible;
+            TechnicianScreen.Visibility = Visibility.Collapsed;
             StfoScreen.ResetToStart();
         }
 

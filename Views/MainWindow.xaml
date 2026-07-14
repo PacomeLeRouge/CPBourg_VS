@@ -140,6 +140,7 @@
         <local:ErrorsView Grid.Row="1" x:Name="ErrorsScreen" Visibility="Collapsed" />
         <local:MachineLineConfigurationView Grid.Row="1" x:Name="MachineLineConfigScreen" Visibility="Collapsed" />
         <local:StfoConfigurationView Grid.Row="1" x:Name="StfoScreen" Visibility="Collapsed" />
+        <local:TechnicianInterfaceView Grid.Row="1" x:Name="TechnicianScreen" Visibility="Collapsed" />
 
         <!-- ================= Global menu overlay ================= -->
         <local:GlobalMenuView Grid.Row="0" Grid.RowSpan="2" x:Name="GlobalMenu"
