@@ -867,6 +867,28 @@ Trimming / Conveyor) is now complete end-to-end. Remaining polish for a later
 pass: header title wording ("Machine Line - ..." vs "STFO - ..."), unifying the
 navy/blue selection accent, and the mock's check badges on selected toggles.
 
+### v28 - Technician Interface and responsive window/fullscreen layout
+
+Added the Technician Interface screen, reachable from **Advanced > Technician
+Interface** in the global menu. It contains the seven machine options from the
+approved high-fidelity prototype, the status/speed panels, technician action
+tiles, and Back / Reset / Save / Confirm footer actions.
+
+- Technician choices are persisted per Windows user in
+  `%LOCALAPPDATA%\CPBourg\NextGenGui\technician-settings.xml`. **Save** writes
+  without leaving the screen; **Confirm** saves and returns Home; **Back**
+  discards unsaved edits; **Reset** restores defaults as pending changes.
+- **Technical Access** opens a masked, touch-friendly numeric keypad matching
+  the Add Module technician-code step. The prototype accepts a non-empty code
+  and does not retain it; production credential validation remains a backend
+  integration point.
+- The complete 1280 x 748 Technician design surface now sits in a uniformly
+  scaling WPF `Viewbox`. It scales down to the default window's actual client
+  area (including the space lost to the Windows title bar) and scales up in
+  fullscreen while preserving proportions. The former vertical
+  `ScrollViewer` was removed, so the footer is always visible without a mouse
+  wheel or scrollbar.
+
 ### Languages (FR-10)
 
 The stage labels in `Startup/StartupStage.cs` are the strings that will move to
@@ -896,6 +918,8 @@ inline for the prototype and marked with a comment.
 | `Views/ErrorDetailDialog.xaml(.cs)` | Error/warning detail overlay |
 | `Views/ErrorSeverityToBrushConverter.cs` | Maps `ErrorSeverity` to theme brushes |
 | `Views/MachineLineConfigurationView.xaml(.cs)` | Machine Line Configuration screen (Empty / Single / Overview states) |
+| `Views/TechnicianInterfaceView.xaml(.cs)` | Responsive Technician Interface screen and saved control state |
+| `Views/TechnicalAccessDialog.xaml(.cs)` | Masked numeric technician-code keypad overlay |
 | `Views/GlobalMenuView.xaml(.cs)` | Slide-out global navigation overlay |
 | `Views/MachineStatusToBrushConverter.cs` | Maps `MachineStatus` to theme brushes |
 | `Views/NullToCollapsedConverter.cs` | Hides an element when a bound string is null/empty |
@@ -910,6 +934,8 @@ inline for the prototype and marked with a comment.
 | `Models/ErrorSeverity.cs` | Critical / Warning / Info / Resolved enum |
 | `Models/ErrorRecord.cs` | Data for one error/warning message |
 | `Models/MachineLineItemInfo.cs` | Data for one machine/module on the LINE CANVAS |
+| `Models/TechnicianSettings.cs` | Saved Technician Interface option values and defaults |
+| `Models/TechnicianSettingsStore.cs` | User-local XML persistence for technician settings |
 | `Startup/StartupStage.cs` | The five boot phases + display text |
 | `Startup/StartupProgress.cs` | Immutable progress snapshot |
 | `Startup/StartupSequencer.cs` | Runs the sequence, UI-agnostic |
