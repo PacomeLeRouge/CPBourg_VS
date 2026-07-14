@@ -177,7 +177,11 @@
 								</StackPanel>
 							</StackPanel>
 
-							<StackPanel Margin="24,0,0,0">
+							<TextBlock Text="/" FontSize="30" FontWeight="Light"
+							           Foreground="{StaticResource TextMutedBrush}"
+							           Margin="16,23,0,0" VerticalAlignment="Center" />
+
+							<StackPanel Margin="16,0,0,0">
 								<TextBlock Text="Preset (0 = unlimited)" Foreground="{StaticResource TextMutedBrush}"
 								           FontSize="12" Margin="0,0,0,5" />
 								<StackPanel Orientation="Horizontal">
@@ -205,10 +209,13 @@
 								</StackPanel>
 							</StackPanel>
 
-							<Button Padding="14,10" Height="52" Margin="14,22,0,0" Click="OnResetToZeroClick">
+							<Button x:Name="ConfirmCounterChangesButton" Padding="16,10" Height="52"
+							        Margin="14,22,0,0" Click="OnConfirmCounterChangesClick" IsEnabled="False"
+							        Background="{StaticResource JobsAccentBrush}"
+							        Foreground="{StaticResource JobsAccentForegroundBrush}" BorderThickness="0">
 								<StackPanel Orientation="Horizontal">
-									<TextBlock Text="&#xE72C;" FontFamily="{StaticResource IconFontFamily}" FontSize="18" VerticalAlignment="Center" />
-									<TextBlock Text="Reset to zero" FontSize="14" Margin="7,0,0,0" VerticalAlignment="Center" />
+									<TextBlock Text="&#xE73E;" FontFamily="{StaticResource IconFontFamily}" FontSize="18" VerticalAlignment="Center" />
+									<TextBlock Text="Confirm" FontSize="14" Margin="7,0,0,0" VerticalAlignment="Center" />
 								</StackPanel>
 							</Button>
 						</StackPanel>
@@ -216,7 +223,7 @@
 						<!-- Divider -->
 						<Border Grid.Row="4" Background="{StaticResource CardBorderBrush}" Height="1" />
 
-						<!-- Output/h + Set Target -->
+						<!-- Output/h + counter actions -->
 						<Grid Grid.Row="6">
 							<Grid.ColumnDefinitions>
 								<ColumnDefinition Width="*" />
@@ -231,12 +238,20 @@
                                                Margin="8,0,0,0" VerticalAlignment="Center" />
 								</StackPanel>
 							</StackPanel>
-							<Button Grid.Column="1" Padding="16,13" Height="52" VerticalAlignment="Center" Click="OnSetTargetClick">
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Text="&#xE7C3;" FontFamily="{StaticResource IconFontFamily}" FontSize="20" VerticalAlignment="Center" />
-									<TextBlock Text="Set target" FontSize="15" Margin="8,0,0,0" VerticalAlignment="Center" />
-								</StackPanel>
-							</Button>
+							<StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+								<Button Padding="14,13" Height="52" Click="OnResetToZeroClick">
+									<StackPanel Orientation="Horizontal">
+										<TextBlock Text="&#xE72C;" FontFamily="{StaticResource IconFontFamily}" FontSize="19" VerticalAlignment="Center" />
+										<TextBlock Text="Reset to zero" FontSize="14" Margin="7,0,0,0" VerticalAlignment="Center" />
+									</StackPanel>
+								</Button>
+								<Button Padding="14,13" Height="52" Margin="8,0,0,0" Click="OnSetTargetClick">
+									<StackPanel Orientation="Horizontal">
+										<TextBlock Text="&#xE7C3;" FontFamily="{StaticResource IconFontFamily}" FontSize="19" VerticalAlignment="Center" />
+										<TextBlock Text="Set target" FontSize="14" Margin="7,0,0,0" VerticalAlignment="Center" />
+									</StackPanel>
+								</Button>
+							</StackPanel>
 						</Grid>
 
 						<!-- Mini stat strip - one box, vertical dividers between items -->

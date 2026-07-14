@@ -901,11 +901,15 @@ and the production preset are both fully interactive in the local prototype:
 - Tapping either value opens the reusable `NumericInputDialog`, a touchscreen
   keypad for direct whole-number entry. The existing **Set target** button
   opens the preset keypad as an additional shortcut.
+- Completed Sets and Preset are visually separated by `/`. Counter edits are
+  pending until the blue **Confirm** button is selected; Confirm occupies the
+  former top-row Reset position and disables again after applying the values.
 - A preset of **0 means unlimited production** and is displayed as the
   infinity symbol (`∞`) in both the main controls and the mini summary strip.
-- **Reset to zero** remains a one-tap reset for completed sets. Changes also
-  update the mini summary and the Current Job completed count so the dashboard
-  does not show conflicting values.
+- **Reset to zero** and **Set target** now sit together beside Output/h. Reset
+  stages a completed count of zero; after confirmation, the mini summary and
+  Current Job completed count update together so the dashboard does not show
+  conflicting applied values.
 
 These counters remain local UI state until the WFM counter/command service is
 connected; the handlers are isolated in `DashboardView.xaml.cs` for that

@@ -72,6 +72,7 @@ namespace CPBourg.NextGenGui.Views
             SetOnlineModules(new[] { "Booklet Maker" });
 
             UpdateCounterDisplay();
+            UpdateConfirmedCounterDisplay();
         }
 
         /// <summary>
@@ -179,6 +180,8 @@ namespace CPBourg.NextGenGui.Views
 
         private int _completedSets;
         private int _presetTarget;   // 0 == unlimited (shown as the infinity glyph)
+        private int _confirmedCompletedSets;
+        private int _confirmedPresetTarget;
         private CounterInputKind _pendingCounterInput;
 
         private enum CounterInputKind
@@ -191,8 +194,6 @@ namespace CPBourg.NextGenGui.Views
         {
             string completed = _completedSets.ToString("N0");
             CompletedSetsText.Text = completed;
-            MiniCompletedSetsText.Text = completed;
-            JobCompletedText.Text = completed;
             UpdatePresetDisplay();
         }
 
@@ -200,7 +201,24 @@ namespace CPBourg.NextGenGui.Views
         {
             string target = _presetTarget == 0 ? "\u221E" : _presetTarget.ToString("N0");
             PresetValueText.Text = target;
+        }
+
+        private void UpdateConfirmedCounterDisplay()
+        {
+            string completed = _confirmedCompletedSets.ToString("N0");
+            string target = _confirmedPresetTarget == 0
+                ? "\u221E"
+                : _confirmedPresetTarget.ToString("N0");
+
+            MiniCompletedSetsText.Text = completed;
+            JobCompletedText.Text = completed;
             MiniPresetText.Text = target;
+        }
+
+        private void MarkCounterChangesPending(string message)
+        {
+            ConfirmCounterChangesButton.IsEnabled = true;
+            ShowAction(message + " Select Confirm to apply the changes.");
         }
 
         private void SetJobStatus(string label, string foregroundKey, string backgroundKey)
@@ -220,9 +238,9 @@ namespace CPBourg.NextGenGui.Views
         {
             _presetTarget = Math.Max(0, _presetTarget - CounterStep);
             UpdatePresetDisplay();
-            ShowAction(_presetTarget == 0
-                ? "Preset cleared (no limit)."
-                : "Preset set to " + _presetTarget.ToString("N0") + " sets.");
+            MarkCounterChangesPending(_presetTarget == 0
+                ? "Preset pending: unlimited production."
+                : "Preset pending: " + _presetTarget.ToString("N0") + " sets.");
         }
 
         private void OnCounterIncrementClick(object sender, RoutedEventArgs e)
@@ -232,14 +250,16 @@ namespace CPBourg.NextGenGui.Views
                 _presetTarget += CounterStep;
             }
             UpdatePresetDisplay();
-            ShowAction("Preset set to " + _presetTarget.ToString("N0") + " sets.");
+            MarkCounterChangesPending(
+                "Preset pending: " + _presetTarget.ToString("N0") + " sets.");
         }
 
         private void OnCompletedDecrementClick(object sender, RoutedEventArgs e)
         {
             _completedSets = Math.Max(0, _completedSets - CounterStep);
             UpdateCounterDisplay();
-            ShowAction("Completed sets adjusted to " + _completedSets.ToString("N0") + ".");
+            MarkCounterChangesPending(
+                "Completed sets pending: " + _completedSets.ToString("N0") + ".");
         }
 
         private void OnCompletedIncrementClick(object sender, RoutedEventArgs e)
@@ -249,7 +269,8 @@ namespace CPBourg.NextGenGui.Views
                 _completedSets += CounterStep;
             }
             UpdateCounterDisplay();
-            ShowAction("Completed sets adjusted to " + _completedSets.ToString("N0") + ".");
+            MarkCounterChangesPending(
+                "Completed sets pending: " + _completedSets.ToString("N0") + ".");
         }
 
         private void OnCompletedInputClick(object sender, RoutedEventArgs e)
@@ -280,27 +301,42 @@ namespace CPBourg.NextGenGui.Views
             {
                 _completedSets = value;
                 UpdateCounterDisplay();
-                ShowAction("Completed sets set to " + _completedSets.ToString("N0") + ".");
+                MarkCounterChangesPending(
+                    "Completed sets pending: " + _completedSets.ToString("N0") + ".");
                 return;
             }
 
             _presetTarget = value;
             UpdatePresetDisplay();
-            ShowAction(_presetTarget == 0
-                ? "Preset cleared (unlimited production)."
-                : "Preset set to " + _presetTarget.ToString("N0") + " sets.");
+            MarkCounterChangesPending(_presetTarget == 0
+                ? "Preset pending: unlimited production."
+                : "Preset pending: " + _presetTarget.ToString("N0") + " sets.");
         }
 
         private void OnResetToZeroClick(object sender, RoutedEventArgs e)
         {
             _completedSets = 0;
             UpdateCounterDisplay();
-            ShowAction("Completed sets reset to zero.");
+            MarkCounterChangesPending("Completed sets pending: 0.");
         }
 
         private void OnSetTargetClick(object sender, RoutedEventArgs e)
         {
             OnPresetInputClick(sender, e);
+        }
+
+        private void OnConfirmCounterChangesClick(object sender, RoutedEventArgs e)
+        {
+            _confirmedCompletedSets = _completedSets;
+            _confirmedPresetTarget = _presetTarget;
+            UpdateConfirmedCounterDisplay();
+            ConfirmCounterChangesButton.IsEnabled = false;
+
+            string target = _confirmedPresetTarget == 0
+                ? "unlimited"
+                : _confirmedPresetTarget.ToString("N0");
+            ShowAction("Counter changes confirmed: " +
+                _confirmedCompletedSets.ToString("N0") + " completed / " + target + " preset.");
         }
 
         private void OnNewJobClick(object sender, RoutedEventArgs e) => NavigateToJobsRequested?.Invoke(this, EventArgs.Empty);
