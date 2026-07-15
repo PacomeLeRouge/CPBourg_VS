@@ -997,6 +997,33 @@ All job data intentionally starts fresh with the sample list on each program
 launch. `JobRepository` is the replacement boundary for future WFM or durable
 job storage.
 
+### v34 - Functional production controls and unique machine modules
+
+The Dashboard's Purge / Start / Pause / Stop controls now drive a local timed
+production state machine instead of status-only feedback:
+
+- **Start** begins or resumes production and adds one completed set per second.
+  A positive confirmed preset stops automatically and shows Completed exactly
+  at the target; preset 0 remains unlimited production.
+- **Pause** freezes the timer and retains progress. Selecting Start resumes
+  from the same completed count.
+- **Stop** terminates the run while retaining its completed count. A stopped or
+  completed run cannot restart until Purge is selected.
+- **Purge** stops production and resets completed sets, preset, pending counter
+  changes, and process state. The cleared preset displays as unlimited (`∞`).
+- Start requires a loaded job and any pending counter edits must be confirmed
+  first. Button enabled states follow the current Ready / Running / Paused /
+  Stopped / Completed state.
+
+Machine Line Configuration received two related changes:
+
+- Line Action buttons no longer use the default grey fill and dark outer
+  border. Their chrome is transparent, with thin blue horizontal dividers
+  between Add, Remove, Replace, and Review.
+- Add Module lists only module types not already on the line. The insertion
+  handler also rejects duplicate requests defensively, Add disables when all
+  four types are present, and Replace chooses only an unused module type.
+
 ### Languages (FR-10)
 
 The stage labels in `Startup/StartupStage.cs` are the strings that will move to

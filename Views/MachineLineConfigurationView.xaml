@@ -61,13 +61,35 @@
 
         <Style x:Key="LineActionButtonStyle" TargetType="Button">
             <Setter Property="MinHeight" Value="60" />
-            <Setter Property="Margin" Value="0,0,0,12" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <!-- Inset the content so the action icon no longer hugs the left
                  border, and keep icon + label centred vertically now that the
                  buttons stretch to fill the card. -->
             <Setter Property="Padding" Value="16,10" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ActionBackground" Background="{TemplateBinding Background}">
+                            <ContentPresenter Margin="{TemplateBinding Padding}"
+                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ActionBackground" Property="Background" Value="{StaticResource StatusIdleBgBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ActionBackground" Property="Opacity" Value="0.4" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </UserControl.Resources>
 
@@ -328,6 +350,13 @@
                                            Margin="14,0,0,0" VerticalAlignment="Center" />
                             </Grid>
                         </Button>
+
+                        <Border Grid.Row="2" Height="1" Background="{StaticResource JobsAccentBrush}"
+                                VerticalAlignment="Top" Panel.ZIndex="2" />
+                        <Border Grid.Row="3" Height="1" Background="{StaticResource JobsAccentBrush}"
+                                VerticalAlignment="Top" Panel.ZIndex="2" />
+                        <Border Grid.Row="4" Height="1" Background="{StaticResource JobsAccentBrush}"
+                                VerticalAlignment="Top" Panel.ZIndex="2" />
                     </Grid>
                 </Border>
 
