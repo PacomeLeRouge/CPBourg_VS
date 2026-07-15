@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using CPBourg.NextGenGui.Models;
 
 namespace CPBourg.NextGenGui.Views
@@ -60,11 +61,25 @@ namespace CPBourg.NextGenGui.Views
             ("Trimmer", "TR"),
         };
 
+        private readonly DispatcherTimer _productionTimer;
+        private ProductionState _productionState = ProductionState.Ready;
+
+        private enum ProductionState
+        {
+            Ready,
+            Running,
+            Paused,
+            Stopped,
+            Completed,
+        }
+
         public DashboardView()
         {
             InitializeComponent();
 
             CounterInputDialog.ValueConfirmed += OnCounterValueConfirmed;
+            _productionTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+            _productionTimer.Tick += OnProductionTimerTick;
 
             // Default to only the Booklet Maker (STFO) online, matching the
             // default machine line. MainWindow re-syncs this from the real
@@ -73,6 +88,7 @@ namespace CPBourg.NextGenGui.Views
 
             UpdateCounterDisplay();
             UpdateConfirmedCounterDisplay();
+            RefreshProductionButtons();
         }
 
         /// <summary>
@@ -220,13 +236,20 @@ namespace CPBourg.NextGenGui.Views
         /// <summary>Displays the repository's latest loaded job.</summary>
         public void SetCurrentJob(JobRecord job)
         {
+            bool changedJob = !ReferenceEquals(_currentJob, job);
             _currentJob = job;
+            if (changedJob)
+            {
+                ResetProductionState(clearPreset: true);
+            }
+
             if (_currentJob == null)
             {
                 JobNameText.Text = "No job loaded";
                 JobFormatText.Text = "-";
                 JobPagesText.Text = "-";
                 JobStatusText.Text = "Idle";
+                RefreshProductionButtons();
                 return;
             }
 
@@ -236,6 +259,7 @@ namespace CPBourg.NextGenGui.Views
             JobStatusText.Text = "Loaded";
             JobStatusText.Foreground = (Brush)FindResource("StatusRunningBrush");
             JobStatusPill.Background = (Brush)FindResource("StatusRunningBgBrush");
+            RefreshProductionButtons();
         }
 
         private void MarkCounterChangesPending(string message)
@@ -350,6 +374,12 @@ namespace CPBourg.NextGenGui.Views
 
         private void OnConfirmCounterChangesClick(object sender, RoutedEventArgs e)
         {
+            if (_productionState == ProductionState.Running)
+            {
+                ShowAction("Pause production before applying counter changes.");
+                return;
+            }
+
             _confirmedCompletedSets = _completedSets;
             _confirmedPresetTarget = _presetTarget;
             UpdateConfirmedCounterDisplay();
@@ -366,9 +396,144 @@ namespace CPBourg.NextGenGui.Views
         private void OnLoadJobClick(object sender, RoutedEventArgs e) => NavigateToJobsRequested?.Invoke(this, EventArgs.Empty);
         private void OnViewErrorsClick(object sender, RoutedEventArgs e) => NavigateToErrorsRequested?.Invoke(this, EventArgs.Empty);
 
-        private void OnPurgeClick(object sender, RoutedEventArgs e) => ShowAction("Line purged - cleared after jam.");
-        private void OnStartClick(object sender, RoutedEventArgs e) => SetJobStatus("Running", "StatusRunningBrush", "StatusRunningBgBrush");
-        private void OnPauseClick(object sender, RoutedEventArgs e) => SetJobStatus("Paused", "WarningBrush", "WarningBgBrush");
-        private void OnStopClick(object sender, RoutedEventArgs e) => SetJobStatus("Stopped", "StatusErrorBrush", "StatusErrorBgBrush");
+        private void OnPurgeClick(object sender, RoutedEventArgs e)
+        {
+            ResetProductionState(clearPreset: true);
+            SetJobStatus(_currentJob == null ? "Idle" : "Ready",
+                _currentJob == null ? "StatusOfflineBrush" : "StatusRunningBrush",
+                _currentJob == null ? "StatusOfflineBgBrush" : "StatusRunningBgBrush");
+            ShowAction("Line purged. Production, completed sets, and preset were reset.");
+        }
+
+        private void OnStartClick(object sender, RoutedEventArgs e)
+        {
+            if (_currentJob == null)
+            {
+                ShowAction("Load a job before starting production.");
+                return;
+            }
+
+            if (ConfirmCounterChangesButton.IsEnabled)
+            {
+                ShowAction("Confirm the pending counter changes before starting.");
+                return;
+            }
+
+            if (_productionState == ProductionState.Stopped ||
+                _productionState == ProductionState.Completed)
+            {
+                ShowAction("Purge the line before starting a new production run.");
+                return;
+            }
+
+            if (_confirmedPresetTarget > 0 &&
+                _confirmedCompletedSets >= _confirmedPresetTarget)
+            {
+                CompleteProduction();
+                return;
+            }
+
+            bool wasPaused = _productionState == ProductionState.Paused;
+            _productionState = ProductionState.Running;
+            _productionTimer.Start();
+            SetJobStatus("Running", "StatusRunningBrush", "StatusRunningBgBrush");
+            ShowAction(wasPaused ? "Production resumed." : "Production started.");
+            RefreshProductionButtons();
+        }
+
+        private void OnPauseClick(object sender, RoutedEventArgs e)
+        {
+            if (_productionState != ProductionState.Running)
+            {
+                return;
+            }
+
+            _productionTimer.Stop();
+            _productionState = ProductionState.Paused;
+            SetJobStatus("Paused", "WarningBrush", "WarningBgBrush");
+            ShowAction("Production paused. Select Start to resume.");
+            RefreshProductionButtons();
+        }
+
+        private void OnStopClick(object sender, RoutedEventArgs e)
+        {
+            if (_productionState != ProductionState.Running &&
+                _productionState != ProductionState.Paused)
+            {
+                return;
+            }
+
+            _productionTimer.Stop();
+            _productionState = ProductionState.Stopped;
+            SetJobStatus("Stopped", "StatusErrorBrush", "StatusErrorBgBrush");
+            ShowAction("Production stopped. Purge is required before restarting.");
+            RefreshProductionButtons();
+        }
+
+        private void OnProductionTimerTick(object sender, EventArgs e)
+        {
+            if (_productionState != ProductionState.Running)
+            {
+                return;
+            }
+
+            if (_confirmedCompletedSets < NumericInputDialog.MaximumValue)
+            {
+                _confirmedCompletedSets++;
+            }
+            _completedSets = _confirmedCompletedSets;
+            UpdateCounterDisplay();
+            UpdateConfirmedCounterDisplay();
+
+            if (_confirmedPresetTarget > 0 &&
+                _confirmedCompletedSets >= _confirmedPresetTarget)
+            {
+                CompleteProduction();
+            }
+        }
+
+        private void CompleteProduction()
+        {
+            _productionTimer.Stop();
+            _productionState = ProductionState.Completed;
+            SetJobStatus("Completed", "StatusRunningBrush", "StatusRunningBgBrush");
+            ShowAction("Production completed the preset of " +
+                _confirmedPresetTarget.ToString("N0") + " sets.");
+            RefreshProductionButtons();
+        }
+
+        private void ResetProductionState(bool clearPreset)
+        {
+            _productionTimer.Stop();
+            _productionState = ProductionState.Ready;
+            _completedSets = 0;
+            _confirmedCompletedSets = 0;
+            if (clearPreset)
+            {
+                _presetTarget = 0;
+                _confirmedPresetTarget = 0;
+            }
+            else
+            {
+                _presetTarget = _confirmedPresetTarget;
+            }
+
+            ConfirmCounterChangesButton.IsEnabled = false;
+            UpdateCounterDisplay();
+            UpdateConfirmedCounterDisplay();
+            RefreshProductionButtons();
+        }
+
+        private void RefreshProductionButtons()
+        {
+            bool hasJob = _currentJob != null;
+            StartButton.IsEnabled = hasJob &&
+                (_productionState == ProductionState.Ready ||
+                 _productionState == ProductionState.Paused);
+            PauseButton.IsEnabled = _productionState == ProductionState.Running;
+            StopButton.IsEnabled = _productionState == ProductionState.Running ||
+                                   _productionState == ProductionState.Paused;
+            PurgeButton.IsEnabled = true;
+        }
     }
 }

@@ -477,7 +477,7 @@
              match the reference mock more closely. -->
 		<UniformGrid Grid.Row="2" Columns="4" Rows="1">
 			<Border Style="{StaticResource CardStyle}" Padding="0" Margin="0,0,6,0">
-				<Button Background="Transparent" BorderThickness="0" Click="OnPurgeClick">
+				<Button x:Name="PurgeButton" Background="Transparent" BorderThickness="0" Click="OnPurgeClick">
 					<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
 						<TextBlock Text="&#xE72C;" FontFamily="{StaticResource IconFontFamily}" FontSize="30"
                                    Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
@@ -489,7 +489,7 @@
 				</Button>
 			</Border>
 			<Border Style="{StaticResource CardStyle}" Padding="0" Margin="6,0">
-				<Button Background="Transparent" BorderThickness="0" Click="OnStartClick">
+				<Button x:Name="StartButton" Background="Transparent" BorderThickness="0" Click="OnStartClick">
 					<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
 						<Border Width="46" Height="46" CornerRadius="23" BorderThickness="2"
                                 BorderBrush="{StaticResource StatusRunningBrush}">
@@ -502,7 +502,7 @@
 				</Button>
 			</Border>
 			<Border Style="{StaticResource CardStyle}" Padding="0" Margin="6,0">
-				<Button Background="Transparent" BorderThickness="0" Click="OnPauseClick">
+				<Button x:Name="PauseButton" Background="Transparent" BorderThickness="0" Click="OnPauseClick">
 					<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
 						<Border Width="46" Height="46" CornerRadius="23" BorderThickness="2"
                                 BorderBrush="{StaticResource BrandAccentBrush}">
@@ -515,7 +515,7 @@
 				</Button>
 			</Border>
 			<Border Style="{StaticResource CardStyle}" Padding="0" Margin="6,0,0,0">
-				<Button Background="Transparent" BorderThickness="0" Click="OnStopClick">
+				<Button x:Name="StopButton" Background="Transparent" BorderThickness="0" Click="OnStopClick">
 					<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
 						<Border Width="46" Height="46" CornerRadius="23" BorderThickness="2"
                                 BorderBrush="{StaticResource StatusErrorBrush}">

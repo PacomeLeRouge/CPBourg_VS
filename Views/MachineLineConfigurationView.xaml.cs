@@ -22,6 +22,8 @@ namespace CPBourg.NextGenGui.Views
     /// Actions are enabled, all follow that focus. Add Module opens
     /// <see cref="AddModuleWizardDialog"/> (module type -> Before/After the
     /// focused module -> technician code), which inserts locally on
+    /// Confirm. Module types already on the line are filtered out and a
+    /// second defensive check rejects duplicates at insertion time.
     /// Confirm - nothing here is persisted or sent to the WFM yet (FR-01,
     /// FR-02). Remove/Replace/Review Changes only show the stub feedback
     /// line, same convention as unbuilt flows elsewhere (e.g. JobsView's
@@ -284,7 +286,9 @@ namespace CPBourg.NextGenGui.Views
         private void RefreshLineActionsEnabled()
         {
             bool hasMachines = _machines.Count > 0;
-            AddModuleButton.IsEnabled = hasMachines;
+            bool hasAvailableModules = Catalog.Any(c =>
+                _machines.All(m => m.ModuleType != c.ModuleType));
+            AddModuleButton.IsEnabled = hasAvailableModules;
             RemoveModuleButton.IsEnabled = hasMachines;
             ReplaceModuleButton.IsEnabled = hasMachines;
             ReviewChangesButton.IsEnabled = hasMachines;
@@ -325,12 +329,28 @@ namespace CPBourg.NextGenGui.Views
         // carousel strip - all of them open the Add Module wizard.
         private void OpenAddModuleWizard()
         {
+            var availableModuleTypes = Catalog
+                .Select(c => c.ModuleType)
+                .Where(moduleType => _machines.All(m => m.ModuleType != moduleType))
+                .ToList();
+            if (availableModuleTypes.Count == 0)
+            {
+                LastActionText.Text = "All available module types are already on the line.";
+                return;
+            }
+
             string anchorModuleType = _machines.Count > 0 ? _machines[_focusedIndex].ModuleType : null;
-            AddModuleWizardDialogControl.Open(Catalog.Select(c => c.ModuleType), anchorModuleType);
+            AddModuleWizardDialogControl.Open(availableModuleTypes, anchorModuleType);
         }
 
         private void OnAddModuleConfirmed(object sender, AddModuleRequestInfo request)
         {
+            if (_machines.Any(m => m.ModuleType == request.ModuleType))
+            {
+                LastActionText.Text = request.ModuleType + " is already on the line and cannot be added again.";
+                return;
+            }
+
             var machine = CreateMachine(request.ModuleType);
 
             int insertIndex;
@@ -371,7 +391,18 @@ namespace CPBourg.NextGenGui.Views
 
             string currentType = _machines[_focusedIndex].ModuleType;
             int currentCatalogIndex = System.Array.FindIndex(Catalog, c => c.ModuleType == currentType);
-            var nextEntry = Catalog[(currentCatalogIndex + 1) % Catalog.Length];
+            var moduleTypesAtOtherPositions = new HashSet<string>(
+                _machines.Where((machine, index) => index != _focusedIndex)
+                         .Select(machine => machine.ModuleType));
+            var nextEntry = Enumerable.Range(1, Catalog.Length - 1)
+                .Select(offset => Catalog[(currentCatalogIndex + offset) % Catalog.Length])
+                .FirstOrDefault(entry => !moduleTypesAtOtherPositions.Contains(entry.ModuleType));
+            if (string.IsNullOrEmpty(nextEntry.ModuleType))
+            {
+                LastActionText.Text = "No unused module type is available for replacement.";
+                return;
+            }
+
             _machines[_focusedIndex] = CreateMachine(nextEntry.ModuleType);
             RefreshAll();
         }
