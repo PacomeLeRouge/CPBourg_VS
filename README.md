@@ -915,6 +915,22 @@ These counters remain local UI state until the WFM counter/command service is
 connected; the handlers are isolated in `DashboardView.xaml.cs` for that
 future integration.
 
+### v30 - STFO Stitching windowed scrolling and decimal numpad
+
+The STFO **Stitching Parameters** card no longer clips its lower settings in
+the default window. The right-hand form now has its own vertical scrollbar
+and touch-panning support, while the Live Preview, step tabs, and Back / Reset /
+Save / Next footer remain fixed. Fullscreen keeps the same layout and only
+shows the scrollbar when the parameter content exceeds the available height.
+
+The five stitching number fields are now touch inputs: **Paper Width**, **Paper
+Length**, **Spacing Between Stitches**, **Horizontal Offset**, and **Vertical
+Offset** open `DecimalInputDialog` when pressed. The keypad supports fractional
+millimeters, clear/backspace, and a `+/-` toggle for the two directional offset
+fields. Confirmed values continue through the existing `TextChanged` path, so
+the summary and live stitch preview update immediately without duplicating the
+parameter logic.
+
 ### Languages (FR-10)
 
 The stage labels in `Startup/StartupStage.cs` are the strings that will move to
@@ -947,6 +963,7 @@ inline for the prototype and marked with a comment.
 | `Views/TechnicianInterfaceView.xaml(.cs)` | Responsive Technician Interface screen and saved control state |
 | `Views/TechnicalAccessDialog.xaml(.cs)` | Masked numeric technician-code keypad overlay |
 | `Views/NumericInputDialog.xaml(.cs)` | Reusable touchscreen keypad for non-negative whole-number entry |
+| `Views/DecimalInputDialog.xaml(.cs)` | Decimal touchscreen keypad with optional negative-value entry |
 | `Views/GlobalMenuView.xaml(.cs)` | Slide-out global navigation overlay |
 | `Views/MachineStatusToBrushConverter.cs` | Maps `MachineStatus` to theme brushes |
 | `Views/NullToCollapsedConverter.cs` | Hides an element when a bound string is null/empty |
