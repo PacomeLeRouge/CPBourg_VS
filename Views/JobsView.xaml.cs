@@ -9,11 +9,9 @@ namespace CPBourg.NextGenGui.Views
 {
     /// <summary>
     /// Jobs / File Menu screen (FR-08, AC-06). Selecting a job in the list
-    /// updates the Summary panel; the six action tiles open real dialogs
-    /// (Add Comment, Open Job, Save As New Job, Remove Job) that mutate the
-    /// shared in-memory job repository - see the reference mock's job-action
-    /// screens. View Log and Scan Barcode ID don't have a dialog mockup yet
-    /// and remain simple stub feedback, same pattern as before.
+    /// updates the Summary panel; its action tiles open functional dialogs
+    /// for loading, saving, removing, commenting, barcode lookup, and job-log
+    /// export.
     ///
     /// JobRepository is also consumed by the dashboard and STFO, so opening a
     /// job updates all three screens from the same JobRecord instance.
@@ -133,8 +131,42 @@ namespace CPBourg.NextGenGui.Views
         }
 
         private void OnFilterClick(object sender, RoutedEventArgs e) => ShowStub("Filter");
-        private void OnViewLogClick(object sender, RoutedEventArgs e) => ShowStub("View log");
-        private void OnScanBarcodeClick(object sender, RoutedEventArgs e) => ShowStub("Scan barcode ID");
+        private void OnViewLogClick(object sender, RoutedEventArgs e)
+        {
+            var job = SelectedJob;
+            if (job == null) return;
+            JobLogDialogControl.Open(job);
+        }
+
+        private void OnScanBarcodeClick(object sender, RoutedEventArgs e)
+        {
+            BarcodeScanDialogControl.Open();
+        }
+
+        private void OnBarcodeScanRequested(object sender, string barcodeId)
+        {
+            var job = _allJobs.FirstOrDefault(candidate =>
+                string.Equals(candidate.BarcodeId, barcodeId, StringComparison.OrdinalIgnoreCase));
+            if (job == null)
+            {
+                BarcodeScanDialogControl.ShowError(
+                    "No saved job uses barcode ID \u201c" + barcodeId + "\u201d. Check the book and scan again.");
+                return;
+            }
+
+            BarcodeScanDialogControl.Close();
+            SearchBox.Text = string.Empty;
+            JobsListBox.SelectedItem = job;
+            JobsListBox.ScrollIntoView(job);
+            job.AddLog("Barcode scanned", "Barcode " + barcodeId + " matched this saved job.");
+            StatusMessageText.Text = "Barcode matched \u201c" + job.Name + "\u201d. It is ready to open.";
+            LastActionText.Text = "Barcode " + barcodeId + " matched job \u201c" + job.Name + "\u201d.";
+        }
+
+        private void OnJobLogExported(object sender, string path)
+        {
+            LastActionText.Text = "Job log exported to " + path;
+        }
 
         // ===================== Open Job =====================
 
@@ -174,6 +206,7 @@ namespace CPBourg.NextGenGui.Views
             if (job == null) return;
 
             job.Comment = string.IsNullOrWhiteSpace(newComment) ? "-" : newComment.Trim();
+            job.AddLog("Comment updated", job.Comment);
             SummaryCommentText.Text = job.Comment;
 
             ConfirmationDialogControl.Open("Comment Saved!",

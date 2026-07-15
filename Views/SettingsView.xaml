@@ -24,7 +24,7 @@
         build yet - flagging so it's obvious what to check first if anything
         renders as a blank box: Language (Globe, unverified), Date & Time
         (Calendar, unverified), Keyboard Layout (unverified), Mouse Cursor
-        (unverified). "UI Scale" deliberately uses literal "Aa" text instead
+        (unverified). "Font Size" deliberately uses literal "Aa" text instead
         of an icon glyph, since that's guaranteed to render correctly.
     -->
 
@@ -189,7 +189,7 @@
              Fixes a real bug: with no scroll fallback, content taller than
              the visible window (which gets worse the moment a banner adds
              extra height above) simply ran off the bottom of the screen in
-             windowed mode, with UI Scale and Screen Calibration unreachable
+             windowed mode, with Font Size and Screen Calibration unreachable
              except by maximizing. The title row, banners, and Cancel/Apply
              stay fixed above; only this section scrolls. -->
         <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto"
@@ -209,5 +209,7 @@
 
         <!-- Change-value picker overlay - covers the whole screen, shown/hidden by ChangeValueDialog itself -->
         <local:ChangeValueDialog x:Name="ChangeDialog" Grid.Row="0" Grid.RowSpan="4" Confirmed="OnChangeDialogConfirmed" />
+        <local:DateTimeSettingsDialog x:Name="DateTimeDialog" Grid.Row="0" Grid.RowSpan="4"
+                                      Confirmed="OnDateTimeConfirmed" />
     </Grid>
 </UserControl>

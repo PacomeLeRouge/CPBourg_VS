@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+
 namespace CPBourg.NextGenGui.Models
 {
     /// <summary>
@@ -28,6 +32,16 @@ namespace CPBourg.NextGenGui.Models
             LastModified = lastModified;
             StfoSettings = stfoSettings ??
                 StfoJobSettings.CreateForFormat(widthMm, lengthMm, pages, 0);
+
+            DateTime savedAt;
+            if (!DateTime.TryParseExact(savedDate + " " + savedTime, "yyyy-MM-dd HH:mm",
+                    CultureInfo.InvariantCulture, DateTimeStyles.None, out savedAt))
+            {
+                savedAt = DateTime.Now;
+            }
+
+            _logEntries.Add(new JobLogEntry(savedAt, "Job saved",
+                Format + ", " + DimensionsLabel + ", " + PagesLabel));
         }
 
         public string Name { get; }
@@ -46,6 +60,14 @@ namespace CPBourg.NextGenGui.Models
         public string Comment { get; set; }
         public string BarcodeId { get; }
         public string LastModified { get; }
+
+        private readonly List<JobLogEntry> _logEntries = new List<JobLogEntry>();
+        public IReadOnlyList<JobLogEntry> LogEntries => _logEntries;
+
+        public void AddLog(string action, string details)
+        {
+            _logEntries.Add(new JobLogEntry(DateTime.Now, action, details));
+        }
 
         /// <summary>"48 pages" style summary shown in the row subtitle.</summary>
         public string PagesLabel => Pages + " pages";

@@ -12,10 +12,9 @@
     <!--
         Reusable "Change [setting]" picker dialog - one radio-button list,
         a "Current: X" subtitle, Cancel/OK. Used by SettingsView for
-        Language, Keyboard Layout, Mouse Cursor and Units (the four pickers
-        from the reference mock); Date & Time, UI Scale and Screen
-        Calibration don't have a picker mockup yet and stay as simple stubs
-        elsewhere.
+        Language, Keyboard Layout, Mouse Cursor, Units, and Font Size. Date &
+        Time uses its own date/time editor, while Screen Calibration remains
+        a prototype placeholder elsewhere.
 
         Language options carry a flag emoji (real Unicode flag characters,
         e.g. GB/FR/NL/DE/ES/IT) rendered through Segoe UI Emoji - deliberately

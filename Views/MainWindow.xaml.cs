@@ -9,6 +9,8 @@ namespace CPBourg.NextGenGui.Views
     {
         private readonly DispatcherTimer _clockTimer;
         private readonly JobRepository _jobRepository;
+        private TimeSpan _operatorClockOffset = TimeSpan.Zero;
+        private string _fontSizeSetting = "Medium";
 
         public MainWindow()
         {
@@ -26,6 +28,16 @@ namespace CPBourg.NextGenGui.Views
             GlobalMenu.ItemSelected += OnGlobalMenuItemSelected;
 
             SettingsScreen.LanguageChanged += (s, abbreviation) => LanguageIndicatorText.Text = abbreviation;
+            SettingsScreen.DateTimeOffsetChanged += (s, offset) =>
+            {
+                _operatorClockOffset = offset;
+                UpdateClock();
+            };
+            SettingsScreen.FontSizeChanged += (s, setting) =>
+            {
+                _fontSizeSetting = setting;
+                FontSizeManager.Apply(this, _fontSizeSetting);
+            };
 
             Dashboard.NavigateToJobsRequested += (s, e) => NavigateTo("Job / File Menu");
             Dashboard.NavigateToErrorsRequested += (s, e) => NavigateTo("Error & Information");
@@ -76,15 +88,6 @@ namespace CPBourg.NextGenGui.Views
         }
 
         /// <summary>
-        /// Only Home (Dashboard), Settings / Preferences, Job / File Menu,
-        /// and Error &amp; Information exist as real screens today. Other
-        /// items are placeholders until their screens are built - they
-        /// update the header title only, and leave whichever real screen is
-        /// currently showing untouched (so, for example, clicking
-        /// "Help / Manual" while on Settings will show the "Help / Manual"
-        /// title over the Settings screen - an acceptable prototype
-        /// limitation, not a real navigation).
-        ///
         /// Shared by both the global menu (<see cref="OnGlobalMenuItemSelected"/>)
         /// and the header bell (<see cref="OnBellClick"/>), since they can
         /// both lead to the same screens.
@@ -93,69 +96,35 @@ namespace CPBourg.NextGenGui.Views
         {
             if (itemName == "Home")
             {
-                Dashboard.Visibility = Visibility.Visible;
-                SettingsScreen.Visibility = Visibility.Collapsed;
-                JobsScreen.Visibility = Visibility.Collapsed;
-                ErrorsScreen.Visibility = Visibility.Collapsed;
-                MachineLineConfigScreen.Visibility = Visibility.Collapsed;
-                StfoScreen.Visibility = Visibility.Collapsed;
-                TechnicianScreen.Visibility = Visibility.Collapsed;
-                PageTitleText.Text = "Home";
+                ShowContentScreen(Dashboard, "Home");
             }
             else if (itemName == "Settings / Preferences")
             {
-                Dashboard.Visibility = Visibility.Collapsed;
-                SettingsScreen.Visibility = Visibility.Visible;
-                JobsScreen.Visibility = Visibility.Collapsed;
-                ErrorsScreen.Visibility = Visibility.Collapsed;
-                MachineLineConfigScreen.Visibility = Visibility.Collapsed;
-                StfoScreen.Visibility = Visibility.Collapsed;
-                TechnicianScreen.Visibility = Visibility.Collapsed;
-                PageTitleText.Text = "Settings";
+                ShowContentScreen(SettingsScreen, "Settings");
             }
             else if (itemName == "Job / File Menu")
             {
-                Dashboard.Visibility = Visibility.Collapsed;
-                SettingsScreen.Visibility = Visibility.Collapsed;
-                JobsScreen.Visibility = Visibility.Visible;
-                ErrorsScreen.Visibility = Visibility.Collapsed;
-                MachineLineConfigScreen.Visibility = Visibility.Collapsed;
-                StfoScreen.Visibility = Visibility.Collapsed;
-                TechnicianScreen.Visibility = Visibility.Collapsed;
-                PageTitleText.Text = "Jobs / File Menu";
+                ShowContentScreen(JobsScreen, "Jobs / File Menu");
             }
             else if (itemName == "Error & Information")
             {
-                Dashboard.Visibility = Visibility.Collapsed;
-                SettingsScreen.Visibility = Visibility.Collapsed;
-                JobsScreen.Visibility = Visibility.Collapsed;
-                ErrorsScreen.Visibility = Visibility.Visible;
-                MachineLineConfigScreen.Visibility = Visibility.Collapsed;
-                StfoScreen.Visibility = Visibility.Collapsed;
-                TechnicianScreen.Visibility = Visibility.Collapsed;
-                PageTitleText.Text = "Errors";
+                ShowContentScreen(ErrorsScreen, "Errors");
             }
             else if (itemName == "Machine Line Configuration")
             {
-                Dashboard.Visibility = Visibility.Collapsed;
-                SettingsScreen.Visibility = Visibility.Collapsed;
-                JobsScreen.Visibility = Visibility.Collapsed;
-                ErrorsScreen.Visibility = Visibility.Collapsed;
-                MachineLineConfigScreen.Visibility = Visibility.Visible;
-                StfoScreen.Visibility = Visibility.Collapsed;
-                TechnicianScreen.Visibility = Visibility.Collapsed;
-                PageTitleText.Text = "Machine Line Configuration";
+                ShowContentScreen(MachineLineConfigScreen, "Machine Line Configuration");
             }
             else if (itemName == "Technician Interface")
             {
-                Dashboard.Visibility = Visibility.Collapsed;
-                SettingsScreen.Visibility = Visibility.Collapsed;
-                JobsScreen.Visibility = Visibility.Collapsed;
-                ErrorsScreen.Visibility = Visibility.Collapsed;
-                MachineLineConfigScreen.Visibility = Visibility.Collapsed;
-                StfoScreen.Visibility = Visibility.Collapsed;
-                TechnicianScreen.Visibility = Visibility.Visible;
-                PageTitleText.Text = "Technician Interface";
+                ShowContentScreen(TechnicianScreen, "Technician Interface");
+            }
+            else if (itemName == "Help / Manual")
+            {
+                ShowContentScreen(HelpScreen, "Help / Manual");
+            }
+            else if (itemName == "About / Version")
+            {
+                ShowContentScreen(AboutVersionScreen, "About / Version");
             }
             else
             {
@@ -171,14 +140,30 @@ namespace CPBourg.NextGenGui.Views
         /// </summary>
         private void NavigateToStfo()
         {
+            HideContentScreens();
+            StfoScreen.Visibility = Visibility.Visible;
+            StfoScreen.ResetToStart();
+        }
+
+        private void ShowContentScreen(UIElement screen, string title)
+        {
+            HideContentScreens();
+            screen.Visibility = Visibility.Visible;
+            PageTitleText.Text = title;
+            Dispatcher.BeginInvoke(new Action(() => FontSizeManager.Apply(screen, _fontSizeSetting)));
+        }
+
+        private void HideContentScreens()
+        {
             Dashboard.Visibility = Visibility.Collapsed;
             SettingsScreen.Visibility = Visibility.Collapsed;
             JobsScreen.Visibility = Visibility.Collapsed;
             ErrorsScreen.Visibility = Visibility.Collapsed;
             MachineLineConfigScreen.Visibility = Visibility.Collapsed;
-            StfoScreen.Visibility = Visibility.Visible;
+            StfoScreen.Visibility = Visibility.Collapsed;
             TechnicianScreen.Visibility = Visibility.Collapsed;
-            StfoScreen.ResetToStart();
+            HelpScreen.Visibility = Visibility.Collapsed;
+            AboutVersionScreen.Visibility = Visibility.Collapsed;
         }
 
         private void UpdateDashboardAlertsSummary()
@@ -201,7 +186,7 @@ namespace CPBourg.NextGenGui.Views
 
         private void UpdateClock()
         {
-            var now = DateTime.Now;
+            var now = DateTime.Now + _operatorClockOffset;
             ClockText.Text = now.ToString("HH:mm");
             DateText.Text = now.ToString("yyyy-MM-dd");
         }

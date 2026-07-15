@@ -17,11 +17,9 @@ namespace CPBourg.NextGenGui.Views
     ///                       or a Change-value dialog was confirmed
     ///   - Preferences saved: Apply was clicked after a change
     ///
-    /// Four rows (Language, Units, Keyboard Layout, Mouse Cursor) open a
-    /// real picker dialog (ChangeValueDialog) with the reference's
-    /// radio-button list; the other three (Date & Time, UI Scale, Screen
-    /// Calibration) don't have a picker mockup yet and just mark the form
-    /// dirty as a stub, same as before.
+    /// Language, Units, Keyboard Layout, Mouse Cursor, and Font Size use the
+    /// reusable option picker. Date &amp; Time uses a date/time editor. Screen
+    /// Calibration remains the only prototype-only placeholder.
     ///
     /// PENDING vs APPLIED: each of the four picker-backed settings has a
     /// "pending" value (shown in the row as soon as you pick it in the
@@ -47,6 +45,8 @@ namespace CPBourg.NextGenGui.Views
         /// (FR-10).
         /// </summary>
         public event EventHandler<string> LanguageChanged;
+        public event EventHandler<TimeSpan> DateTimeOffsetChanged;
+        public event EventHandler<string> FontSizeChanged;
 
         // Applied = currently in effect. Pending = selected but not yet
         // applied; this is what the rows display, so you can see your
@@ -63,7 +63,11 @@ namespace CPBourg.NextGenGui.Views
         private string _appliedMouseCursor = "Disabled";
         private string _pendingMouseCursor = "Disabled";
 
-        private string _uiScale = "Medium";
+        private TimeSpan _appliedDateTimeOffset = TimeSpan.Zero;
+        private TimeSpan _pendingDateTimeOffset = TimeSpan.Zero;
+
+        private string _appliedFontSize = "Medium";
+        private string _pendingFontSize = "Medium";
 
         // Which row's dialog is currently open, so OnChangeDialogConfirmed
         // knows which field to update.
@@ -86,7 +90,7 @@ namespace CPBourg.NextGenGui.Views
 
         private void RefreshRows()
         {
-            string currentDateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+            string currentDateTime = (DateTime.Now + _pendingDateTimeOffset).ToString("yyyy-MM-dd HH:mm");
 
             LanguageRegionItems.ItemsSource = new List<SettingsItemInfo>
             {
@@ -99,9 +103,14 @@ namespace CPBourg.NextGenGui.Views
             {
                 new SettingsItemInfo("\uE765", "Keyboard Layout", _pendingKeyboardLayout, "Change", "KeyboardLayout"),
                 new SettingsItemInfo("\uE962", "Mouse Cursor", _pendingMouseCursor, "Change", "MouseCursor"),
-                new SettingsItemInfo("Aa", "UI Scale", _uiScale, "Change", "UiScale", isLetterIcon: true),
+                new SettingsItemInfo("Aa", "Font Size", _pendingFontSize, "Change", "FontSize", isLetterIcon: true),
                 new SettingsItemInfo("\uE946", "Screen Calibration", "Required if touch offset occurs", "Calibrate", "ScreenCalibration"),
             };
+
+            if (_appliedFontSize != "Medium")
+            {
+                Dispatcher.BeginInvoke(new Action(() => FontSizeManager.Apply(this, _appliedFontSize)));
+            }
         }
 
         private void OnRowActionClick(object sender, RoutedEventArgs e)
@@ -122,9 +131,14 @@ namespace CPBourg.NextGenGui.Views
                 case "MouseCursor":
                     OpenMouseCursorDialog();
                     break;
+                case "DateTime":
+                    DateTimeDialog.Open(DateTime.Now + _pendingDateTimeOffset);
+                    break;
+                case "FontSize":
+                    OpenFontSizeDialog();
+                    break;
                 default:
-                    // Date & Time, UI Scale, Screen Calibration - no picker
-                    // mockup yet, so these remain simple dirty-marking stubs.
+                    // Screen Calibration remains a prototype placeholder.
                     ShowBanner(unsaved: true, saved: false);
                     break;
             }
@@ -179,6 +193,25 @@ namespace CPBourg.NextGenGui.Views
             ChangeDialog.Open("Change Mouse Cursor", _pendingMouseCursor, options);
         }
 
+        private void OpenFontSizeDialog()
+        {
+            _pendingSettingTag = "FontSize";
+            var options = new List<ChangeOptionInfo>
+            {
+                new ChangeOptionInfo("Small", "Small", _pendingFontSize == "Small"),
+                new ChangeOptionInfo("Medium", "Medium (recommended)", _pendingFontSize == "Medium"),
+                new ChangeOptionInfo("Large", "Large", _pendingFontSize == "Large"),
+            };
+            ChangeDialog.Open("Change Font Size", _pendingFontSize, options);
+        }
+
+        private void OnDateTimeConfirmed(object sender, DateTime selectedDateTime)
+        {
+            _pendingDateTimeOffset = selectedDateTime - DateTime.Now;
+            RefreshRows();
+            ShowBanner(unsaved: true, saved: false);
+        }
+
         private void OnChangeDialogConfirmed(object sender, string selectedValue)
         {
             // Only updates the PENDING value. Nothing takes effect (and the
@@ -189,6 +222,7 @@ namespace CPBourg.NextGenGui.Views
                 case "Units": _pendingUnits = selectedValue; break;
                 case "KeyboardLayout": _pendingKeyboardLayout = selectedValue; break;
                 case "MouseCursor": _pendingMouseCursor = selectedValue; break;
+                case "FontSize": _pendingFontSize = selectedValue; break;
             }
 
             RefreshRows();
@@ -217,16 +251,28 @@ namespace CPBourg.NextGenGui.Views
         private void OnApplyClick(object sender, RoutedEventArgs e)
         {
             bool languageChanged = _pendingLanguage != _appliedLanguage;
+            bool dateTimeChanged = _pendingDateTimeOffset != _appliedDateTimeOffset;
+            bool fontSizeChanged = _pendingFontSize != _appliedFontSize;
 
             // Commit pending -> applied for all picker-backed settings.
             _appliedLanguage = _pendingLanguage;
             _appliedUnits = _pendingUnits;
             _appliedKeyboardLayout = _pendingKeyboardLayout;
             _appliedMouseCursor = _pendingMouseCursor;
+            _appliedDateTimeOffset = _pendingDateTimeOffset;
+            _appliedFontSize = _pendingFontSize;
 
             if (languageChanged)
             {
                 LanguageChanged?.Invoke(this, GetLanguageAbbreviation(_appliedLanguage));
+            }
+            if (dateTimeChanged)
+            {
+                DateTimeOffsetChanged?.Invoke(this, _appliedDateTimeOffset);
+            }
+            if (fontSizeChanged)
+            {
+                FontSizeChanged?.Invoke(this, _appliedFontSize);
             }
 
             ShowBanner(unsaved: false, saved: true);
@@ -239,6 +285,8 @@ namespace CPBourg.NextGenGui.Views
             _pendingUnits = _appliedUnits;
             _pendingKeyboardLayout = _appliedKeyboardLayout;
             _pendingMouseCursor = _appliedMouseCursor;
+            _pendingDateTimeOffset = _appliedDateTimeOffset;
+            _pendingFontSize = _appliedFontSize;
 
             RefreshRows();
             ShowBanner(unsaved: false, saved: false);
