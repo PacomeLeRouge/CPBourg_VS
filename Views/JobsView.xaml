@@ -20,14 +20,13 @@
         document/list icon, chevron-right, checkmark, info circle,
         folder-open, warning triangle, org-chart (used for "Machine Line").
 
-        Action dialogs (AddCommentDialog, OpenJobDialog, SaveAsNewJobDialog,
-        RemoveJobDialog) and the shared ConfirmationDialog success screen
+        Action dialogs (including barcode lookup and job-log export) and the
+        shared ConfirmationDialog success screen
         are overlaid at the bottom of this file - see JobsView.xaml.cs for
         how they're wired to mutate the shared job repository.
 
         Sample job data is populated by Models/JobRepository.cs. Replace that
-        repository with WFM-backed storage once available - View Log and Scan
-        Barcode ID are still simple stubs (no dialog mockup yet for those).
+        repository with WFM-backed storage once available.
     -->
 
     <UserControl.Resources>
@@ -396,8 +395,7 @@
             </Grid>
         </Grid>
 
-        <!-- Demo feedback line - shows which stub action was last triggered.
-             Same pattern as DashboardView.LastActionText. -->
+        <!-- Feedback for the most recently completed job action. -->
         <TextBlock Grid.Row="2" x:Name="LastActionText" Text=""
                    Foreground="{StaticResource TextMutedBrush}" FontSize="12"
                    HorizontalAlignment="Center" />
@@ -408,6 +406,10 @@
         <local:SaveAsNewJobDialog x:Name="SaveAsNewJobDialogControl" Grid.Row="0" Grid.RowSpan="3"
                                    SaveRequested="OnSaveRequested" OverwriteConfirmed="OnOverwriteConfirmed" />
         <local:RemoveJobDialog x:Name="RemoveJobDialogControl" Grid.Row="0" Grid.RowSpan="3" Removed="OnJobRemoved" />
+        <local:BarcodeScanDialog x:Name="BarcodeScanDialogControl" Grid.Row="0" Grid.RowSpan="3"
+                                 ScanRequested="OnBarcodeScanRequested" />
+        <local:JobLogDialog x:Name="JobLogDialogControl" Grid.Row="0" Grid.RowSpan="3"
+                            Exported="OnJobLogExported" />
         <local:ConfirmationDialog x:Name="ConfirmationDialogControl" Grid.Row="0" Grid.RowSpan="3" />
     </Grid>
 </UserControl>

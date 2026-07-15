@@ -32,6 +32,7 @@ namespace CPBourg.NextGenGui.Models
             }
 
             CurrentJob = job;
+            job.AddLog("Job loaded", "Loaded as the current production job.");
             CurrentJobChanged?.Invoke(this, EventArgs.Empty);
         }
 

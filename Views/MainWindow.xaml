@@ -130,10 +130,8 @@
         </Border>
 
         <!-- ================= Content =================
-             Dashboard, SettingsView, JobsView, and ErrorsView all exist now;
-             MainWindow.xaml.cs toggles which is visible based on the global
-             menu selection (or the header bell, for Errors). Other nav items
-             remain stubs (see OnGlobalMenuItemSelected). -->
+             MainWindow.xaml.cs toggles which screen is visible based on the
+             global menu selection (or the header bell, for Errors). -->
         <local:DashboardView Grid.Row="1" x:Name="Dashboard" />
         <local:SettingsView Grid.Row="1" x:Name="SettingsScreen" Visibility="Collapsed" />
         <local:JobsView Grid.Row="1" x:Name="JobsScreen" Visibility="Collapsed" />
@@ -141,6 +139,8 @@
         <local:MachineLineConfigurationView Grid.Row="1" x:Name="MachineLineConfigScreen" Visibility="Collapsed" />
         <local:StfoConfigurationView Grid.Row="1" x:Name="StfoScreen" Visibility="Collapsed" />
         <local:TechnicianInterfaceView Grid.Row="1" x:Name="TechnicianScreen" Visibility="Collapsed" />
+        <local:HelpView Grid.Row="1" x:Name="HelpScreen" Visibility="Collapsed" />
+        <local:AboutVersionView Grid.Row="1" x:Name="AboutVersionScreen" Visibility="Collapsed" />
 
         <!-- ================= Global menu overlay ================= -->
         <local:GlobalMenuView Grid.Row="0" Grid.RowSpan="2" x:Name="GlobalMenu"

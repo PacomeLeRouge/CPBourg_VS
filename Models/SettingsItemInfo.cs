@@ -20,7 +20,7 @@ namespace CPBourg.NextGenGui.Models
 
         /// <summary>Segoe MDL2 Assets glyph shown in the row's icon circle
         /// (or, if <see cref="IsLetterIcon"/> is true, literal text shown in
-        /// the normal UI font instead - see UI Scale's "Aa").</summary>
+        /// the normal UI font instead - see Font Size's "Aa").</summary>
         public string IconGlyph { get; }
 
         public string Label { get; }
@@ -34,7 +34,7 @@ namespace CPBourg.NextGenGui.Models
 
         /// <summary>
         /// True for rows whose "icon" is actually literal text (e.g. "Aa" for
-        /// UI Scale) rather than a Segoe MDL2 Assets glyph. Icon fonts remap
+        /// Font Size) rather than a Segoe MDL2 Assets glyph. Icon fonts remap
         /// ordinary letters to unrelated icon shapes, so literal text must be
         /// rendered in the normal UI font, never the icon font.
         /// </summary>

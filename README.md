@@ -1024,6 +1024,48 @@ Machine Line Configuration received two related changes:
   handler also rejects duplicate requests defensively, Add disables when all
   four types are present, and Replace chooses only an unused module type.
 
+### v35 - Help manuals link and prototype attribution
+
+The stacked menu's final informational items now open dedicated screens:
+
+- **Help / Manual** shows the official C.P. Bourg My C.P. Bourg support and
+  download URL (`https://www.cpbourg.com/be/en/my-cpbourg`) as a clickable
+  link. Selecting it opens the user's default browser; the URL remains visible
+  so it can still be copied or entered manually on a restricted kiosk system.
+- **About / Version** shows the prototype attribution: "This is a mockup
+  prototype made by OpenHub for C.P. Bourg for the summer of 2026."
+
+Both views use the shared responsive card styling and fit in the default
+window as well as fullscreen mode.
+
+### v36 - Barcode lookup, job-log export, date/time, and font size
+
+The two remaining Jobs actions and two Settings placeholders are now
+functional:
+
+- **Scan Barcode ID** opens a focused scanner-input dialog. A standard USB
+  keyboard-wedge barcode scanner can type the barcode and submit it with
+  Enter; manual typing and the Find Job button work as a fallback. A matching
+  barcode selects and scrolls to its saved job, while an unknown barcode keeps
+  the dialog open with a retry message.
+- **View Log** displays timestamped events for the selected job, including job
+  creation, loading, comment changes, and barcode matches. Export Log opens the
+  standard Windows save dialog and writes a UTF-8 CSV file to any chosen path,
+  including a mounted USB drive.
+- **Date and Time** opens a date picker with 24-hour hour/minute selectors. The
+  value remains pending until Apply, Cancel restores the previous value, and
+  Apply updates both the Settings row and shell header clock. This prototype
+  uses an application clock offset and does not require permission to modify
+  the Windows system clock.
+- **Font Size** replaces the former UI Scale placeholder with Small, Medium,
+  and Large choices. Apply changes authored text sizes throughout the shell and
+  screens while leaving touch-target dimensions unchanged; Cancel restores the
+  last applied choice.
+
+Barcode mappings, job events, and operator preferences remain in memory for
+the current application session, matching the prototype's existing fresh-start
+job repository. Durable WFM-backed storage is still the integration boundary.
+
 ### Languages (FR-10)
 
 The stage labels in `Startup/StartupStage.cs` are the strings that will move to
@@ -1048,6 +1090,8 @@ inline for the prototype and marked with a comment.
 | `Views/OpenJobDialog.xaml(.cs)` | Open a job, optionally with saved RUN adjustments |
 | `Views/SaveAsNewJobDialog.xaml(.cs)` | Save current setup as a new job (input + name-conflict states) |
 | `Views/RemoveJobDialog.xaml(.cs)` | Destructive job removal confirmation |
+| `Views/BarcodeScanDialog.xaml(.cs)` | Keyboard-wedge barcode scanner capture and validation overlay |
+| `Views/JobLogDialog.xaml(.cs)` | Selected-job log preview and CSV export to a chosen path or USB drive |
 | `Views/ConfirmationDialog.xaml(.cs)` | Shared "...Saved!" / "...Removed!" success dialog |
 | `Views/ErrorsView.xaml(.cs)` | Errors & Information screen (summary tiles, Active Messages, empty state) |
 | `Views/ErrorDetailDialog.xaml(.cs)` | Error/warning detail overlay |
@@ -1057,7 +1101,11 @@ inline for the prototype and marked with a comment.
 | `Views/TechnicalAccessDialog.xaml(.cs)` | Masked numeric technician-code keypad overlay |
 | `Views/NumericInputDialog.xaml(.cs)` | Reusable touchscreen keypad for non-negative whole-number entry |
 | `Views/DecimalInputDialog.xaml(.cs)` | Decimal touchscreen keypad with optional negative-value entry |
+| `Views/DateTimeSettingsDialog.xaml(.cs)` | Operator-interface date and 24-hour time editor |
+| `Views/FontSizeManager.cs` | Applies Small / Medium / Large text sizing without resizing touch targets |
 | `Views/GlobalMenuView.xaml(.cs)` | Slide-out global navigation overlay |
+| `Views/HelpView.xaml(.cs)` | Help screen with the clickable official manuals/support link |
+| `Views/AboutVersionView.xaml(.cs)` | About / Version screen with the prototype attribution |
 | `Views/MachineStatusToBrushConverter.cs` | Maps `MachineStatus` to theme brushes |
 | `Views/NullToCollapsedConverter.cs` | Hides an element when a bound string is null/empty |
 | `Views/LogoLoader.cs` | Loads a real logo file if present, falls back to the placeholder mark |
@@ -1068,6 +1116,7 @@ inline for the prototype and marked with a comment.
 | `Models/SettingsItemInfo.cs` | Data for one Settings row |
 | `Models/ChangeOptionInfo.cs` | Data for one radio option in a Change-value dialog |
 | `Models/JobRecord.cs` | Data for one saved job |
+| `Models/JobLogEntry.cs` | Timestamped activity entry exported by the selected-job log |
 | `Models/JobRepository.cs` | Shared ordered job list and current-job state used by Jobs, Dashboard, and STFO |
 | `Models/BookFormatPreset.cs` / `Models/BookFormatCatalog.cs` | Standard format dimensions and Custom classification |
 | `Models/StfoJobSettings.cs` | Complete per-job Stitching, Folding, Trimming, and Conveyor settings |

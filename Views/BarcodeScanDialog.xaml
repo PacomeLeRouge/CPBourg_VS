@@ -1,0 +1,63 @@
+<UserControl x:Class="CPBourg.NextGenGui.Views.BarcodeScanDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Visibility="Collapsed">
+    <Grid>
+        <Border Background="{StaticResource OverlayScrimBrush}" MouseDown="OnScrimMouseDown" />
+
+        <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="16"
+                Width="520" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="28">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Border Width="44" Height="44" CornerRadius="10" Background="{StaticResource StatusIdleBgBrush}">
+                        <TextBlock Text="&#xE8FE;" FontFamily="{StaticResource IconFontFamily}" FontSize="20"
+                                   Foreground="{StaticResource JobsAccentBrush}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <TextBlock Grid.Column="1" Text="Scan Barcode ID" FontSize="22" FontWeight="Medium"
+                               Foreground="{StaticResource TextPrimaryBrush}" Margin="14,0,0,0"
+                               VerticalAlignment="Center" />
+                    <Button Grid.Column="2" Width="40" Height="40" Background="Transparent"
+                            BorderThickness="0" Click="OnCancelClick">
+                        <TextBlock Text="&#xE711;" FontFamily="{StaticResource IconFontFamily}" FontSize="14" />
+                    </Button>
+                </Grid>
+
+                <TextBlock Text="Scan a book barcode now. Most USB barcode scanners type the ID and send Enter automatically."
+                           FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+                           TextWrapping="Wrap" Margin="0,14,0,18" />
+
+                <TextBlock Text="Barcode ID" FontSize="13" FontWeight="SemiBold"
+                           Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,8" />
+                <TextBox x:Name="BarcodeTextBox" Height="54" Padding="14,0" FontSize="20"
+                         VerticalContentAlignment="Center" KeyDown="OnBarcodeKeyDown"
+                         TextChanged="OnBarcodeTextChanged" />
+                <TextBlock x:Name="ValidationText" Text="" FontSize="13"
+                           Foreground="{StaticResource StatusErrorBrush}" TextWrapping="Wrap"
+                           Visibility="Collapsed" Margin="0,8,0,0" />
+
+                <Grid Margin="0,24,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="14" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" MinHeight="52" Click="OnCancelClick">
+                        <TextBlock Text="Cancel" FontSize="15" FontWeight="Medium" />
+                    </Button>
+                    <Button Grid.Column="2" x:Name="FindJobButton" MinHeight="52"
+                            Background="{StaticResource JobsAccentBrush}"
+                            Foreground="{StaticResource JobsAccentForegroundBrush}" BorderThickness="0"
+                            Click="OnFindJobClick">
+                        <TextBlock Text="Find Job" FontSize="15" FontWeight="Medium" />
+                    </Button>
+                </Grid>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>
