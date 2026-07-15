@@ -14,12 +14,11 @@ namespace CPBourg.NextGenGui.Views
     /// for a job's settings. Reached by tapping the STFO tile on the Home
     /// dashboard (see <see cref="DashboardView.NavigateToStfoRequested"/>).
     ///
-    /// Step 1 (Menu) and the not-yet-built steps 3-5 show the machine-line
-    /// overview. Step 2 (Stitching) is the interactive step: the parameters
-    /// form on the right (paper size, stitch mode, spacing, offsets) drives a
-    /// live preview on the left - a sheet drawn to the W x L aspect with
-    /// dimension annotations and stitch marks placed for the selected mode -
-    /// via <see cref="RedrawStitchPreview"/>. All local; no WFM in this build.
+    /// Step 1 shows the machine-line overview. Steps 2-5 provide interactive
+    /// Stitching, Folding, Trimming, and Conveyor forms with live previews.
+    /// Each form keeps a saved snapshot: Reset loads defaults as pending edits,
+    /// Save commits the current step, and leaving discards unsaved changes.
+    /// All local; no WFM in this build.
     /// </summary>
     public partial class StfoConfigurationView : UserControl
     {
@@ -42,12 +41,35 @@ namespace CPBourg.NextGenGui.Views
         private const int TrimmingStep = 3;
         private const int ConveyorStep = 4;
 
+        private const double DefaultPaperWidth = 210;
+        private const double DefaultPaperLength = 297;
+        private const double DefaultStitchSpacing = 10;
+        private const double DefaultHorizontalOffset = 0;
+        private const double DefaultVerticalOffset = 0;
+        private const string DefaultStitchMode = "Saddle";
+
+        private const bool DefaultFoldEnabled = true;
+        private const double DefaultFoldPosition = 10;
+        private const string DefaultPressureMode = "Manual";
+        private const double DefaultPressureLevel = 0.45;
+
+        private const bool DefaultTrimEnabled = true;
+        private const double DefaultFinalLength = 205;
+        private const string DefaultClampHeight = "Auto";
+        private const bool DefaultChipBlower = true;
+
+        private const int DefaultBookletSpacing = 8;
+        private const int DefaultBookletOffset = 10;
+        private const bool DefaultFullDetection = true;
+
         private readonly Button[] _stepTabs;
         private int _currentStep;
 
         // Stitching parameters (defaults match the field text set in XAML).
-        private double _paperW = 210, _paperL = 297, _spacing = 10, _hOffset, _vOffset;
-        private string _stitchMode = "Saddle";
+        private double _paperW = DefaultPaperWidth, _paperL = DefaultPaperLength;
+        private double _spacing = DefaultStitchSpacing, _hOffset = DefaultHorizontalOffset;
+        private double _vOffset = DefaultVerticalOffset;
+        private string _stitchMode = DefaultStitchMode;
         private StitchNumericField _pendingStitchNumericField;
 
         private enum StitchNumericField
@@ -73,23 +95,61 @@ namespace CPBourg.NextGenGui.Views
         private TextBlock[] _modeLabels;
 
         // Folding parameters (defaults match the controls set in XAML).
-        private bool _foldEnabled = true;
-        private double _foldPosition = 10;
-        private string _pressureMode = "Manual";
+        private bool _foldEnabled = DefaultFoldEnabled;
+        private double _foldPosition = DefaultFoldPosition;
+        private string _pressureMode = DefaultPressureMode;
 
         // Trimming parameters (defaults match the controls set in XAML).
-        private bool _trimEnabled = true;
-        private double _finalLength = 205;
-        private string _clampHeight = "Auto";
-        private bool _chipBlower = true;
+        private bool _trimEnabled = DefaultTrimEnabled;
+        private double _finalLength = DefaultFinalLength;
+        private string _clampHeight = DefaultClampHeight;
+        private bool _chipBlower = DefaultChipBlower;
 
         private Button[] _clampButtons;
         private TextBlock[] _clampLabels;
 
         // Conveyor parameters (defaults match the controls set in XAML).
-        private int _bookletSpacing = 8;
-        private int _bookletOffset = 10;
-        private bool _fullDetection = true;
+        private int _bookletSpacing = DefaultBookletSpacing;
+        private int _bookletOffset = DefaultBookletOffset;
+        private bool _fullDetection = DefaultFullDetection;
+
+        private StitchingConfiguration _savedStitching;
+        private FoldingConfiguration _savedFolding;
+        private TrimmingConfiguration _savedTrimming;
+        private ConveyorConfiguration _savedConveyor;
+
+        private sealed class StitchingConfiguration
+        {
+            public double PaperWidth;
+            public double PaperLength;
+            public double Spacing;
+            public double HorizontalOffset;
+            public double VerticalOffset;
+            public string Mode;
+        }
+
+        private sealed class FoldingConfiguration
+        {
+            public bool Enabled;
+            public double Position;
+            public string PressureMode;
+            public double PressureLevel;
+        }
+
+        private sealed class TrimmingConfiguration
+        {
+            public bool Enabled;
+            public double FinalLength;
+            public string ClampHeight;
+            public bool ChipBlower;
+        }
+
+        private sealed class ConveyorConfiguration
+        {
+            public int Spacing;
+            public int Offset;
+            public bool FullDetection;
+        }
 
         // Suppresses the TextChanged handlers that fire while InitializeComponent
         // sets each field's initial text, before the rest of the tree exists.
@@ -100,7 +160,7 @@ namespace CPBourg.NextGenGui.Views
         public event EventHandler<string> TitleChanged;
 
         /// <summary>Raised to return to the dashboard - from Back on the first
-        /// step, or Finish on the last.</summary>
+        /// step, or Confirm on the last.</summary>
         public event EventHandler CloseRequested;
 
         public StfoConfigurationView()
@@ -139,6 +199,8 @@ namespace CPBourg.NextGenGui.Views
             UpdateConveyorSummary();
             RedrawConveyorPreview();
 
+            SaveAllCurrentConfigurations();
+
             RefreshUi();
         }
 
@@ -146,13 +208,23 @@ namespace CPBourg.NextGenGui.Views
         /// dashboard navigates in, so entry always lands on Menu.</summary>
         public void ResetToStart()
         {
+            RestoreSavedConfiguration(_currentStep);
             _currentStep = 0;
             RefreshUi();
         }
 
         private void GoToStep(int step)
         {
-            _currentStep = Math.Max(0, Math.Min(StepNames.Length - 1, step));
+            int targetStep = Math.Max(0, Math.Min(StepNames.Length - 1, step));
+            if (targetStep == _currentStep)
+            {
+                return;
+            }
+
+            // Each step is an edit transaction. Leaving without Save discards
+            // its working values and restores the most recently saved snapshot.
+            RestoreSavedConfiguration(_currentStep);
+            _currentStep = targetStep;
             RefreshUi();
         }
 
@@ -220,6 +292,7 @@ namespace CPBourg.NextGenGui.Views
         {
             if (_currentStep == StepNames.Length - 1)
             {
+                RestoreSavedConfiguration(_currentStep);
                 CloseRequested?.Invoke(this, EventArgs.Empty);
             }
             else
@@ -230,12 +303,271 @@ namespace CPBourg.NextGenGui.Views
 
         private void OnResetClick(object sender, RoutedEventArgs e)
         {
-            FooterStatusText.Text = StepNames[_currentStep] + " settings reset to defaults.";
+            if (_currentStep == 0)
+            {
+                FooterStatusText.Text = "Select a configuration step to reset its settings.";
+                return;
+            }
+
+            ApplyDefaultConfiguration(_currentStep);
+            FooterStatusText.Text = StepNames[_currentStep] +
+                                    " settings reset to defaults. Select Save to keep them.";
         }
 
         private void OnSaveClick(object sender, RoutedEventArgs e)
         {
-            FooterStatusText.Text = "Configuration saved.";
+            if (_currentStep == 0)
+            {
+                FooterStatusText.Text = "Select a configuration step to save its settings.";
+                return;
+            }
+
+            SaveCurrentConfiguration(_currentStep);
+            FooterStatusText.Text = StepNames[_currentStep] + " configuration saved.";
+        }
+
+        private void SaveAllCurrentConfigurations()
+        {
+            _savedStitching = CaptureStitchingConfiguration();
+            _savedFolding = CaptureFoldingConfiguration();
+            _savedTrimming = CaptureTrimmingConfiguration();
+            _savedConveyor = CaptureConveyorConfiguration();
+        }
+
+        private void SaveCurrentConfiguration(int step)
+        {
+            switch (step)
+            {
+                case StitchingStep:
+                    _savedStitching = CaptureStitchingConfiguration();
+                    break;
+                case FoldingStep:
+                    _savedFolding = CaptureFoldingConfiguration();
+                    break;
+                case TrimmingStep:
+                    _savedTrimming = CaptureTrimmingConfiguration();
+                    break;
+                case ConveyorStep:
+                    _savedConveyor = CaptureConveyorConfiguration();
+                    break;
+            }
+        }
+
+        private void RestoreSavedConfiguration(int step)
+        {
+            switch (step)
+            {
+                case StitchingStep:
+                    ApplyStitchingConfiguration(_savedStitching);
+                    break;
+                case FoldingStep:
+                    ApplyFoldingConfiguration(_savedFolding);
+                    break;
+                case TrimmingStep:
+                    ApplyTrimmingConfiguration(_savedTrimming);
+                    break;
+                case ConveyorStep:
+                    ApplyConveyorConfiguration(_savedConveyor);
+                    break;
+            }
+        }
+
+        private void ApplyDefaultConfiguration(int step)
+        {
+            switch (step)
+            {
+                case StitchingStep:
+                    ApplyStitchingConfiguration(CreateDefaultStitchingConfiguration());
+                    break;
+                case FoldingStep:
+                    ApplyFoldingConfiguration(CreateDefaultFoldingConfiguration());
+                    break;
+                case TrimmingStep:
+                    ApplyTrimmingConfiguration(CreateDefaultTrimmingConfiguration());
+                    break;
+                case ConveyorStep:
+                    ApplyConveyorConfiguration(CreateDefaultConveyorConfiguration());
+                    break;
+            }
+        }
+
+        private StitchingConfiguration CaptureStitchingConfiguration()
+        {
+            return new StitchingConfiguration
+            {
+                PaperWidth = _paperW,
+                PaperLength = _paperL,
+                Spacing = _spacing,
+                HorizontalOffset = _hOffset,
+                VerticalOffset = _vOffset,
+                Mode = _stitchMode,
+            };
+        }
+
+        private FoldingConfiguration CaptureFoldingConfiguration()
+        {
+            return new FoldingConfiguration
+            {
+                Enabled = _foldEnabled,
+                Position = _foldPosition,
+                PressureMode = _pressureMode,
+                PressureLevel = PressureSlider.Value,
+            };
+        }
+
+        private TrimmingConfiguration CaptureTrimmingConfiguration()
+        {
+            return new TrimmingConfiguration
+            {
+                Enabled = _trimEnabled,
+                FinalLength = _finalLength,
+                ClampHeight = _clampHeight,
+                ChipBlower = _chipBlower,
+            };
+        }
+
+        private ConveyorConfiguration CaptureConveyorConfiguration()
+        {
+            return new ConveyorConfiguration
+            {
+                Spacing = _bookletSpacing,
+                Offset = _bookletOffset,
+                FullDetection = _fullDetection,
+            };
+        }
+
+        private static StitchingConfiguration CreateDefaultStitchingConfiguration()
+        {
+            return new StitchingConfiguration
+            {
+                PaperWidth = DefaultPaperWidth,
+                PaperLength = DefaultPaperLength,
+                Spacing = DefaultStitchSpacing,
+                HorizontalOffset = DefaultHorizontalOffset,
+                VerticalOffset = DefaultVerticalOffset,
+                Mode = DefaultStitchMode,
+            };
+        }
+
+        private static FoldingConfiguration CreateDefaultFoldingConfiguration()
+        {
+            return new FoldingConfiguration
+            {
+                Enabled = DefaultFoldEnabled,
+                Position = DefaultFoldPosition,
+                PressureMode = DefaultPressureMode,
+                PressureLevel = DefaultPressureLevel,
+            };
+        }
+
+        private static TrimmingConfiguration CreateDefaultTrimmingConfiguration()
+        {
+            return new TrimmingConfiguration
+            {
+                Enabled = DefaultTrimEnabled,
+                FinalLength = DefaultFinalLength,
+                ClampHeight = DefaultClampHeight,
+                ChipBlower = DefaultChipBlower,
+            };
+        }
+
+        private static ConveyorConfiguration CreateDefaultConveyorConfiguration()
+        {
+            return new ConveyorConfiguration
+            {
+                Spacing = DefaultBookletSpacing,
+                Offset = DefaultBookletOffset,
+                FullDetection = DefaultFullDetection,
+            };
+        }
+
+        private void ApplyStitchingConfiguration(StitchingConfiguration configuration)
+        {
+            if (configuration == null)
+            {
+                return;
+            }
+
+            bool wasLoaded = _loaded;
+            _loaded = false;
+            _paperW = configuration.PaperWidth;
+            _paperL = configuration.PaperLength;
+            _spacing = configuration.Spacing;
+            _hOffset = configuration.HorizontalOffset;
+            _vOffset = configuration.VerticalOffset;
+            _stitchMode = configuration.Mode;
+            PaperWidthBox.Text = Fmt(_paperW, "0.0##");
+            PaperLengthBox.Text = Fmt(_paperL, "0.0##");
+            SpacingBox.Text = Fmt(_spacing, "0.0##");
+            HOffsetBox.Text = Fmt(_hOffset, "0.0##");
+            VOffsetBox.Text = Fmt(_vOffset, "0.0##");
+            _loaded = wasLoaded;
+            RefreshStitchModeButtons();
+            UpdateStitchSummary();
+            RedrawStitchPreview();
+        }
+
+        private void ApplyFoldingConfiguration(FoldingConfiguration configuration)
+        {
+            if (configuration == null)
+            {
+                return;
+            }
+
+            bool wasLoaded = _loaded;
+            _loaded = false;
+            _foldEnabled = configuration.Enabled;
+            _foldPosition = configuration.Position;
+            _pressureMode = configuration.PressureMode;
+            FoldPositionSlider.Value = _foldPosition;
+            FoldPositionValueText.Text = Fmt(_foldPosition, "0.0");
+            PressureSlider.Value = configuration.PressureLevel;
+            _loaded = wasLoaded;
+            RefreshFoldChoiceButtons();
+            UpdateFoldSummary();
+            RedrawFoldPreview();
+        }
+
+        private void ApplyTrimmingConfiguration(TrimmingConfiguration configuration)
+        {
+            if (configuration == null)
+            {
+                return;
+            }
+
+            bool wasLoaded = _loaded;
+            _loaded = false;
+            _trimEnabled = configuration.Enabled;
+            _finalLength = configuration.FinalLength;
+            _clampHeight = configuration.ClampHeight;
+            _chipBlower = configuration.ChipBlower;
+            FinalLengthBox.Text = Fmt(_finalLength, "0.0");
+            _loaded = wasLoaded;
+            RefreshTrimChoiceButtons();
+            UpdateTrimSummary();
+            RedrawTrimPreview();
+        }
+
+        private void ApplyConveyorConfiguration(ConveyorConfiguration configuration)
+        {
+            if (configuration == null)
+            {
+                return;
+            }
+
+            bool wasLoaded = _loaded;
+            _loaded = false;
+            _bookletSpacing = configuration.Spacing;
+            _bookletOffset = configuration.Offset;
+            _fullDetection = configuration.FullDetection;
+            SpacingSlider.Value = _bookletSpacing;
+            OffsetSlider.Value = _bookletOffset;
+            SpacingValueText.Text = _bookletSpacing.ToString(CultureInfo.InvariantCulture);
+            OffsetValueText.Text = _bookletOffset.ToString(CultureInfo.InvariantCulture);
+            _loaded = wasLoaded;
+            RefreshConveyorChoiceButtons();
+            UpdateConveyorSummary();
+            RedrawConveyorPreview();
         }
 
         // ================= Stitching form =================

@@ -952,6 +952,24 @@ The preview panels, step navigation, and footer actions remain fixed while
 only the taller settings cards scroll. In fullscreen, scrollbars appear only
 when their content exceeds the available height.
 
+### v32 - STFO transactional Reset and Save behavior
+
+Reset and Save now operate on the active STFO configuration step (Stitching,
+Folding, Trimming, or Conveyor):
+
+- **Reset** immediately loads that step's defined factory defaults into the
+  controls, summary, and live preview. The reset remains pending until Save.
+- **Save** commits every value on the active step, including selectors,
+  toggles, sliders, and numpad-entered values.
+- Moving to another STFO step with tabs, Back, Next, or Confirm discards any
+  unsaved edits and restores that step's last saved snapshot. Returning to the
+  STFO dashboard and reopening the wizard follows the same rule.
+- A reset followed by navigation is therefore discarded; a reset followed by
+  Save makes the defaults the new saved configuration.
+
+The snapshots are maintained locally for the current application session;
+machine/WFM persistence remains a future integration point.
+
 ### Languages (FR-10)
 
 The stage labels in `Startup/StartupStage.cs` are the strings that will move to
