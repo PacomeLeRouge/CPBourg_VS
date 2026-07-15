@@ -390,6 +390,11 @@
 										</Border>
 									</StackPanel>
 									<StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+										<TextBlock x:Name="JobFormatText" Text="A4" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" />
+										<TextBlock Text=" · " Foreground="{StaticResource TextMutedBrush}" FontSize="12" />
+										<TextBlock x:Name="JobPagesText" Text="48 pages" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" />
+									</StackPanel>
+									<StackPanel Orientation="Horizontal" Margin="0,3,0,0">
 										<TextBlock Text="Quantity" Foreground="{StaticResource TextMutedBrush}" FontSize="11" />
 										<TextBlock x:Name="JobQuantityText" Text="12,500" Foreground="{StaticResource TextSecondaryBrush}" FontSize="12" Margin="4,0,14,0" />
 										<TextBlock Text="Completed" Foreground="{StaticResource TextMutedBrush}" FontSize="11" />

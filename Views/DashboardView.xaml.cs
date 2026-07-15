@@ -183,6 +183,7 @@ namespace CPBourg.NextGenGui.Views
         private int _confirmedCompletedSets;
         private int _confirmedPresetTarget;
         private CounterInputKind _pendingCounterInput;
+        private JobRecord _currentJob;
 
         private enum CounterInputKind
         {
@@ -213,6 +214,28 @@ namespace CPBourg.NextGenGui.Views
             MiniCompletedSetsText.Text = completed;
             JobCompletedText.Text = completed;
             MiniPresetText.Text = target;
+            JobQuantityText.Text = target;
+        }
+
+        /// <summary>Displays the repository's latest loaded job.</summary>
+        public void SetCurrentJob(JobRecord job)
+        {
+            _currentJob = job;
+            if (_currentJob == null)
+            {
+                JobNameText.Text = "No job loaded";
+                JobFormatText.Text = "-";
+                JobPagesText.Text = "-";
+                JobStatusText.Text = "Idle";
+                return;
+            }
+
+            JobNameText.Text = _currentJob.Name;
+            JobFormatText.Text = _currentJob.Format + " · " + _currentJob.DimensionsLabel;
+            JobPagesText.Text = _currentJob.PagesLabel;
+            JobStatusText.Text = "Loaded";
+            JobStatusText.Foreground = (Brush)FindResource("StatusRunningBrush");
+            JobStatusPill.Background = (Brush)FindResource("StatusRunningBgBrush");
         }
 
         private void MarkCounterChangesPending(string message)

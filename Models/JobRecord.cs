@@ -12,22 +12,30 @@ namespace CPBourg.NextGenGui.Models
     /// </summary>
     public sealed class JobRecord
     {
-        public JobRecord(string name, int pages, string format, string savedDate, string savedTime,
-            string comment, string barcodeId, string lastModified)
+        public JobRecord(string name, int pages, string format, double widthMm, double lengthMm,
+            string savedDate, string savedTime, string comment, string barcodeId,
+            string lastModified, StfoJobSettings stfoSettings)
         {
             Name = name;
             Pages = pages;
             Format = format;
+            WidthMm = widthMm;
+            LengthMm = lengthMm;
             SavedDate = savedDate;
             SavedTime = savedTime;
             Comment = comment;
             BarcodeId = barcodeId;
             LastModified = lastModified;
+            StfoSettings = stfoSettings ??
+                StfoJobSettings.CreateForFormat(widthMm, lengthMm, pages, 0);
         }
 
         public string Name { get; }
         public int Pages { get; }
         public string Format { get; }
+        public double WidthMm { get; }
+        public double LengthMm { get; }
+        public StfoJobSettings StfoSettings { get; set; }
 
         /// <summary>Date shown at the top-right of the row (e.g. "2026-06-21").</summary>
         public string SavedDate { get; }
@@ -41,5 +49,7 @@ namespace CPBourg.NextGenGui.Models
 
         /// <summary>"48 pages" style summary shown in the row subtitle.</summary>
         public string PagesLabel => Pages + " pages";
+        public string DimensionsLabel => WidthMm.ToString("0.0#") + " x " +
+                                         LengthMm.ToString("0.0#") + " mm";
     }
 }

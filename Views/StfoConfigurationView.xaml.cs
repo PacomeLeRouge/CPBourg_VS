@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using CPBourg.NextGenGui.Models;
 
 namespace CPBourg.NextGenGui.Views
 {
@@ -64,6 +65,7 @@ namespace CPBourg.NextGenGui.Views
 
         private readonly Button[] _stepTabs;
         private int _currentStep;
+        private JobRecord _currentJob;
 
         // Stitching parameters (defaults match the field text set in XAML).
         private double _paperW = DefaultPaperWidth, _paperL = DefaultPaperLength;
@@ -204,6 +206,30 @@ namespace CPBourg.NextGenGui.Views
             RefreshUi();
         }
 
+        /// <summary>Loads the current job's independent STFO configuration.</summary>
+        public void LoadJob(JobRecord job)
+        {
+            RestoreSavedConfiguration(_currentStep);
+            _currentJob = job;
+            CurrentJobNameRun.Text = job == null
+                ? "No job loaded"
+                : job.Name + " (" + job.Format + ", " + job.Pages + " pages)";
+
+            if (job == null)
+            {
+                ApplyStitchingConfiguration(CreateDefaultStitchingConfiguration());
+                ApplyFoldingConfiguration(CreateDefaultFoldingConfiguration());
+                ApplyTrimmingConfiguration(CreateDefaultTrimmingConfiguration());
+                ApplyConveyorConfiguration(CreateDefaultConveyorConfiguration());
+            }
+            else
+            {
+                ApplyJobSettings(job.StfoSettings);
+            }
+
+            SaveAllCurrentConfigurations();
+        }
+
         /// <summary>Resets the wizard to the first (Menu) step. Called when the
         /// dashboard navigates in, so entry always lands on Menu.</summary>
         public void ResetToStart()
@@ -323,7 +349,78 @@ namespace CPBourg.NextGenGui.Views
             }
 
             SaveCurrentConfiguration(_currentStep);
+            SaveConfigurationsToCurrentJob();
             FooterStatusText.Text = StepNames[_currentStep] + " configuration saved.";
+        }
+
+        private void ApplyJobSettings(StfoJobSettings settings)
+        {
+            if (settings == null)
+            {
+                return;
+            }
+
+            ApplyStitchingConfiguration(new StitchingConfiguration
+            {
+                PaperWidth = settings.PaperWidth,
+                PaperLength = settings.PaperLength,
+                Spacing = settings.StitchSpacing,
+                HorizontalOffset = settings.HorizontalOffset,
+                VerticalOffset = settings.VerticalOffset,
+                Mode = settings.StitchMode,
+            });
+            ApplyFoldingConfiguration(new FoldingConfiguration
+            {
+                Enabled = settings.FoldEnabled,
+                Position = settings.FoldPosition,
+                PressureMode = settings.PressureMode,
+                PressureLevel = settings.PressureLevel,
+            });
+            ApplyTrimmingConfiguration(new TrimmingConfiguration
+            {
+                Enabled = settings.TrimEnabled,
+                FinalLength = settings.FinalBookletLength,
+                ClampHeight = settings.ClampHeight,
+                ChipBlower = settings.ChipBlower,
+            });
+            ApplyConveyorConfiguration(new ConveyorConfiguration
+            {
+                Spacing = settings.BookletSpacing,
+                Offset = settings.BookletOffset,
+                FullDetection = settings.FullDetection,
+            });
+        }
+
+        private void SaveConfigurationsToCurrentJob()
+        {
+            if (_currentJob == null)
+            {
+                return;
+            }
+
+            _currentJob.StfoSettings = new StfoJobSettings
+            {
+                PaperWidth = _savedStitching.PaperWidth,
+                PaperLength = _savedStitching.PaperLength,
+                StitchSpacing = _savedStitching.Spacing,
+                HorizontalOffset = _savedStitching.HorizontalOffset,
+                VerticalOffset = _savedStitching.VerticalOffset,
+                StitchMode = _savedStitching.Mode,
+
+                FoldEnabled = _savedFolding.Enabled,
+                FoldPosition = _savedFolding.Position,
+                PressureMode = _savedFolding.PressureMode,
+                PressureLevel = _savedFolding.PressureLevel,
+
+                TrimEnabled = _savedTrimming.Enabled,
+                FinalBookletLength = _savedTrimming.FinalLength,
+                ClampHeight = _savedTrimming.ClampHeight,
+                ChipBlower = _savedTrimming.ChipBlower,
+
+                BookletSpacing = _savedConveyor.Spacing,
+                BookletOffset = _savedConveyor.Offset,
+                FullDetection = _savedConveyor.FullDetection,
+            };
         }
 
         private void SaveAllCurrentConfigurations()

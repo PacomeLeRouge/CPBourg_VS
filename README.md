@@ -970,6 +970,33 @@ Folding, Trimming, or Conveyor):
 The snapshots are maintained locally for the current application session;
 machine/WFM persistence remains a future integration point.
 
+### v33 - Shared jobs, current-job loading, and format-aware STFO settings
+
+Jobs are now connected across the application through one in-memory
+`JobRepository` instead of separate placeholder data on each screen.
+
+- On a fresh launch, the first (most recently listed) saved job is loaded
+  automatically. The Dashboard's **Current Jobs** card shows its name, format,
+  physical dimensions, page count, production preset, and completed sets.
+- Confirming **Open Job** changes the repository's current job and returns to
+  Home. Dashboard and every STFO step update immediately to the same job.
+- Every sample and newly saved job owns a complete `StfoJobSettings` record.
+  Paper dimensions match the job's book format; stitch/fold/trim/conveyor
+  choices are deterministic prototype values derived from format and pages.
+  STFO Save writes edited settings back only to the loaded job, so switching
+  jobs restores each job's own setup.
+- **Save As New Job** now captures Job Name, Pages, Preset Book Format, Width,
+  and Length. Pages use the whole-number numpad; dimensions use the decimal
+  numpad. Choosing A3, A4, A5, Letter, or 5 x 7 in fills its standard
+  dimensions; Custom accepts any positive dimensions.
+- Format display is dimension-driven. Dimensions matching a catalog preset
+  use that preset name, while any mismatch is saved and displayed as
+  **Custom** with its actual millimetre dimensions retained.
+
+All job data intentionally starts fresh with the sample list on each program
+launch. `JobRepository` is the replacement boundary for future WFM or durable
+job storage.
+
 ### Languages (FR-10)
 
 The stage labels in `Startup/StartupStage.cs` are the strings that will move to
@@ -1014,6 +1041,10 @@ inline for the prototype and marked with a comment.
 | `Models/SettingsItemInfo.cs` | Data for one Settings row |
 | `Models/ChangeOptionInfo.cs` | Data for one radio option in a Change-value dialog |
 | `Models/JobRecord.cs` | Data for one saved job |
+| `Models/JobRepository.cs` | Shared ordered job list and current-job state used by Jobs, Dashboard, and STFO |
+| `Models/BookFormatPreset.cs` / `Models/BookFormatCatalog.cs` | Standard format dimensions and Custom classification |
+| `Models/StfoJobSettings.cs` | Complete per-job Stitching, Folding, Trimming, and Conveyor settings |
+| `Models/SaveJobRequest.cs` | Validated name/pages/dimensions submitted by Save As New Job |
 | `Models/ErrorSeverity.cs` | Critical / Warning / Info / Resolved enum |
 | `Models/ErrorRecord.cs` | Data for one error/warning message |
 | `Models/MachineLineItemInfo.cs` | Data for one machine/module on the LINE CANVAS |

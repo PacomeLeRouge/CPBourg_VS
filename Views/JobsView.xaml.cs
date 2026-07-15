@@ -11,54 +11,48 @@ namespace CPBourg.NextGenGui.Views
     /// Jobs / File Menu screen (FR-08, AC-06). Selecting a job in the list
     /// updates the Summary panel; the six action tiles open real dialogs
     /// (Add Comment, Open Job, Save As New Job, Remove Job) that mutate the
-    /// in-memory sample job list - see the reference mock's job-action
+    /// shared in-memory job repository - see the reference mock's job-action
     /// screens. View Log and Scan Barcode ID don't have a dialog mockup yet
     /// and remain simple stub feedback, same pattern as before.
     ///
-    /// "Current Setup" (Format / Machine Line) shown in the Save As New Job
-    /// and Remove Job dialogs represents the live machine's current running
-    /// configuration, not the archived job's own stored format - this
-    /// matches the reference mock, which shows the same fixed values in
-    /// both dialogs regardless of which job is selected. It's a hard-coded
-    /// stand-in until the WFM connection provides real live machine state
-    /// (FR-01, FR-02).
-    ///
-    /// Sample data is hard-coded here. Replace with real WFM/job-storage
-    /// data once that's wired in, keeping the same JobRecord/ListBox
-    /// binding structure.
+    /// JobRepository is also consumed by the dashboard and STFO, so opening a
+    /// job updates all three screens from the same JobRecord instance.
     /// </summary>
     public partial class JobsView : UserControl
     {
-        // Stand-in for the live machine's current configuration - see the
-        // class-level comment above for why this isn't per-job data.
-        private const string CurrentSetupFormat = "A4 Booklet";
         private const string CurrentSetupMachineLine = "BSF + BSE";
 
-        private List<JobRecord> _allJobs;
+        private List<JobRecord> _allJobs = new List<JobRecord>();
+        private JobRepository _repository;
+
+        public event EventHandler<JobRecord> JobLoaded;
 
         public JobsView()
         {
             InitializeComponent();
-            LoadSampleJobs();
         }
 
-        private void LoadSampleJobs()
+        public void InitializeRepository(JobRepository repository)
         {
-            _allJobs = new List<JobRecord>
+            if (_repository != null)
             {
-                new JobRecord("Spring Catalog 2026", 48, "A4 Booklet", "2026-06-21", "14:37",
-                    "Ready for reprint", "BC-10458-22", "2026-06-21 14:37"),
-                new JobRecord("Booklet Batch A", 32, "Letter Booklet", "2026-06-20", "09:12",
-                    "-", "BC-10457-11", "2026-06-20 09:12"),
-                new JobRecord("Training Manual Rev 3", 120, "A4", "2026-06-19", "16:05",
-                    "-", "BC-10455-08", "2026-06-19 16:05"),
-                new JobRecord("Promo Cards 5x7", 2, "5x7", "2026-06-18", "11:28",
-                    "-", "BC-10450-02", "2026-06-18 11:28"),
-                new JobRecord("Service Guide 2026", 64, "A5 Booklet", "2026-06-17", "08:44",
-                    "-", "BC-10448-19", "2026-06-17 08:44"),
-            };
+                _repository.JobsChanged -= OnRepositoryJobsChanged;
+            }
 
-            RefreshJobsList(selectIndex: 0);
+            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _repository.JobsChanged += OnRepositoryJobsChanged;
+            ReloadRepositoryJobs(0);
+        }
+
+        private void OnRepositoryJobsChanged(object sender, EventArgs e)
+        {
+            ReloadRepositoryJobs(0);
+        }
+
+        private void ReloadRepositoryJobs(int selectIndex)
+        {
+            _allJobs = _repository?.Jobs.ToList() ?? new List<JobRecord>();
+            RefreshJobsList(selectIndex);
         }
 
         /// <summary>Rebinds the list and selects the given index (or the last
@@ -102,7 +96,7 @@ namespace CPBourg.NextGenGui.Views
 
             SummaryNameText.Text = job.Name;
             SummaryPagesText.Text = job.Pages.ToString();
-            SummaryFormatText.Text = job.Format;
+            SummaryFormatText.Text = job.Format + " (" + job.DimensionsLabel + ")";
             SummaryCommentText.Text = job.Comment;
             SummaryBarcodeText.Text = job.BarcodeId;
             SummaryLastModifiedText.Text = job.LastModified;
@@ -154,9 +148,15 @@ namespace CPBourg.NextGenGui.Views
         private void OnJobOpened(object sender, bool loadRunAdjustments)
         {
             var job = SelectedJob;
+            if (job == null || _repository == null)
+            {
+                return;
+            }
+
+            _repository.Load(job);
             string suffix = loadRunAdjustments ? " with saved RUN adjustments" : string.Empty;
-            LastActionText.Text = "Last action: Open job \"" + (job?.Name ?? "-") + "\"" + suffix +
-                " (stub - not yet connected to the WFM)";
+            LastActionText.Text = "Loaded job \"" + job.Name + "\"" + suffix + ".";
+            JobLoaded?.Invoke(this, job);
         }
 
         // ===================== Add Comment =====================
@@ -186,48 +186,46 @@ namespace CPBourg.NextGenGui.Views
         {
             var job = SelectedJob;
             string suggestedName = job != null ? job.Name + " - Variant 1" : "New Job";
-            SaveAsNewJobDialogControl.Open(suggestedName, CurrentSetupFormat, CurrentSetupMachineLine);
+            var basis = _repository?.CurrentJob ?? job;
+            var a4 = BookFormatCatalog.Find("A4");
+            SaveAsNewJobDialogControl.Open(
+                suggestedName,
+                basis?.Pages ?? 1,
+                basis?.Format ?? "A4",
+                basis?.WidthMm ?? a4.WidthMm,
+                basis?.LengthMm ?? a4.LengthMm,
+                CurrentSetupMachineLine);
         }
 
-        private void OnSaveRequested(object sender, string jobName)
+        private void OnSaveRequested(object sender, SaveJobRequest request)
         {
-            bool exists = _allJobs.Any(j => string.Equals(j.Name, jobName, StringComparison.OrdinalIgnoreCase));
+            bool exists = _allJobs.Any(j => string.Equals(j.Name, request.Name, StringComparison.OrdinalIgnoreCase));
             if (exists)
             {
-                // Re-open the same dialog in its conflict state rather than
-                // closing - SaveAsNewJobDialog already collapsed itself when
-                // it raised this event, so show it again.
-                SaveAsNewJobDialogControl.Open(jobName, CurrentSetupFormat, CurrentSetupMachineLine);
                 SaveAsNewJobDialogControl.ShowConflict();
                 return;
             }
 
-            SaveNewJob(jobName);
+            SaveAsNewJobDialogControl.Close();
+            SaveNewJob(request, overwrite: false);
         }
 
-        private void OnOverwriteConfirmed(object sender, string jobName)
+        private void OnOverwriteConfirmed(object sender, SaveJobRequest request)
         {
-            var existing = _allJobs.FirstOrDefault(j => string.Equals(j.Name, jobName, StringComparison.OrdinalIgnoreCase));
-            if (existing != null)
+            SaveNewJob(request, overwrite: true);
+        }
+
+        private void SaveNewJob(SaveJobRequest request, bool overwrite)
+        {
+            var newJob = _repository?.SaveNew(request, overwrite);
+            if (newJob == null)
             {
-                _allJobs.Remove(existing);
+                return;
             }
 
-            SaveNewJob(jobName);
-        }
-
-        private void SaveNewJob(string jobName)
-        {
-            var now = DateTime.Now;
-            var newJob = new JobRecord(jobName, 0, CurrentSetupFormat,
-                now.ToString("yyyy-MM-dd"), now.ToString("HH:mm"),
-                "-", "BC-" + now.ToString("yyyyMMddHHmm"), now.ToString("yyyy-MM-dd HH:mm"));
-
-            _allJobs.Insert(0, newJob);
-            RefreshJobsList(selectIndex: 0);
-
             ConfirmationDialogControl.Open("New Job Saved!",
-                "The new job \u201c" + jobName + "\u201d has been successfully saved.");
+                "The new job \u201c" + request.Name + "\u201d was saved as " +
+                request.Format + " with " + request.Pages + " pages.");
         }
 
         // ===================== Remove Job =====================
@@ -236,18 +234,13 @@ namespace CPBourg.NextGenGui.Views
         {
             var job = SelectedJob;
             if (job == null) return;
-            RemoveJobDialogControl.Open(job.Name, CurrentSetupFormat, CurrentSetupMachineLine);
+            RemoveJobDialogControl.Open(job.Name, job.Format, CurrentSetupMachineLine);
         }
 
         private void OnJobRemoved(object sender, string jobName)
         {
             var job = _allJobs.FirstOrDefault(j => string.Equals(j.Name, jobName, StringComparison.OrdinalIgnoreCase));
-            if (job != null)
-            {
-                _allJobs.Remove(job);
-            }
-
-            RefreshJobsList(selectIndex: 0);
+            _repository?.Remove(job);
 
             ConfirmationDialogControl.Open("Job Removed!",
                 "The job \u201c" + jobName + "\u201d has been successfully removed.");

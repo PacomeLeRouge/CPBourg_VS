@@ -1,16 +1,24 @@
 using System;
 using System.Windows;
 using System.Windows.Threading;
+using CPBourg.NextGenGui.Models;
 
 namespace CPBourg.NextGenGui.Views
 {
     public partial class MainWindow : Window
     {
         private readonly DispatcherTimer _clockTimer;
+        private readonly JobRepository _jobRepository;
 
         public MainWindow()
         {
             InitializeComponent();
+
+            _jobRepository = new JobRepository();
+            JobsScreen.InitializeRepository(_jobRepository);
+            _jobRepository.CurrentJobChanged += (s, e) => SyncCurrentJob();
+            JobsScreen.JobLoaded += (s, job) => NavigateTo("Home");
+            SyncCurrentJob();
 
             LogoLoader.Apply(LogoImage, LogoPlaceholder);
 
@@ -183,6 +191,12 @@ namespace CPBourg.NextGenGui.Views
         private void UpdateDashboardMachines()
         {
             Dashboard.SetOnlineModules(MachineLineConfigScreen.LineModuleTypes);
+        }
+
+        private void SyncCurrentJob()
+        {
+            Dashboard.SetCurrentJob(_jobRepository.CurrentJob);
+            StfoScreen.LoadJob(_jobRepository.CurrentJob);
         }
 
         private void UpdateClock()
