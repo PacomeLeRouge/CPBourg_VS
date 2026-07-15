@@ -23,10 +23,10 @@
         Action dialogs (AddCommentDialog, OpenJobDialog, SaveAsNewJobDialog,
         RemoveJobDialog) and the shared ConfirmationDialog success screen
         are overlaid at the bottom of this file - see JobsView.xaml.cs for
-        how they're wired to actually mutate the sample job list.
+        how they're wired to mutate the shared job repository.
 
-        Sample job data is populated in JobsView.xaml.cs. Replace with real
-        WFM-backed job storage once that's wired in - View Log and Scan
+        Sample job data is populated by Models/JobRepository.cs. Replace that
+        repository with WFM-backed storage once available - View Log and Scan
         Barcode ID are still simple stubs (no dialog mockup yet for those).
     -->
 

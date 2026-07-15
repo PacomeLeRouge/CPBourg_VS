@@ -1,7 +1,34 @@
 <UserControl x:Class="CPBourg.NextGenGui.Views.SaveAsNewJobDialog"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:CPBourg.NextGenGui.Views"
              Visibility="Collapsed">
+
+    <UserControl.Resources>
+        <Style x:Key="JobNumberBoxStyle" TargetType="TextBox">
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Background" Value="{StaticResource ScreenBackgroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
 
     <!--
         Handles two states from the reference mock as one dialog rather than
@@ -18,9 +45,11 @@
         <Border Background="{StaticResource OverlayScrimBrush}" MouseDown="OnScrimMouseDown" />
 
         <Border Background="{StaticResource CardBackgroundBrush}" CornerRadius="16"
-                Width="480" HorizontalAlignment="Center" VerticalAlignment="Center"
+                Width="620" MaxHeight="690" HorizontalAlignment="Center" VerticalAlignment="Center"
                 Padding="28">
-            <StackPanel>
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                          PanningMode="VerticalOnly" CanContentScroll="False">
+            <StackPanel Margin="0,0,8,0">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -59,7 +88,7 @@
                             <TextBlock x:Name="SetupFormatText" Text="-" FontSize="13" FontWeight="SemiBold"
                                        Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Right" />
                         </Grid>
-                        <Grid>
+                        <Grid Margin="0,0,0,8">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="&#xE9A9;" FontFamily="{StaticResource IconFontFamily}" FontSize="14"
                                            Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
@@ -68,6 +97,18 @@
                             </StackPanel>
                             <TextBlock x:Name="SetupMachineLineText" Text="-" FontSize="13" FontWeight="SemiBold"
                                        Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Right" />
+                        </Grid>
+                        <Grid>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE8A5;" FontFamily="{StaticResource IconFontFamily}" FontSize="14"
+                                           Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                                <TextBlock Text="Definition" FontSize="13" Foreground="{StaticResource TextMutedBrush}"
+                                           Margin="8,0,0,0" VerticalAlignment="Center" />
+                            </StackPanel>
+                            <TextBlock FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"
+                                       HorizontalAlignment="Right">
+                                <Run x:Name="PagesValueBox" Text="48" /><Run Text=" pages · " /><Run x:Name="WidthValueBox" Text="210" /><Run Text=" x " /><Run x:Name="LengthValueBox" Text="297" /><Run Text=" mm" />
+                            </TextBlock>
                         </Grid>
                     </StackPanel>
                 </Border>
@@ -82,7 +123,67 @@
                                  Padding="12,12" FontSize="14" Height="48" VerticalContentAlignment="Center" />
                     </Border>
                     <TextBlock Text="Job names must be unique." FontSize="12"
-                               Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,20" />
+                               Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,16" />
+
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="2*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Pages" FontSize="13" FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,8" />
+                            <TextBox Style="{StaticResource JobNumberBoxStyle}" Height="48"
+                                     IsReadOnly="True" Cursor="Hand"
+                                     PreviewMouseLeftButtonDown="OnPagesInputPressed">
+                                <TextBox.Text>
+                                    <Binding ElementName="PagesValueBox" Path="Text" Mode="OneWay" />
+                                </TextBox.Text>
+                            </TextBox>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Preset Book Format" FontSize="13" FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,8" />
+                            <ComboBox x:Name="FormatPresetComboBox" Height="48" Padding="10,0"
+                                      FontSize="14" SelectionChanged="OnFormatPresetChanged" />
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock Text="Book Dimensions" FontSize="13" FontWeight="SemiBold"
+                               Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,8" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Width (mm)" FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,5" />
+                            <TextBox x:Name="WidthDimensionInput" Style="{StaticResource JobNumberBoxStyle}" Height="48"
+                                     IsReadOnly="True" Cursor="Hand" Tag="Width"
+                                     PreviewMouseLeftButtonDown="OnDimensionInputPressed">
+                                <TextBox.Text>
+                                    <Binding ElementName="WidthValueBox" Path="Text" Mode="OneWay" />
+                                </TextBox.Text>
+                            </TextBox>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Length (mm)" FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,5" />
+                            <TextBox x:Name="LengthDimensionInput" Style="{StaticResource JobNumberBoxStyle}" Height="48"
+                                     IsReadOnly="True" Cursor="Hand" Tag="Length"
+                                     PreviewMouseLeftButtonDown="OnDimensionInputPressed">
+                                <TextBox.Text>
+                                    <Binding ElementName="LengthValueBox" Path="Text" Mode="OneWay" />
+                                </TextBox.Text>
+                            </TextBox>
+                        </StackPanel>
+                    </Grid>
+                    <TextBlock x:Name="FormatClassificationText" FontSize="12" TextWrapping="Wrap"
+                               Foreground="{StaticResource TextMutedBrush}" Margin="0,8,0,8" />
+                    <TextBlock x:Name="ValidationText" FontSize="12" TextWrapping="Wrap"
+                               Foreground="{StaticResource StatusErrorBrush}" Margin="0,0,0,12"
+                               Visibility="Collapsed" />
                 </StackPanel>
 
                 <!-- Conflict state: overwrite warning -->
@@ -125,6 +226,10 @@
                     </Button>
                 </Grid>
             </StackPanel>
+            </ScrollViewer>
         </Border>
+
+        <local:NumericInputDialog x:Name="PagesInputDialog" Panel.ZIndex="20" />
+        <local:DecimalInputDialog x:Name="DimensionInputDialog" Panel.ZIndex="21" />
     </Grid>
 </UserControl>
