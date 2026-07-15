@@ -1,0 +1,91 @@
+<UserControl x:Class="CPBourg.NextGenGui.Views.DecimalInputDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Visibility="Collapsed">
+    <UserControl.Resources>
+        <Style x:Key="DecimalKeypadButtonStyle" TargetType="Button">
+            <Setter Property="MinHeight" Value="46" />
+            <Setter Property="Background" Value="{StaticResource ScreenBackgroundBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+            <Setter Property="Margin" Value="4" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Border Background="{StaticResource OverlayScrimBrush}" MouseDown="OnScrimMouseDown" />
+        <Border Width="500" MaxHeight="660" Padding="28" CornerRadius="16"
+                Background="{StaticResource CardBackgroundBrush}"
+                HorizontalAlignment="Center" VerticalAlignment="Center">
+            <StackPanel>
+                <TextBlock x:Name="TitleText" Text="Enter Value" FontSize="22" FontWeight="Medium"
+                           Foreground="{StaticResource TextPrimaryBrush}" />
+                <TextBlock x:Name="DescriptionText" Text="Enter a numeric value."
+                           FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+                           Margin="0,4,0,16" />
+                <Border Height="1" Background="{StaticResource CardBorderBrush}" Margin="0,0,0,18" />
+
+                <TextBlock x:Name="FieldLabelText" Text="Value (mm):" FontSize="14" FontWeight="SemiBold"
+                           Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,8" />
+                <Border Background="{StaticResource ScreenBackgroundBrush}" CornerRadius="8"
+                        BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1"
+                        Height="56" Margin="0,0,0,6">
+                    <TextBlock x:Name="ValueText" Text="0.0" FontSize="26" FontWeight="SemiBold"
+                               Padding="12,8" VerticalAlignment="Center" TextAlignment="Right"
+                               Foreground="{StaticResource TextPrimaryBrush}" />
+                </Border>
+                <TextBlock x:Name="HintText" Text="Use the decimal key for fractional millimeters."
+                           FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="4,0,0,8" />
+                <TextBlock x:Name="ValidationText" Text="Enter a value between -999,999.999 and 999,999.999."
+                           Foreground="{StaticResource StatusErrorBrush}" FontSize="13"
+                           Margin="4,0,0,8" Visibility="Collapsed" />
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Row="0" Grid.Column="0" Style="{StaticResource DecimalKeypadButtonStyle}" Tag="1" Click="OnDigitClick">1</Button>
+                    <Button Grid.Row="0" Grid.Column="1" Style="{StaticResource DecimalKeypadButtonStyle}" Tag="2" Click="OnDigitClick">2</Button>
+                    <Button Grid.Row="0" Grid.Column="2" Style="{StaticResource DecimalKeypadButtonStyle}" Tag="3" Click="OnDigitClick">3</Button>
+                    <Button Grid.Row="1" Grid.Column="0" Style="{StaticResource DecimalKeypadButtonStyle}" Tag="4" Click="OnDigitClick">4</Button>
+                    <Button Grid.Row="1" Grid.Column="1" Style="{StaticResource DecimalKeypadButtonStyle}" Tag="5" Click="OnDigitClick">5</Button>
+                    <Button Grid.Row="1" Grid.Column="2" Style="{StaticResource DecimalKeypadButtonStyle}" Tag="6" Click="OnDigitClick">6</Button>
+                    <Button Grid.Row="2" Grid.Column="0" Style="{StaticResource DecimalKeypadButtonStyle}" Tag="7" Click="OnDigitClick">7</Button>
+                    <Button Grid.Row="2" Grid.Column="1" Style="{StaticResource DecimalKeypadButtonStyle}" Tag="8" Click="OnDigitClick">8</Button>
+                    <Button Grid.Row="2" Grid.Column="2" Style="{StaticResource DecimalKeypadButtonStyle}" Tag="9" Click="OnDigitClick">9</Button>
+                    <Button x:Name="SignButton" Grid.Row="3" Grid.Column="0" Style="{StaticResource DecimalKeypadButtonStyle}" Click="OnSignClick">+/-</Button>
+                    <Button Grid.Row="3" Grid.Column="1" Style="{StaticResource DecimalKeypadButtonStyle}" Tag="0" Click="OnDigitClick">0</Button>
+                    <Button Grid.Row="3" Grid.Column="2" Style="{StaticResource DecimalKeypadButtonStyle}" Click="OnDecimalClick">.</Button>
+                    <Button Grid.Row="4" Grid.Column="0" Style="{StaticResource DecimalKeypadButtonStyle}" Click="OnClearClick">Clear</Button>
+                    <Button Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource DecimalKeypadButtonStyle}" Click="OnBackspaceClick">&#9003; Backspace</Button>
+                </Grid>
+
+                <Grid Margin="0,18,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="14" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" MinHeight="50" Click="OnCancelClick">
+                        <TextBlock Text="Cancel" FontSize="15" FontWeight="Medium" />
+                    </Button>
+                    <Button Grid.Column="2" MinHeight="50" Click="OnConfirmClick"
+                            Background="{StaticResource JobsAccentBrush}"
+                            Foreground="{StaticResource JobsAccentForegroundBrush}" BorderThickness="0">
+                        <TextBlock Text="Confirm" FontSize="15" FontWeight="Medium" />
+                    </Button>
+                </Grid>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

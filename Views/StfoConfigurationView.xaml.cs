@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
@@ -47,6 +48,16 @@ namespace CPBourg.NextGenGui.Views
         // Stitching parameters (defaults match the field text set in XAML).
         private double _paperW = 210, _paperL = 297, _spacing = 10, _hOffset, _vOffset;
         private string _stitchMode = "Saddle";
+        private StitchNumericField _pendingStitchNumericField;
+
+        private enum StitchNumericField
+        {
+            PaperWidth,
+            PaperLength,
+            Spacing,
+            HorizontalOffset,
+            VerticalOffset,
+        }
 
         private Button[] _modeButtons;
         private TextBlock[] _modeLabels;
@@ -85,6 +96,8 @@ namespace CPBourg.NextGenGui.Views
         public StfoConfigurationView()
         {
             InitializeComponent();
+
+            StitchNumericDialog.ValueConfirmed += OnStitchNumericValueConfirmed;
 
             _stepTabs = new[] { StepTab0, StepTab1, StepTab2, StepTab3, StepTab4 };
             _modeButtons = new[] { ModeSaddle, ModeTop, ModeRightCorner, ModeLeftCorner, ModeNone };
@@ -215,6 +228,100 @@ namespace CPBourg.NextGenGui.Views
         }
 
         // ================= Stitching form =================
+
+        private void OnStitchNumericFieldPressed(object sender, MouseButtonEventArgs e)
+        {
+            var textBox = sender as TextBox;
+            string field = textBox?.Tag as string ?? string.Empty;
+            string title;
+            string label;
+            string description;
+            double value;
+            bool allowNegative;
+
+            switch (field)
+            {
+                case "PaperWidth":
+                    _pendingStitchNumericField = StitchNumericField.PaperWidth;
+                    title = "Set Paper Width";
+                    label = "Paper width (mm)";
+                    description = "Enter the sheet width used by the stitching job.";
+                    value = _paperW;
+                    allowNegative = false;
+                    break;
+                case "PaperLength":
+                    _pendingStitchNumericField = StitchNumericField.PaperLength;
+                    title = "Set Paper Length";
+                    label = "Paper length (mm)";
+                    description = "Enter the sheet length used by the stitching job.";
+                    value = _paperL;
+                    allowNegative = false;
+                    break;
+                case "Spacing":
+                    _pendingStitchNumericField = StitchNumericField.Spacing;
+                    title = "Set Stitch Spacing";
+                    label = "Spacing between stitches (mm)";
+                    description = "Enter the distance between stitch positions.";
+                    value = _spacing;
+                    allowNegative = false;
+                    break;
+                case "HorizontalOffset":
+                    _pendingStitchNumericField = StitchNumericField.HorizontalOffset;
+                    title = "Set Horizontal Offset";
+                    label = "Horizontal offset (mm)";
+                    description = "Use a negative value for left or a positive value for right.";
+                    value = _hOffset;
+                    allowNegative = true;
+                    break;
+                case "VerticalOffset":
+                    _pendingStitchNumericField = StitchNumericField.VerticalOffset;
+                    title = "Set Vertical Offset";
+                    label = "Vertical offset (mm)";
+                    description = "Use a negative value for front or a positive value for rear.";
+                    value = _vOffset;
+                    allowNegative = true;
+                    break;
+                default:
+                    return;
+            }
+
+            e.Handled = true;
+            StitchNumericDialog.Open(title, label, description, value, allowNegative);
+        }
+
+        private void OnStitchNumericValueConfirmed(object sender, double value)
+        {
+            string formatted = Fmt(value, "0.0##");
+            string fieldLabel;
+
+            switch (_pendingStitchNumericField)
+            {
+                case StitchNumericField.PaperWidth:
+                    PaperWidthBox.Text = formatted;
+                    fieldLabel = "Paper width";
+                    break;
+                case StitchNumericField.PaperLength:
+                    PaperLengthBox.Text = formatted;
+                    fieldLabel = "Paper length";
+                    break;
+                case StitchNumericField.Spacing:
+                    SpacingBox.Text = formatted;
+                    fieldLabel = "Stitch spacing";
+                    break;
+                case StitchNumericField.HorizontalOffset:
+                    HOffsetBox.Text = formatted;
+                    fieldLabel = "Horizontal offset";
+                    break;
+                case StitchNumericField.VerticalOffset:
+                    VOffsetBox.Text = formatted;
+                    fieldLabel = "Vertical offset";
+                    break;
+                default:
+                    return;
+            }
+
+            FooterStatusText.Text = fieldLabel + " updated to " + formatted + " mm.";
+        }
 
         private void OnParamChanged(object sender, TextChangedEventArgs e)
         {
