@@ -765,7 +765,8 @@
                         <StackPanel Grid.Row="8" Orientation="Horizontal" HorizontalAlignment="Center">
                             <Button x:Name="FoldMinusButton" Style="{StaticResource StepperButtonStyle}" Content="&#8722;" Click="OnFoldMinusClick" />
                             <Border Width="180" Height="52" Margin="10,0" CornerRadius="8" BorderThickness="1"
-                                    BorderBrush="{StaticResource OutlineButtonBorderBrush}" Background="{StaticResource CardBackgroundBrush}">
+                                    BorderBrush="{StaticResource OutlineButtonBorderBrush}" Background="{StaticResource CardBackgroundBrush}"
+                                    Cursor="Hand" PreviewMouseLeftButtonDown="OnFoldPositionInputPressed">
                                 <TextBlock x:Name="FoldPositionValueText" Text="10.0" FontSize="22"
                                            Foreground="{StaticResource TextPrimaryBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -907,7 +908,11 @@
 
                 <!-- Trimming Settings (form) -->
                 <Border Grid.Column="2" Style="{StaticResource CardStyle}">
-                    <StackPanel>
+                    <ScrollViewer x:Name="TrimmingSettingsScrollViewer"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  PanningMode="VerticalOnly" CanContentScroll="False">
+                    <StackPanel Margin="0,0,8,0">
                         <TextBlock Text="Trimming Settings" FontSize="18" FontWeight="Medium"
                                    Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,18" />
 
@@ -937,7 +942,9 @@
                                        Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <Button x:Name="FinalLengthMinus" Style="{StaticResource StepperButtonStyle}" Content="&#8722;" Click="OnFinalLengthMinus" />
-                                <TextBox x:Name="FinalLengthBox" Style="{StaticResource NumberBoxStyle}" Width="150" Margin="10,0" Text="205.0" TextChanged="OnFinalLengthChanged" />
+                                <TextBox x:Name="FinalLengthBox" Style="{StaticResource NumberBoxStyle}" Width="150" Margin="10,0"
+                                         Text="205.0" TextChanged="OnFinalLengthChanged" IsReadOnly="True" Cursor="Hand"
+                                         PreviewMouseLeftButtonDown="OnFinalLengthInputPressed" />
                                 <Button x:Name="FinalLengthPlus" Style="{StaticResource StepperButtonStyle}" Content="+" Click="OnFinalLengthPlus" />
                                 <TextBlock Text="mm" Style="{StaticResource UnitLabelStyle}" />
                             </StackPanel>
@@ -1019,6 +1026,7 @@
                         <TextBlock Text="Evacuates trim chips" FontSize="13" Foreground="{StaticResource TextMutedBrush}"
                                    HorizontalAlignment="Center" Margin="0,10,0,0" />
                     </StackPanel>
+                    </ScrollViewer>
                 </Border>
             </Grid>
 
@@ -1107,7 +1115,11 @@
 
                 <!-- Conveyor Settings (form) -->
                 <Border Grid.Column="2" Style="{StaticResource CardStyle}">
-                    <StackPanel>
+                    <ScrollViewer x:Name="ConveyorSettingsScrollViewer"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  PanningMode="VerticalOnly" CanContentScroll="False">
+                    <StackPanel Margin="0,0,8,0">
                         <TextBlock Text="Conveyor Settings" FontSize="18" FontWeight="Medium"
                                    Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,16" />
 
@@ -1126,7 +1138,8 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <Border Grid.Column="0" Width="76" Height="52" CornerRadius="8" BorderThickness="1"
-                                    BorderBrush="{StaticResource OutlineButtonBorderBrush}" Background="{StaticResource CardBackgroundBrush}">
+                                    BorderBrush="{StaticResource OutlineButtonBorderBrush}" Background="{StaticResource CardBackgroundBrush}"
+                                    Cursor="Hand" Tag="Spacing" PreviewMouseLeftButtonDown="OnConveyorNumericInputPressed">
                                 <TextBlock x:Name="SpacingValueText" Text="8" FontSize="22" Foreground="{StaticResource TextPrimaryBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
@@ -1155,7 +1168,8 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <Border Grid.Column="0" Width="76" Height="52" CornerRadius="8" BorderThickness="1"
-                                    BorderBrush="{StaticResource OutlineButtonBorderBrush}" Background="{StaticResource CardBackgroundBrush}">
+                                    BorderBrush="{StaticResource OutlineButtonBorderBrush}" Background="{StaticResource CardBackgroundBrush}"
+                                    Cursor="Hand" Tag="Offset" PreviewMouseLeftButtonDown="OnConveyorNumericInputPressed">
                                 <TextBlock x:Name="OffsetValueText" Text="10" FontSize="22" Foreground="{StaticResource TextPrimaryBrush}"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
@@ -1181,6 +1195,7 @@
                             <Button Grid.Column="2" x:Name="FullDetectionDisabledButton" Style="{StaticResource ChoiceButtonStyle}" Content="Disabled" Tag="Disabled" Click="OnFullDetectionClick" />
                         </Grid>
                     </StackPanel>
+                    </ScrollViewer>
                 </Border>
             </Grid>
         </Grid>
@@ -1231,5 +1246,7 @@
 
         <local:DecimalInputDialog x:Name="StitchNumericDialog" Grid.Row="0" Grid.RowSpan="7"
                                   Panel.ZIndex="50" />
+        <local:NumericInputDialog x:Name="ConveyorNumericDialog" Grid.Row="0" Grid.RowSpan="7"
+                                  Panel.ZIndex="51" />
     </Grid>
 </UserControl>

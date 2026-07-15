@@ -931,6 +931,27 @@ fields. Confirmed values continue through the existing `TextChanged` path, so
 the summary and live stitch preview update immediately without duplicating the
 parameter logic.
 
+### v31 - STFO Folding, Trimming, and Conveyor touch inputs
+
+The remaining STFO setup steps now use the same touch-friendly number-entry
+pattern as Stitching:
+
+- **Folding:** pressing the Fold Position value opens the decimal keypad. It
+  accepts signed millimeter values and updates the existing slider, summary,
+  and live fold preview when confirmed.
+- **Trimming:** pressing Final Booklet Length opens the decimal keypad, with
+  the existing 50–350 mm limit preserved. The Trimming Settings card now has
+  its own vertical scrollbar and touch panning so Chip Blower remains
+  accessible in the default window.
+- **Conveyor:** pressing Booklet Spacing or Booklet Offset opens the reusable
+  whole-number keypad. Both inputs validate the same 1–30 range as their
+  sliders. The Conveyor Settings card now scrolls independently so Conveyor
+  Full Detection remains accessible without switching to fullscreen.
+
+The preview panels, step navigation, and footer actions remain fixed while
+only the taller settings cards scroll. In fullscreen, scrollbars appear only
+when their content exceeds the available height.
+
 ### Languages (FR-10)
 
 The stage labels in `Startup/StartupStage.cs` are the strings that will move to

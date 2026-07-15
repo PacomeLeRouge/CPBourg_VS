@@ -57,6 +57,16 @@ namespace CPBourg.NextGenGui.Views
             Spacing,
             HorizontalOffset,
             VerticalOffset,
+            FoldPosition,
+            FinalBookletLength,
+        }
+
+        private ConveyorNumericField _pendingConveyorNumericField;
+
+        private enum ConveyorNumericField
+        {
+            Spacing,
+            Offset,
         }
 
         private Button[] _modeButtons;
@@ -98,6 +108,7 @@ namespace CPBourg.NextGenGui.Views
             InitializeComponent();
 
             StitchNumericDialog.ValueConfirmed += OnStitchNumericValueConfirmed;
+            ConveyorNumericDialog.ValueConfirmed += OnConveyorNumericValueConfirmed;
 
             _stepTabs = new[] { StepTab0, StepTab1, StepTab2, StepTab3, StepTab4 };
             _modeButtons = new[] { ModeSaddle, ModeTop, ModeRightCorner, ModeLeftCorner, ModeNone };
@@ -315,6 +326,18 @@ namespace CPBourg.NextGenGui.Views
                 case StitchNumericField.VerticalOffset:
                     VOffsetBox.Text = formatted;
                     fieldLabel = "Vertical offset";
+                    break;
+                case StitchNumericField.FoldPosition:
+                    value = Clamp(value, FoldPositionSlider.Minimum, FoldPositionSlider.Maximum);
+                    formatted = Fmt(value, "0.0##");
+                    FoldPositionSlider.Value = value;
+                    fieldLabel = "Fold position";
+                    break;
+                case StitchNumericField.FinalBookletLength:
+                    value = Clamp(value, 50, 350);
+                    formatted = Fmt(value, "0.0##");
+                    SetFinalLength(value);
+                    fieldLabel = "Final booklet length";
                     break;
                 default:
                     return;
@@ -564,6 +587,23 @@ namespace CPBourg.NextGenGui.Views
             FoldPositionSlider.Value = Math.Min(FoldPositionSlider.Maximum, FoldPositionSlider.Value + 1);
         }
 
+        private void OnFoldPositionInputPressed(object sender, MouseButtonEventArgs e)
+        {
+            if (!FoldPositionSlider.IsEnabled)
+            {
+                return;
+            }
+
+            e.Handled = true;
+            _pendingStitchNumericField = StitchNumericField.FoldPosition;
+            StitchNumericDialog.Open(
+                "Set Fold Position",
+                "Fold position (mm)",
+                "Enter a value from -50 mm (backward) to 50 mm (forward).",
+                _foldPosition,
+                true);
+        }
+
         private void OnFoldPositionChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (!_loaded)
@@ -780,6 +820,23 @@ namespace CPBourg.NextGenGui.Views
             SetFinalLength(ParseOr(FinalLengthBox.Text, _finalLength) + 1);
         }
 
+        private void OnFinalLengthInputPressed(object sender, MouseButtonEventArgs e)
+        {
+            if (!FinalLengthBox.IsEnabled)
+            {
+                return;
+            }
+
+            e.Handled = true;
+            _pendingStitchNumericField = StitchNumericField.FinalBookletLength;
+            StitchNumericDialog.Open(
+                "Set Final Booklet Length",
+                "Final booklet length (mm)",
+                "Enter the desired finished length from 50 to 350 mm.",
+                _finalLength,
+                false);
+        }
+
         private void SetFinalLength(double value)
         {
             // Setting the box text raises OnFinalLengthChanged, which updates
@@ -982,6 +1039,60 @@ namespace CPBourg.NextGenGui.Views
         private void OnOffsetPlus(object sender, RoutedEventArgs e)
         {
             OffsetSlider.Value = Math.Min(OffsetSlider.Maximum, Math.Round(OffsetSlider.Value) + 1);
+        }
+
+        private void OnConveyorNumericInputPressed(object sender, MouseButtonEventArgs e)
+        {
+            var border = sender as Border;
+            string field = border?.Tag as string ?? string.Empty;
+            string title;
+            string label;
+            string description;
+            int value;
+
+            if (field == "Spacing")
+            {
+                _pendingConveyorNumericField = ConveyorNumericField.Spacing;
+                title = "Set Booklet Spacing";
+                label = "Booklet spacing";
+                description = "Enter the output conveyor advance from 1 to 30.";
+                value = _bookletSpacing;
+            }
+            else if (field == "Offset")
+            {
+                _pendingConveyorNumericField = ConveyorNumericField.Offset;
+                title = "Set Booklet Offset";
+                label = "Booklet offset";
+                description = "Enter how often a booklet should be offset, from 1 to 30.";
+                value = _bookletOffset;
+            }
+            else
+            {
+                return;
+            }
+
+            e.Handled = true;
+            ConveyorNumericDialog.Open(title, label, description, value, 1, 30,
+                "Enter a whole number from 1 to 30.");
+        }
+
+        private void OnConveyorNumericValueConfirmed(object sender, int value)
+        {
+            string fieldLabel;
+
+            if (_pendingConveyorNumericField == ConveyorNumericField.Spacing)
+            {
+                SpacingSlider.Value = value;
+                fieldLabel = "Booklet spacing";
+            }
+            else
+            {
+                OffsetSlider.Value = value;
+                fieldLabel = "Booklet offset";
+            }
+
+            FooterStatusText.Text = fieldLabel + " updated to " +
+                                    value.ToString(CultureInfo.InvariantCulture) + ".";
         }
 
         private void OnFullDetectionClick(object sender, RoutedEventArgs e)
