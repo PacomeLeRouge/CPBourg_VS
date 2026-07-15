@@ -17,6 +17,8 @@ namespace CPBourg.NextGenGui.Views
 
         private string _digits = "0";
         private bool _replaceOnNextDigit;
+        private int _minimumValue;
+        private int _maximumValue = MaximumValue;
 
         public event EventHandler<int> ValueConfirmed;
 
@@ -28,11 +30,24 @@ namespace CPBourg.NextGenGui.Views
         public void Open(string title, string fieldLabel, string description,
             int initialValue, bool zeroMeansUnlimited)
         {
+            Open(title, fieldLabel, description, initialValue, 0, MaximumValue,
+                zeroMeansUnlimited ? "Enter 0 for unlimited production (\u221e)." : string.Empty);
+        }
+
+        public void Open(string title, string fieldLabel, string description,
+            int initialValue, int minimumValue, int maximumValue, string hint)
+        {
+            _minimumValue = Math.Max(0, minimumValue);
+            _maximumValue = Math.Min(MaximumValue, Math.Max(_minimumValue, maximumValue));
             TitleText.Text = title;
             FieldLabelText.Text = fieldLabel + ":";
             DescriptionText.Text = description;
-            HintText.Text = zeroMeansUnlimited ? "Enter 0 for unlimited production (\u221e)." : string.Empty;
-            _digits = Math.Max(0, initialValue).ToString(CultureInfo.InvariantCulture);
+            HintText.Text = hint ?? string.Empty;
+            ValidationText.Text = "Enter a value from " +
+                                  _minimumValue.ToString("N0", CultureInfo.CurrentCulture) + " to " +
+                                  _maximumValue.ToString("N0", CultureInfo.CurrentCulture) + ".";
+            int boundedInitialValue = Math.Max(_minimumValue, Math.Min(_maximumValue, initialValue));
+            _digits = boundedInitialValue.ToString(CultureInfo.InvariantCulture);
             _replaceOnNextDigit = true;
             ValidationText.Visibility = Visibility.Collapsed;
             RefreshValue();
@@ -77,6 +92,12 @@ namespace CPBourg.NextGenGui.Views
         private void OnConfirmClick(object sender, RoutedEventArgs e)
         {
             int value = int.Parse(_digits, CultureInfo.InvariantCulture);
+            if (value < _minimumValue || value > _maximumValue)
+            {
+                ValidationText.Visibility = Visibility.Visible;
+                return;
+            }
+
             Close();
             ValueConfirmed?.Invoke(this, value);
         }
