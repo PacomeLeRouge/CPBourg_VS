@@ -28,6 +28,7 @@ namespace CPBourg.NextGenGui.Views
         private double _lengthMm = 297;
         private DimensionField _pendingDimensionField;
         private bool _updatingFormat;
+        private MeasurementUnit _measurementUnit = MeasurementUnit.Millimeters;
 
         private enum DimensionField
         {
@@ -70,6 +71,12 @@ namespace CPBourg.NextGenGui.Views
         public void Close()
         {
             Visibility = Visibility.Collapsed;
+        }
+
+        public void SetMeasurementUnit(MeasurementUnit unit)
+        {
+            _measurementUnit = unit;
+            RefreshJobDefinition();
         }
 
         /// <summary>Switches the dialog to the "Job Name Already Exists!" warning
@@ -146,21 +153,23 @@ namespace CPBourg.NextGenGui.Views
             e.Handled = true;
             DimensionInputDialog.Open(
                 isWidth ? "Set Book Width" : "Set Book Length",
-                isWidth ? "Width (mm)" : "Length (mm)",
-                "Enter the physical book format dimension in millimetres.",
-                isWidth ? _widthMm : _lengthMm,
+                (isWidth ? "Width (" : "Length (") + MeasurementFormatter.UnitSymbol(_measurementUnit) + ")",
+                "Enter the physical book format dimension in " +
+                    (_measurementUnit == MeasurementUnit.Inches ? "inches." : "millimetres."),
+                MeasurementFormatter.ToDisplay(isWidth ? _widthMm : _lengthMm, _measurementUnit),
                 false);
         }
 
         private void OnDimensionConfirmed(object sender, double value)
         {
+            double millimeters = MeasurementFormatter.ToMillimeters(value, _measurementUnit);
             if (_pendingDimensionField == DimensionField.Width)
             {
-                _widthMm = value;
+                _widthMm = millimeters;
             }
             else
             {
-                _lengthMm = value;
+                _lengthMm = millimeters;
             }
 
             RefreshJobDefinition();
@@ -169,10 +178,17 @@ namespace CPBourg.NextGenGui.Views
         private void RefreshJobDefinition()
         {
             PagesValueBox.Text = _pages.ToString();
-            WidthValueBox.Text = _widthMm.ToString("0.0#");
-            LengthValueBox.Text = _lengthMm.ToString("0.0#");
+            string unit = MeasurementFormatter.UnitSymbol(_measurementUnit);
+            WidthValueBox.Text = MeasurementFormatter.FormatValue(_widthMm, _measurementUnit);
+            LengthValueBox.Text = MeasurementFormatter.FormatValue(_lengthMm, _measurementUnit);
+            SetupUnitRun.Text = " " + unit;
+            WidthDimensionLabel.Text = "Width (" + unit + ")";
+            LengthDimensionLabel.Text = "Length (" + unit + ")";
             string resolvedFormat = BookFormatCatalog.ResolveName(_widthMm, _lengthMm);
             SetupFormatText.Text = resolvedFormat;
+            _updatingFormat = true;
+            FormatPresetComboBox.SelectedItem = resolvedFormat;
+            _updatingFormat = false;
             FormatClassificationText.Text = resolvedFormat == "Custom"
                 ? "Dimensions do not match a standard preset; this job will be displayed as Custom."
                 : "Dimensions match the " + resolvedFormat + " preset.";

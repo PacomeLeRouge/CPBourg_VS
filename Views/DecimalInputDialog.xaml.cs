@@ -35,8 +35,8 @@ namespace CPBourg.NextGenGui.Views
             _allowNegative = allowNegative;
             SignButton.IsEnabled = allowNegative;
             HintText.Text = allowNegative
-                ? "Use +/- for direction and . for fractional millimeters."
-                : "Use the decimal key for fractional millimeters.";
+                ? "Use +/- for direction and . for fractional values."
+                : "Use the decimal key for fractional values.";
             _text = initialValue.ToString("0.###", CultureInfo.InvariantCulture);
             _replaceOnNextInput = true;
             ValidationText.Visibility = Visibility.Collapsed;

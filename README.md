@@ -1066,6 +1066,32 @@ Barcode mappings, job events, and operator preferences remain in memory for
 the current application session, matching the prototype's existing fresh-start
 job repository. Durable WFM-backed storage is still the integration boundary.
 
+### v37 - Applied metric and imperial measurement systems
+
+The Settings **Units** choice now participates fully in the existing
+pending / Apply / Cancel workflow. Applying Metric displays millimetres;
+applying Imperial displays inches. The preference immediately refreshes every
+physical measurement surface:
+
+- current-job dimensions on the Dashboard and Job List;
+- new-job dimension labels, values, preset/custom classification, and decimal
+  keypad input;
+- exported job-log dimension labels and values;
+- STFO paper dimensions, stitch spacing and offsets, fold position, final trim
+  length, summaries, live-preview dimension annotations, unit suffixes, and
+  decimal keypads;
+- Technician Interface and Machine Line speed values (`mm/s` or `in/s`).
+
+Machine values remain canonical millimetres internally and are converted only
+at the display/input boundary. Repeated Metric -> Imperial -> Metric switching
+therefore does not accumulate rounding error. Imperial values use three decimal
+places for setup precision, and physical +/- steppers move 0.1 inch instead of
+1 millimetre. Unitless settings such as page counts, completed sets, pressure,
+and conveyor counting/advance indices are intentionally unchanged.
+
+The selected unit is session-local like the other operator preferences; future
+durable preference storage can persist the same `MeasurementUnit` value.
+
 ### Languages (FR-10)
 
 The stage labels in `Startup/StartupStage.cs` are the strings that will move to
@@ -1115,6 +1141,7 @@ inline for the prototype and marked with a comment.
 | `Models/JobSummary.cs` | Data for the current-job card |
 | `Models/SettingsItemInfo.cs` | Data for one Settings row |
 | `Models/ChangeOptionInfo.cs` | Data for one radio option in a Change-value dialog |
+| `Models/MeasurementUnit.cs` / `Models/MeasurementFormatter.cs` | Canonical mm/in preference, conversion, and formatting helpers |
 | `Models/JobRecord.cs` | Data for one saved job |
 | `Models/JobLogEntry.cs` | Timestamped activity entry exported by the selected-job log |
 | `Models/JobRepository.cs` | Shared ordered job list and current-job state used by Jobs, Dashboard, and STFO |

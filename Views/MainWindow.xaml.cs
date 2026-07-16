@@ -28,6 +28,7 @@ namespace CPBourg.NextGenGui.Views
             GlobalMenu.ItemSelected += OnGlobalMenuItemSelected;
 
             SettingsScreen.LanguageChanged += (s, abbreviation) => LanguageIndicatorText.Text = abbreviation;
+            SettingsScreen.UnitsChanged += (s, unit) => ApplyMeasurementUnit(unit);
             SettingsScreen.DateTimeOffsetChanged += (s, offset) =>
             {
                 _operatorClockOffset = offset;
@@ -182,6 +183,15 @@ namespace CPBourg.NextGenGui.Views
         {
             Dashboard.SetCurrentJob(_jobRepository.CurrentJob);
             StfoScreen.LoadJob(_jobRepository.CurrentJob);
+        }
+
+        private void ApplyMeasurementUnit(MeasurementUnit unit)
+        {
+            Dashboard.SetMeasurementUnit(unit);
+            JobsScreen.SetMeasurementUnit(unit);
+            StfoScreen.SetMeasurementUnit(unit);
+            TechnicianScreen.SetMeasurementUnit(unit);
+            MachineLineConfigScreen.SetMeasurementUnit(unit);
         }
 
         private void UpdateClock()

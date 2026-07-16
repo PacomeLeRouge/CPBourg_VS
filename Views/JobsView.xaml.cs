@@ -22,6 +22,7 @@ namespace CPBourg.NextGenGui.Views
 
         private List<JobRecord> _allJobs = new List<JobRecord>();
         private JobRepository _repository;
+        private MeasurementUnit _measurementUnit = MeasurementUnit.Millimeters;
 
         public event EventHandler<JobRecord> JobLoaded;
 
@@ -40,6 +41,14 @@ namespace CPBourg.NextGenGui.Views
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _repository.JobsChanged += OnRepositoryJobsChanged;
             ReloadRepositoryJobs(0);
+        }
+
+        public void SetMeasurementUnit(MeasurementUnit unit)
+        {
+            _measurementUnit = unit;
+            SaveAsNewJobDialogControl.SetMeasurementUnit(unit);
+            JobLogDialogControl.SetMeasurementUnit(unit);
+            OnJobSelectionChanged(this, null);
         }
 
         private void OnRepositoryJobsChanged(object sender, EventArgs e)
@@ -94,7 +103,8 @@ namespace CPBourg.NextGenGui.Views
 
             SummaryNameText.Text = job.Name;
             SummaryPagesText.Text = job.Pages.ToString();
-            SummaryFormatText.Text = job.Format + " (" + job.DimensionsLabel + ")";
+            SummaryFormatText.Text = job.Format + " (" +
+                MeasurementFormatter.FormatDimensions(job.WidthMm, job.LengthMm, _measurementUnit) + ")";
             SummaryCommentText.Text = job.Comment;
             SummaryBarcodeText.Text = job.BarcodeId;
             SummaryLastModifiedText.Text = job.LastModified;
