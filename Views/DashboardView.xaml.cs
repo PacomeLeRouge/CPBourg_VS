@@ -200,6 +200,7 @@ namespace CPBourg.NextGenGui.Views
         private int _confirmedPresetTarget;
         private CounterInputKind _pendingCounterInput;
         private JobRecord _currentJob;
+        private MeasurementUnit _measurementUnit = MeasurementUnit.Millimeters;
 
         private enum CounterInputKind
         {
@@ -254,12 +255,30 @@ namespace CPBourg.NextGenGui.Views
             }
 
             JobNameText.Text = _currentJob.Name;
-            JobFormatText.Text = _currentJob.Format + " · " + _currentJob.DimensionsLabel;
+            RefreshCurrentJobMeasurements();
             JobPagesText.Text = _currentJob.PagesLabel;
             JobStatusText.Text = "Loaded";
             JobStatusText.Foreground = (Brush)FindResource("StatusRunningBrush");
             JobStatusPill.Background = (Brush)FindResource("StatusRunningBgBrush");
             RefreshProductionButtons();
+        }
+
+        public void SetMeasurementUnit(MeasurementUnit unit)
+        {
+            _measurementUnit = unit;
+            RefreshCurrentJobMeasurements();
+        }
+
+        private void RefreshCurrentJobMeasurements()
+        {
+            if (_currentJob == null)
+            {
+                return;
+            }
+
+            JobFormatText.Text = _currentJob.Format + " · " +
+                MeasurementFormatter.FormatDimensions(
+                    _currentJob.WidthMm, _currentJob.LengthMm, _measurementUnit);
         }
 
         private void MarkCounterChangesPending(string message)

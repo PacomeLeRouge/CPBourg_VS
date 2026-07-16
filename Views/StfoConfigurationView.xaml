@@ -495,7 +495,7 @@
                                     <TextBox Grid.Column="0" x:Name="PaperWidthBox" Style="{StaticResource NumberBoxStyle}"
                                              Text="210.0" TextChanged="OnParamChanged" IsReadOnly="True" Cursor="Hand"
                                              Tag="PaperWidth" PreviewMouseLeftButtonDown="OnStitchNumericFieldPressed" />
-                                    <TextBlock Grid.Column="1" Text="mm" Style="{StaticResource UnitLabelStyle}" />
+                                    <TextBlock Grid.Column="1" x:Name="PaperWidthUnitText" Text="mm" Style="{StaticResource UnitLabelStyle}" />
                                 </Grid>
                             </StackPanel>
                             <StackPanel Grid.Column="2">
@@ -508,7 +508,7 @@
                                     <TextBox Grid.Column="0" x:Name="PaperLengthBox" Style="{StaticResource NumberBoxStyle}"
                                              Text="297.0" TextChanged="OnParamChanged" IsReadOnly="True" Cursor="Hand"
                                              Tag="PaperLength" PreviewMouseLeftButtonDown="OnStitchNumericFieldPressed" />
-                                    <TextBlock Grid.Column="1" Text="mm" Style="{StaticResource UnitLabelStyle}" />
+                                    <TextBlock Grid.Column="1" x:Name="PaperLengthUnitText" Text="mm" Style="{StaticResource UnitLabelStyle}" />
                                 </Grid>
                             </StackPanel>
                         </Grid>
@@ -594,7 +594,7 @@
                                 <TextBox Grid.Column="0" x:Name="SpacingBox" Style="{StaticResource NumberBoxStyle}"
                                          Text="10.0" TextChanged="OnParamChanged" IsReadOnly="True" Cursor="Hand"
                                          Tag="Spacing" PreviewMouseLeftButtonDown="OnStitchNumericFieldPressed" />
-                                <TextBlock Grid.Column="1" Text="mm" Style="{StaticResource UnitLabelStyle}" />
+                                <TextBlock Grid.Column="1" x:Name="StitchSpacingUnitText" Text="mm" Style="{StaticResource UnitLabelStyle}" />
                             </Grid>
                         </Grid>
 
@@ -615,7 +615,7 @@
                                 <TextBox Grid.Column="0" x:Name="HOffsetBox" Style="{StaticResource NumberBoxStyle}"
                                          Text="0.0" TextChanged="OnParamChanged" IsReadOnly="True" Cursor="Hand"
                                          Tag="HorizontalOffset" PreviewMouseLeftButtonDown="OnStitchNumericFieldPressed" />
-                                <TextBlock Grid.Column="1" Text="mm" Style="{StaticResource UnitLabelStyle}" />
+                                <TextBlock Grid.Column="1" x:Name="HorizontalOffsetUnitText" Text="mm" Style="{StaticResource UnitLabelStyle}" />
                             </Grid>
                         </Grid>
 
@@ -636,7 +636,7 @@
                                 <TextBox Grid.Column="0" x:Name="VOffsetBox" Style="{StaticResource NumberBoxStyle}"
                                          Text="0.0" TextChanged="OnParamChanged" IsReadOnly="True" Cursor="Hand"
                                          Tag="VerticalOffset" PreviewMouseLeftButtonDown="OnStitchNumericFieldPressed" />
-                                <TextBlock Grid.Column="1" Text="mm" Style="{StaticResource UnitLabelStyle}" />
+                                <TextBlock Grid.Column="1" x:Name="VerticalOffsetUnitText" Text="mm" Style="{StaticResource UnitLabelStyle}" />
                             </Grid>
                         </Grid>
                     </Grid>
@@ -773,7 +773,7 @@
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
                             <Button x:Name="FoldPlusButton" Style="{StaticResource StepperButtonStyle}" Content="+" Click="OnFoldPlusClick" />
-                            <TextBlock Text="mm" Style="{StaticResource UnitLabelStyle}" />
+                            <TextBlock x:Name="FoldPositionUnitText" Text="mm" Style="{StaticResource UnitLabelStyle}" />
                         </StackPanel>
                         <Grid Grid.Row="10">
                             <Grid.ColumnDefinitions>
@@ -947,7 +947,7 @@
                                          Text="205.0" TextChanged="OnFinalLengthChanged" IsReadOnly="True" Cursor="Hand"
                                          PreviewMouseLeftButtonDown="OnFinalLengthInputPressed" />
                                 <Button x:Name="FinalLengthPlus" Style="{StaticResource StepperButtonStyle}" Content="+" Click="OnFinalLengthPlus" />
-                                <TextBlock Text="mm" Style="{StaticResource UnitLabelStyle}" />
+                                <TextBlock x:Name="FinalLengthUnitText" Text="mm" Style="{StaticResource UnitLabelStyle}" />
                             </StackPanel>
                         </Grid>
                         <TextBlock Text="Enter the desired final length" FontSize="13" Foreground="{StaticResource TextMutedBrush}"

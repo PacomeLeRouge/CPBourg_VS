@@ -35,7 +35,7 @@
                                Padding="12,8" VerticalAlignment="Center" TextAlignment="Right"
                                Foreground="{StaticResource TextPrimaryBrush}" />
                 </Border>
-                <TextBlock x:Name="HintText" Text="Use the decimal key for fractional millimeters."
+                <TextBlock x:Name="HintText" Text="Use the decimal key for fractional values."
                            FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="4,0,0,8" />
                 <TextBlock x:Name="ValidationText" Text="Enter a value between -999,999.999 and 999,999.999."
                            Foreground="{StaticResource StatusErrorBrush}" FontSize="13"

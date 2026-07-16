@@ -66,6 +66,7 @@ namespace CPBourg.NextGenGui.Views
         private readonly Button[] _stepTabs;
         private int _currentStep;
         private JobRecord _currentJob;
+        private MeasurementUnit _measurementUnit = MeasurementUnit.Millimeters;
 
         // Stitching parameters (defaults match the field text set in XAML).
         private double _paperW = DefaultPaperWidth, _paperL = DefaultPaperLength;
@@ -228,6 +229,42 @@ namespace CPBourg.NextGenGui.Views
             }
 
             SaveAllCurrentConfigurations();
+        }
+
+        public void SetMeasurementUnit(MeasurementUnit unit)
+        {
+            _measurementUnit = unit;
+            RefreshMeasurementDisplay();
+        }
+
+        private void RefreshMeasurementDisplay()
+        {
+            bool wasLoaded = _loaded;
+            _loaded = false;
+            PaperWidthBox.Text = DisplayValue(_paperW);
+            PaperLengthBox.Text = DisplayValue(_paperL);
+            SpacingBox.Text = DisplayValue(_spacing);
+            HOffsetBox.Text = DisplayValue(_hOffset);
+            VOffsetBox.Text = DisplayValue(_vOffset);
+            FoldPositionValueText.Text = DisplayValue(_foldPosition, "0.0", "0.000");
+            FinalLengthBox.Text = DisplayValue(_finalLength, "0.0", "0.000");
+
+            string symbol = MeasurementFormatter.UnitSymbol(_measurementUnit);
+            PaperWidthUnitText.Text = symbol;
+            PaperLengthUnitText.Text = symbol;
+            StitchSpacingUnitText.Text = symbol;
+            HorizontalOffsetUnitText.Text = symbol;
+            VerticalOffsetUnitText.Text = symbol;
+            FoldPositionUnitText.Text = symbol;
+            FinalLengthUnitText.Text = symbol;
+            _loaded = wasLoaded;
+
+            UpdateStitchSummary();
+            RedrawStitchPreview();
+            UpdateFoldSummary();
+            RedrawFoldPreview();
+            UpdateTrimSummary();
+            RedrawTrimPreview();
         }
 
         /// <summary>Resets the wizard to the first (Menu) step. Called when the
@@ -593,11 +630,11 @@ namespace CPBourg.NextGenGui.Views
             _hOffset = configuration.HorizontalOffset;
             _vOffset = configuration.VerticalOffset;
             _stitchMode = configuration.Mode;
-            PaperWidthBox.Text = Fmt(_paperW, "0.0##");
-            PaperLengthBox.Text = Fmt(_paperL, "0.0##");
-            SpacingBox.Text = Fmt(_spacing, "0.0##");
-            HOffsetBox.Text = Fmt(_hOffset, "0.0##");
-            VOffsetBox.Text = Fmt(_vOffset, "0.0##");
+            PaperWidthBox.Text = DisplayValue(_paperW);
+            PaperLengthBox.Text = DisplayValue(_paperL);
+            SpacingBox.Text = DisplayValue(_spacing);
+            HOffsetBox.Text = DisplayValue(_hOffset);
+            VOffsetBox.Text = DisplayValue(_vOffset);
             _loaded = wasLoaded;
             RefreshStitchModeButtons();
             UpdateStitchSummary();
@@ -617,7 +654,7 @@ namespace CPBourg.NextGenGui.Views
             _foldPosition = configuration.Position;
             _pressureMode = configuration.PressureMode;
             FoldPositionSlider.Value = _foldPosition;
-            FoldPositionValueText.Text = Fmt(_foldPosition, "0.0");
+            FoldPositionValueText.Text = DisplayValue(_foldPosition, "0.0", "0.000");
             PressureSlider.Value = configuration.PressureLevel;
             _loaded = wasLoaded;
             RefreshFoldChoiceButtons();
@@ -638,7 +675,7 @@ namespace CPBourg.NextGenGui.Views
             _finalLength = configuration.FinalLength;
             _clampHeight = configuration.ClampHeight;
             _chipBlower = configuration.ChipBlower;
-            FinalLengthBox.Text = Fmt(_finalLength, "0.0");
+            FinalLengthBox.Text = DisplayValue(_finalLength, "0.0", "0.000");
             _loaded = wasLoaded;
             RefreshTrimChoiceButtons();
             UpdateTrimSummary();
@@ -678,47 +715,48 @@ namespace CPBourg.NextGenGui.Views
             string description;
             double value;
             bool allowNegative;
+            string unit = MeasurementFormatter.UnitSymbol(_measurementUnit);
 
             switch (field)
             {
                 case "PaperWidth":
                     _pendingStitchNumericField = StitchNumericField.PaperWidth;
                     title = "Set Paper Width";
-                    label = "Paper width (mm)";
+                    label = "Paper width (" + unit + ")";
                     description = "Enter the sheet width used by the stitching job.";
-                    value = _paperW;
+                    value = MeasurementFormatter.ToDisplay(_paperW, _measurementUnit);
                     allowNegative = false;
                     break;
                 case "PaperLength":
                     _pendingStitchNumericField = StitchNumericField.PaperLength;
                     title = "Set Paper Length";
-                    label = "Paper length (mm)";
+                    label = "Paper length (" + unit + ")";
                     description = "Enter the sheet length used by the stitching job.";
-                    value = _paperL;
+                    value = MeasurementFormatter.ToDisplay(_paperL, _measurementUnit);
                     allowNegative = false;
                     break;
                 case "Spacing":
                     _pendingStitchNumericField = StitchNumericField.Spacing;
                     title = "Set Stitch Spacing";
-                    label = "Spacing between stitches (mm)";
+                    label = "Spacing between stitches (" + unit + ")";
                     description = "Enter the distance between stitch positions.";
-                    value = _spacing;
+                    value = MeasurementFormatter.ToDisplay(_spacing, _measurementUnit);
                     allowNegative = false;
                     break;
                 case "HorizontalOffset":
                     _pendingStitchNumericField = StitchNumericField.HorizontalOffset;
                     title = "Set Horizontal Offset";
-                    label = "Horizontal offset (mm)";
+                    label = "Horizontal offset (" + unit + ")";
                     description = "Use a negative value for left or a positive value for right.";
-                    value = _hOffset;
+                    value = MeasurementFormatter.ToDisplay(_hOffset, _measurementUnit);
                     allowNegative = true;
                     break;
                 case "VerticalOffset":
                     _pendingStitchNumericField = StitchNumericField.VerticalOffset;
                     title = "Set Vertical Offset";
-                    label = "Vertical offset (mm)";
+                    label = "Vertical offset (" + unit + ")";
                     description = "Use a negative value for front or a positive value for rear.";
-                    value = _vOffset;
+                    value = MeasurementFormatter.ToDisplay(_vOffset, _measurementUnit);
                     allowNegative = true;
                     break;
                 default:
@@ -731,48 +769,55 @@ namespace CPBourg.NextGenGui.Views
 
         private void OnStitchNumericValueConfirmed(object sender, double value)
         {
-            string formatted = Fmt(value, "0.0##");
+            double millimeters = MeasurementFormatter.ToMillimeters(value, _measurementUnit);
+            string formatted = DisplayValue(millimeters);
             string fieldLabel;
 
             switch (_pendingStitchNumericField)
             {
                 case StitchNumericField.PaperWidth:
+                    _paperW = millimeters;
                     PaperWidthBox.Text = formatted;
                     fieldLabel = "Paper width";
                     break;
                 case StitchNumericField.PaperLength:
+                    _paperL = millimeters;
                     PaperLengthBox.Text = formatted;
                     fieldLabel = "Paper length";
                     break;
                 case StitchNumericField.Spacing:
+                    _spacing = millimeters;
                     SpacingBox.Text = formatted;
                     fieldLabel = "Stitch spacing";
                     break;
                 case StitchNumericField.HorizontalOffset:
+                    _hOffset = millimeters;
                     HOffsetBox.Text = formatted;
                     fieldLabel = "Horizontal offset";
                     break;
                 case StitchNumericField.VerticalOffset:
+                    _vOffset = millimeters;
                     VOffsetBox.Text = formatted;
                     fieldLabel = "Vertical offset";
                     break;
                 case StitchNumericField.FoldPosition:
-                    value = Clamp(value, FoldPositionSlider.Minimum, FoldPositionSlider.Maximum);
-                    formatted = Fmt(value, "0.0##");
-                    FoldPositionSlider.Value = value;
+                    millimeters = Clamp(millimeters, FoldPositionSlider.Minimum, FoldPositionSlider.Maximum);
+                    formatted = DisplayValue(millimeters);
+                    FoldPositionSlider.Value = millimeters;
                     fieldLabel = "Fold position";
                     break;
                 case StitchNumericField.FinalBookletLength:
-                    value = Clamp(value, 50, 350);
-                    formatted = Fmt(value, "0.0##");
-                    SetFinalLength(value);
+                    millimeters = Clamp(millimeters, 50, 350);
+                    formatted = DisplayValue(millimeters);
+                    SetFinalLength(millimeters);
                     fieldLabel = "Final booklet length";
                     break;
                 default:
                     return;
             }
 
-            FooterStatusText.Text = fieldLabel + " updated to " + formatted + " mm.";
+            FooterStatusText.Text = fieldLabel + " updated to " + formatted + " " +
+                MeasurementFormatter.UnitSymbol(_measurementUnit) + ".";
         }
 
         private void OnParamChanged(object sender, TextChangedEventArgs e)
@@ -782,11 +827,11 @@ namespace CPBourg.NextGenGui.Views
                 return;
             }
 
-            _paperW = ParseOr(PaperWidthBox.Text, _paperW);
-            _paperL = ParseOr(PaperLengthBox.Text, _paperL);
-            _spacing = ParseOr(SpacingBox.Text, _spacing);
-            _hOffset = ParseOr(HOffsetBox.Text, _hOffset);
-            _vOffset = ParseOr(VOffsetBox.Text, _vOffset);
+            _paperW = ParseLengthOr(PaperWidthBox.Text, _paperW);
+            _paperL = ParseLengthOr(PaperLengthBox.Text, _paperL);
+            _spacing = ParseLengthOr(SpacingBox.Text, _spacing);
+            _hOffset = ParseLengthOr(HOffsetBox.Text, _hOffset);
+            _vOffset = ParseLengthOr(VOffsetBox.Text, _vOffset);
 
             UpdateStitchSummary();
             RedrawStitchPreview();
@@ -808,6 +853,36 @@ namespace CPBourg.NextGenGui.Views
             return double.TryParse(text, NumberStyles.Any, CultureInfo.InvariantCulture, out double value)
                 ? value
                 : fallback;
+        }
+
+        private double ParseLengthOr(string text, double fallbackMillimeters)
+        {
+            double displayValue;
+            return double.TryParse(text, NumberStyles.Any, CultureInfo.InvariantCulture, out displayValue)
+                ? MeasurementFormatter.ToMillimeters(displayValue, _measurementUnit)
+                : fallbackMillimeters;
+        }
+
+        private string DisplayValue(double millimeters, string metricFormat = "0.0##",
+            string inchFormat = "0.000")
+        {
+            return MeasurementFormatter.FormatValue(
+                millimeters, _measurementUnit, metricFormat, inchFormat);
+        }
+
+        private string DisplayLength(double millimeters, string metricFormat = "0.0##",
+            string inchFormat = "0.000")
+        {
+            return MeasurementFormatter.FormatLength(
+                millimeters, _measurementUnit, metricFormat, inchFormat);
+        }
+
+        private double MeasurementStepMillimeters()
+        {
+            // Physical steppers move by 1 mm in metric or 0.1 in in imperial.
+            return _measurementUnit == MeasurementUnit.Inches
+                ? MeasurementFormatter.MillimetersPerInch / 10.0
+                : 1.0;
         }
 
         private void RefreshStitchModeButtons()
@@ -832,11 +907,12 @@ namespace CPBourg.NextGenGui.Views
 
         private void UpdateStitchSummary()
         {
-            SummaryPaperSize.Text = Fmt(_paperW, "0.#") + " x " + Fmt(_paperL, "0.#") + " mm";
+            SummaryPaperSize.Text = MeasurementFormatter.FormatDimensions(
+                _paperW, _paperL, _measurementUnit);
             SummaryStitchMode.Text = _stitchMode;
-            SummarySpacing.Text = Fmt(_spacing, "0.0") + " mm";
-            SummaryHOffset.Text = Fmt(_hOffset, "0.0") + " mm";
-            SummaryVOffset.Text = Fmt(_vOffset, "0.0") + " mm";
+            SummarySpacing.Text = DisplayLength(_spacing, "0.0", "0.000");
+            SummaryHOffset.Text = DisplayLength(_hOffset, "0.0", "0.000");
+            SummaryVOffset.Text = DisplayLength(_vOffset, "0.0", "0.000");
         }
 
         private static string Fmt(double value, string format)
@@ -868,7 +944,7 @@ namespace CPBourg.NextGenGui.Views
             var stitchBrush = (Brush)FindResource("TextSecondaryBrush");
             var foldBrush = (Brush)FindResource("TextMutedBrush");
 
-            const double left = 60, top = 46, right = 20, bottom = 20;
+            const double left = 90, top = 46, right = 20, bottom = 20;
             double areaW = canvas.Width - left - right;
             double areaH = canvas.Height - top - bottom;
 
@@ -895,14 +971,14 @@ namespace CPBourg.NextGenGui.Views
             AddLine(canvas, x0, wy, x0 + sheetW, wy, dimBrush, 1);
             AddLine(canvas, x0, wy - 4, x0, wy + 4, dimBrush, 1);
             AddLine(canvas, x0 + sheetW, wy - 4, x0 + sheetW, wy + 4, dimBrush, 1);
-            AddLabel(canvas, Fmt(_paperW, "0.#") + " mm", x0, y0 - 40, sheetW, labelBrush, TextAlignment.Center);
+            AddLabel(canvas, DisplayLength(_paperW, "0.#", "0.000"), x0, y0 - 40, sheetW, labelBrush, TextAlignment.Center);
 
             // Length dimension line (left of the sheet)
             double lx = x0 - 16;
             AddLine(canvas, lx, y0, lx, y0 + sheetH, dimBrush, 1);
             AddLine(canvas, lx - 4, y0, lx + 4, y0, dimBrush, 1);
             AddLine(canvas, lx - 4, y0 + sheetH, lx + 4, y0 + sheetH, dimBrush, 1);
-            AddLabel(canvas, Fmt(_paperL, "0.#") + " mm", 2, y0 + sheetH / 2 - 9, left - 22, labelBrush, TextAlignment.Right);
+            AddLabel(canvas, DisplayLength(_paperL, "0.#", "0.000"), 2, y0 + sheetH / 2 - 9, left - 22, labelBrush, TextAlignment.Right);
 
             double pad = 16;
             double pxPerMm = scale;
@@ -1008,12 +1084,14 @@ namespace CPBourg.NextGenGui.Views
 
         private void OnFoldMinusClick(object sender, RoutedEventArgs e)
         {
-            FoldPositionSlider.Value = Math.Max(FoldPositionSlider.Minimum, FoldPositionSlider.Value - 1);
+            FoldPositionSlider.Value = Math.Max(
+                FoldPositionSlider.Minimum, FoldPositionSlider.Value - MeasurementStepMillimeters());
         }
 
         private void OnFoldPlusClick(object sender, RoutedEventArgs e)
         {
-            FoldPositionSlider.Value = Math.Min(FoldPositionSlider.Maximum, FoldPositionSlider.Value + 1);
+            FoldPositionSlider.Value = Math.Min(
+                FoldPositionSlider.Maximum, FoldPositionSlider.Value + MeasurementStepMillimeters());
         }
 
         private void OnFoldPositionInputPressed(object sender, MouseButtonEventArgs e)
@@ -1025,11 +1103,13 @@ namespace CPBourg.NextGenGui.Views
 
             e.Handled = true;
             _pendingStitchNumericField = StitchNumericField.FoldPosition;
+            string unit = MeasurementFormatter.UnitSymbol(_measurementUnit);
             StitchNumericDialog.Open(
                 "Set Fold Position",
-                "Fold position (mm)",
-                "Enter a value from -50 mm (backward) to 50 mm (forward).",
-                _foldPosition,
+                "Fold position (" + unit + ")",
+                "Enter a value from " + DisplayLength(-50) + " (backward) to " +
+                    DisplayLength(50) + " (forward).",
+                MeasurementFormatter.ToDisplay(_foldPosition, _measurementUnit),
                 true);
         }
 
@@ -1041,7 +1121,7 @@ namespace CPBourg.NextGenGui.Views
             }
 
             _foldPosition = FoldPositionSlider.Value;
-            FoldPositionValueText.Text = Fmt(_foldPosition, "0.0");
+            FoldPositionValueText.Text = DisplayValue(_foldPosition, "0.0", "0.000");
             UpdateFoldSummary();
             RedrawFoldPreview();
         }
@@ -1078,7 +1158,7 @@ namespace CPBourg.NextGenGui.Views
         private void UpdateFoldSummary()
         {
             FoldSummaryFolding.Text = _foldEnabled ? "Enabled" : "Disabled";
-            FoldSummaryPosition.Text = Fmt(_foldPosition, "0.00") + " mm";
+            FoldSummaryPosition.Text = DisplayLength(_foldPosition, "0.00", "0.000");
             FoldSummaryPressure.Text = _pressureMode;
         }
 
@@ -1234,19 +1314,19 @@ namespace CPBourg.NextGenGui.Views
                 return;
             }
 
-            _finalLength = ParseOr(FinalLengthBox.Text, _finalLength);
+            _finalLength = ParseLengthOr(FinalLengthBox.Text, _finalLength);
             UpdateTrimSummary();
             RedrawTrimPreview();
         }
 
         private void OnFinalLengthMinus(object sender, RoutedEventArgs e)
         {
-            SetFinalLength(ParseOr(FinalLengthBox.Text, _finalLength) - 1);
+            SetFinalLength(_finalLength - MeasurementStepMillimeters());
         }
 
         private void OnFinalLengthPlus(object sender, RoutedEventArgs e)
         {
-            SetFinalLength(ParseOr(FinalLengthBox.Text, _finalLength) + 1);
+            SetFinalLength(_finalLength + MeasurementStepMillimeters());
         }
 
         private void OnFinalLengthInputPressed(object sender, MouseButtonEventArgs e)
@@ -1258,11 +1338,13 @@ namespace CPBourg.NextGenGui.Views
 
             e.Handled = true;
             _pendingStitchNumericField = StitchNumericField.FinalBookletLength;
+            string unit = MeasurementFormatter.UnitSymbol(_measurementUnit);
             StitchNumericDialog.Open(
                 "Set Final Booklet Length",
-                "Final booklet length (mm)",
-                "Enter the desired finished length from 50 to 350 mm.",
-                _finalLength,
+                "Final booklet length (" + unit + ")",
+                "Enter the desired finished length from " + DisplayLength(50) +
+                    " to " + DisplayLength(350) + ".",
+                MeasurementFormatter.ToDisplay(_finalLength, _measurementUnit),
                 false);
         }
 
@@ -1270,7 +1352,7 @@ namespace CPBourg.NextGenGui.Views
         {
             // Setting the box text raises OnFinalLengthChanged, which updates
             // the state, summary and preview.
-            FinalLengthBox.Text = Fmt(Clamp(value, 50, 350), "0.0");
+            FinalLengthBox.Text = DisplayValue(Clamp(value, 50, 350), "0.0", "0.000");
         }
 
         private void RefreshTrimChoiceButtons()
@@ -1314,7 +1396,7 @@ namespace CPBourg.NextGenGui.Views
         private void UpdateTrimSummary()
         {
             TrimSummaryTrimming.Text = _trimEnabled ? "Enabled" : "Disabled";
-            TrimSummaryLength.Text = Fmt(_finalLength, "0.0") + " mm";
+            TrimSummaryLength.Text = DisplayLength(_finalLength, "0.0", "0.000");
             TrimSummaryClamp.Text = _clampHeight == "Auto" ? "Automatic" : _clampHeight;
             TrimSummaryChip.Text = _chipBlower ? "On" : "Off";
         }
@@ -1361,7 +1443,7 @@ namespace CPBourg.NextGenGui.Views
             AddLine(canvas, bx + 18, by + 66, bx + w - 30, by + 66, grey, 4);
 
             AddHArrow(canvas, bx, bx + w, by - 16, navy, true);
-            AddLabel(canvas, Fmt(_finalLength, "0.0") + " mm", bx - 30, by - 38, w + 60, label, TextAlignment.Center);
+            AddLabel(canvas, DisplayLength(_finalLength, "0.0", "0.000"), bx - 30, by - 38, w + 60, label, TextAlignment.Center);
 
             if (_trimEnabled)
             {

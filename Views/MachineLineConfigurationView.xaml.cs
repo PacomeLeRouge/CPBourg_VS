@@ -39,10 +39,11 @@ namespace CPBourg.NextGenGui.Views
             ("Trimmer", "TR"),
         };
 
-        private const string SampleSpeed = "973 mm/sec";
+        private const double SampleSpeedMillimetersPerSecond = 973;
 
         private readonly List<MachineLineItemInfo> _machines = new List<MachineLineItemInfo>();
         private int _focusedIndex = -1;
+        private MeasurementUnit _measurementUnit = MeasurementUnit.Millimeters;
 
         /// <summary>
         /// Raised whenever the set of modules on the line changes (add /
@@ -63,6 +64,23 @@ namespace CPBourg.NextGenGui.Views
             RefreshAll();
         }
 
+        public void SetMeasurementUnit(MeasurementUnit unit)
+        {
+            _measurementUnit = unit;
+            foreach (var machine in _machines)
+            {
+                machine.Speed = FormatSampleSpeed();
+            }
+            RefreshSelectedModule();
+        }
+
+        private string FormatSampleSpeed()
+        {
+            return MeasurementFormatter.FormatValue(
+                       SampleSpeedMillimetersPerSecond, _measurementUnit, "0", "0.0") + " " +
+                   MeasurementFormatter.SpeedUnitSymbol(_measurementUnit);
+        }
+
         private void LoadSampleLine()
         {
             // Start with just the Booklet Maker (the STFO) on the line; the
@@ -79,7 +97,7 @@ namespace CPBourg.NextGenGui.Views
             var entry = Catalog.First(c => c.ModuleType == moduleType);
             int sequence = _machines.Count(m => m.ModuleType == moduleType) + 1;
             string modelCode = $"{entry.Code}-2000-{sequence:00}";
-            return new MachineLineItemInfo(entry.ModuleType, modelCode, SampleSpeed);
+            return new MachineLineItemInfo(entry.ModuleType, modelCode, FormatSampleSpeed());
         }
 
         // ================= Refresh =================

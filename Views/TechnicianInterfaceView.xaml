@@ -248,8 +248,8 @@
                                        VerticalAlignment="Center" />
                             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center"
                                         VerticalAlignment="Center">
-                                <TextBlock Text="1291" FontSize="42" FontWeight="SemiBold" />
-                                <TextBlock Text="mm/s" FontSize="15" Margin="10,0,0,6" VerticalAlignment="Bottom" />
+                                <TextBlock x:Name="CurrentSpeedValueText" Text="1291" FontSize="42" FontWeight="SemiBold" />
+                                <TextBlock x:Name="CurrentSpeedUnitText" Text="mm/s" FontSize="15" Margin="10,0,0,6" VerticalAlignment="Bottom" />
                             </StackPanel>
                             <TextBlock Grid.Column="2" Text="&#xE9D9;" FontFamily="{StaticResource IconFontFamily}"
                                        FontSize="36" Foreground="{StaticResource HeaderBackgroundBrush}"

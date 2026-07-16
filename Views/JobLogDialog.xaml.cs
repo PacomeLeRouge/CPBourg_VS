@@ -16,6 +16,7 @@ namespace CPBourg.NextGenGui.Views
     public partial class JobLogDialog : UserControl
     {
         private JobRecord _job;
+        private MeasurementUnit _measurementUnit = MeasurementUnit.Millimeters;
 
         public event EventHandler<string> Exported;
 
@@ -31,6 +32,11 @@ namespace CPBourg.NextGenGui.Views
             LogGrid.ItemsSource = job?.LogEntries;
             ExportStatusText.Text = string.Empty;
             Visibility = Visibility.Visible;
+        }
+
+        public void SetMeasurementUnit(MeasurementUnit unit)
+        {
+            _measurementUnit = unit;
         }
 
         private void OnExportClick(object sender, RoutedEventArgs e)
@@ -57,7 +63,7 @@ namespace CPBourg.NextGenGui.Views
 
             try
             {
-                File.WriteAllText(dialog.FileName, BuildCsv(_job), new UTF8Encoding(true));
+                File.WriteAllText(dialog.FileName, BuildCsv(_job, _measurementUnit), new UTF8Encoding(true));
                 ExportStatusText.Foreground = (System.Windows.Media.Brush)FindResource("StatusRunningBrush");
                 ExportStatusText.Text = "Log saved to " + dialog.FileName;
                 Exported?.Invoke(this, dialog.FileName);
@@ -69,14 +75,15 @@ namespace CPBourg.NextGenGui.Views
             }
         }
 
-        internal static string BuildCsv(JobRecord job)
+        internal static string BuildCsv(JobRecord job, MeasurementUnit unit)
         {
             var lines = new List<string>
             {
                 "Job Name," + Csv(job.Name),
                 "Barcode ID," + Csv(job.BarcodeId),
                 "Format," + Csv(job.Format),
-                "Dimensions," + Csv(job.DimensionsLabel),
+                "Dimensions (" + MeasurementFormatter.UnitSymbol(unit) + ")," +
+                    Csv(MeasurementFormatter.FormatDimensions(job.WidthMm, job.LengthMm, unit)),
                 "Pages," + job.Pages.ToString(CultureInfo.InvariantCulture),
                 string.Empty,
                 "Timestamp,Action,Details",

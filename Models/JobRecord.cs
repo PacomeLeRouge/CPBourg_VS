@@ -41,7 +41,7 @@ namespace CPBourg.NextGenGui.Models
             }
 
             _logEntries.Add(new JobLogEntry(savedAt, "Job saved",
-                Format + ", " + DimensionsLabel + ", " + PagesLabel));
+                Format + ", " + PagesLabel));
         }
 
         public string Name { get; }

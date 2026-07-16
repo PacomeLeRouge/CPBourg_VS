@@ -107,7 +107,7 @@
                             </StackPanel>
                             <TextBlock FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"
                                        HorizontalAlignment="Right">
-                                <Run x:Name="PagesValueBox" Text="48" /><Run Text=" pages · " /><Run x:Name="WidthValueBox" Text="210" /><Run Text=" x " /><Run x:Name="LengthValueBox" Text="297" /><Run Text=" mm" />
+                                <Run x:Name="PagesValueBox" Text="48" /><Run Text=" pages · " /><Run x:Name="WidthValueBox" Text="210" /><Run Text=" x " /><Run x:Name="LengthValueBox" Text="297" /><Run x:Name="SetupUnitRun" Text=" mm" />
                             </TextBlock>
                         </Grid>
                     </StackPanel>
@@ -159,7 +159,7 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0">
-                            <TextBlock Text="Width (mm)" FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,5" />
+                            <TextBlock x:Name="WidthDimensionLabel" Text="Width (mm)" FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,5" />
                             <TextBox x:Name="WidthDimensionInput" Style="{StaticResource JobNumberBoxStyle}" Height="48"
                                      IsReadOnly="True" Cursor="Hand" Tag="Width"
                                      PreviewMouseLeftButtonDown="OnDimensionInputPressed">
@@ -169,7 +169,7 @@
                             </TextBox>
                         </StackPanel>
                         <StackPanel Grid.Column="2">
-                            <TextBlock Text="Length (mm)" FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,5" />
+                            <TextBlock x:Name="LengthDimensionLabel" Text="Length (mm)" FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,5" />
                             <TextBox x:Name="LengthDimensionInput" Style="{StaticResource JobNumberBoxStyle}" Height="48"
                                      IsReadOnly="True" Cursor="Hand" Tag="Length"
                                      PreviewMouseLeftButtonDown="OnDimensionInputPressed">

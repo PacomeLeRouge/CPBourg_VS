@@ -16,6 +16,7 @@ namespace CPBourg.NextGenGui.Views
         private readonly TechnicianSettingsStore _settingsStore;
         private TechnicianSettings _savedSettings;
         private bool _isApplyingSettings;
+        private const double CurrentSpeedMillimetersPerSecond = 1291;
 
         public event EventHandler CloseRequested;
 
@@ -28,6 +29,13 @@ namespace CPBourg.NextGenGui.Views
             ApplySettingsToControls(_savedSettings);
 
             AccessDialog.AccessGranted += OnTechnicalAccessGranted;
+        }
+
+        public void SetMeasurementUnit(MeasurementUnit unit)
+        {
+            CurrentSpeedValueText.Text = MeasurementFormatter.FormatValue(
+                CurrentSpeedMillimetersPerSecond, unit, "0", "0.0");
+            CurrentSpeedUnitText.Text = MeasurementFormatter.SpeedUnitSymbol(unit);
         }
 
         private void ApplySettingsToControls(TechnicianSettings settings)

@@ -21,18 +21,18 @@ namespace CPBourg.NextGenGui.Views
     /// reusable option picker. Date &amp; Time uses a date/time editor. Screen
     /// Calibration remains the only prototype-only placeholder.
     ///
-    /// PENDING vs APPLIED: each of the four picker-backed settings has a
+    /// PENDING vs APPLIED: each picker-backed setting has a
     /// "pending" value (shown in the row as soon as you pick it in the
     /// dialog, so you can see what you're about to apply) and an "applied"
-    /// value (what actually takes effect elsewhere in the app - today, just
-    /// the header's language indicator). Apply commits pending -> applied;
+    /// value (what actually takes effect elsewhere in the app, including
+    /// language, measurement units, the display clock, and font size). Apply
+    /// commits pending -> applied;
     /// Cancel discards pending changes back to the last applied value. This
     /// is what makes Cancel actually mean something, and what keeps the
     /// header from updating before Apply is clicked.
     ///
-    /// Nothing is persisted to disk yet - only the header language label is
-    /// wired to "applied" state so far. Wire real preference storage in once
-    /// the settings model is defined (still under FR-09).
+    /// Preferences are retained for the current application session. Wire
+    /// durable preference storage in once the settings model is defined.
     /// </summary>
     public partial class SettingsView : UserControl
     {
@@ -45,6 +45,7 @@ namespace CPBourg.NextGenGui.Views
         /// (FR-10).
         /// </summary>
         public event EventHandler<string> LanguageChanged;
+        public event EventHandler<MeasurementUnit> UnitsChanged;
         public event EventHandler<TimeSpan> DateTimeOffsetChanged;
         public event EventHandler<string> FontSizeChanged;
 
@@ -251,6 +252,7 @@ namespace CPBourg.NextGenGui.Views
         private void OnApplyClick(object sender, RoutedEventArgs e)
         {
             bool languageChanged = _pendingLanguage != _appliedLanguage;
+            bool unitsChanged = _pendingUnits != _appliedUnits;
             bool dateTimeChanged = _pendingDateTimeOffset != _appliedDateTimeOffset;
             bool fontSizeChanged = _pendingFontSize != _appliedFontSize;
 
@@ -265,6 +267,12 @@ namespace CPBourg.NextGenGui.Views
             if (languageChanged)
             {
                 LanguageChanged?.Invoke(this, GetLanguageAbbreviation(_appliedLanguage));
+            }
+            if (unitsChanged)
+            {
+                UnitsChanged?.Invoke(this, _appliedUnits == "Inches"
+                    ? MeasurementUnit.Inches
+                    : MeasurementUnit.Millimeters);
             }
             if (dateTimeChanged)
             {
