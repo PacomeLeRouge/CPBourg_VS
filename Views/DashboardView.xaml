@@ -29,6 +29,14 @@
 			<Setter Property="BorderThickness" Value="1" />
 		</Style>
 
+		<!-- Neutral secondary actions on the Home cards share one touch size
+		     and padding. Semantic machine controls in the bottom action bar
+		     retain their status colours and larger card treatment. -->
+		<Style x:Key="DashboardActionButtonStyle" TargetType="Button">
+			<Setter Property="Height" Value="52" />
+			<Setter Property="Padding" Value="14,13" />
+		</Style>
+
 		<!-- One machine tile. Keeps the enlarged status icon, but uses a
              more compact size so tiles do not clip in windowed mode. -->
 		<DataTemplate DataType="{x:Type models:MachineTileInfo}">
@@ -106,33 +114,20 @@
 			<!-- Left column: Counter and Productivity + Machines -->
 			<Grid Grid.Column="0">
 				<Grid.RowDefinitions>
-					<RowDefinition Height="2*" />
+					<RowDefinition Height="6*" />
 					<RowDefinition Height="14" />
-					<RowDefinition Height="1*" />
+					<RowDefinition Height="5*" />
 				</Grid.RowDefinitions>
 
 				<!-- Counter and Productivity card -->
 				<Border Grid.Row="0" Style="{StaticResource CardStyle}">
 					<Grid>
-						<!-- The spacer rows below the completed-sets block use star
-                             heights with a MinHeight floor: at the compact
-                             windowed / 1024x768 size they collapse to the same
-                             fixed gaps as before, but any extra height (full
-                             screen) is absorbed here so the content spreads to
-                             fill the card and the footer stat strip sits at the
-                             bottom - instead of leaving empty white space below
-                             it. The header-to-number gap (row 1) stays fixed so
-                             those two always read as one group. -->
+						<!-- The editor and action rows share one column grid below.
+						     This keeps each action directly beneath the value it
+						     affects at both windowed and full-screen widths. -->
 						<Grid.RowDefinitions>
 							<RowDefinition Height="Auto" />
-							<RowDefinition Height="18" />
-							<RowDefinition Height="Auto" />
-							<RowDefinition Height="*" MinHeight="16" />
-							<RowDefinition Height="1" />
-							<RowDefinition Height="*" MinHeight="16" />
-							<RowDefinition Height="Auto" />
-							<RowDefinition Height="*" MinHeight="18" />
-							<RowDefinition Height="Auto" />
+							<RowDefinition Height="*" />
 						</Grid.RowDefinitions>
 
 						<!-- Header -->
@@ -148,8 +143,21 @@
 						<!-- Both counters use the same touch-friendly pattern: +/-
 						     changes by one, while tapping the value opens the numeric
 						     keypad for direct entry. -->
-						<StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left">
-							<StackPanel>
+						<Grid Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+							<Grid.RowDefinitions>
+								<RowDefinition Height="Auto" />
+								<RowDefinition Height="16" />
+								<RowDefinition Height="Auto" />
+							</Grid.RowDefinitions>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="240" />
+								<ColumnDefinition Width="48" />
+								<ColumnDefinition Width="240" />
+								<ColumnDefinition Width="14" />
+								<ColumnDefinition Width="145" />
+							</Grid.ColumnDefinitions>
+
+							<StackPanel x:Name="CompletedSetsEditorPanel" Grid.Row="0" Grid.Column="0">
 								<TextBlock Text="Completed Sets" Foreground="{StaticResource TextMutedBrush}"
 								           FontSize="12" Margin="0,0,0,5" />
 								<StackPanel Orientation="Horizontal">
@@ -177,11 +185,11 @@
 								</StackPanel>
 							</StackPanel>
 
-							<TextBlock Text="/" FontSize="30" FontWeight="Light"
+							<TextBlock Grid.Row="0" Grid.Column="1" Text="/" FontSize="30" FontWeight="Light"
 							           Foreground="{StaticResource TextMutedBrush}"
-							           Margin="16,23,0,0" VerticalAlignment="Center" />
+							           Margin="0,23,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" />
 
-							<StackPanel Margin="16,0,0,0">
+							<StackPanel x:Name="PresetEditorPanel" Grid.Row="0" Grid.Column="2">
 								<TextBlock Text="Preset (0 = unlimited)" Foreground="{StaticResource TextMutedBrush}"
 								           FontSize="12" Margin="0,0,0,5" />
 								<StackPanel Orientation="Horizontal">
@@ -209,41 +217,25 @@
 								</StackPanel>
 							</StackPanel>
 
-							<Button x:Name="ConfirmCounterChangesButton" Padding="16,10" Height="52"
-							        Margin="14,22,0,0" Click="OnConfirmCounterChangesClick" IsEnabled="False">
-								<Button.Style>
-									<Style TargetType="Button">
-										<Setter Property="Background" Value="{StaticResource JobsAccentBrush}" />
-										<Setter Property="Foreground" Value="{StaticResource JobsAccentForegroundBrush}" />
-										<Setter Property="BorderThickness" Value="0" />
-										<Style.Triggers>
-											<Trigger Property="IsEnabled" Value="False">
-												<Setter Property="Background" Value="{StaticResource ProgressTrackBrush}" />
-												<Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-												<Setter Property="BorderBrush" Value="{StaticResource OutlineButtonBorderBrush}" />
-												<Setter Property="BorderThickness" Value="1" />
-											</Trigger>
-										</Style.Triggers>
-									</Style>
-								</Button.Style>
-								<StackPanel Orientation="Horizontal">
-									<TextBlock Text="&#xE73E;" FontFamily="{StaticResource IconFontFamily}" FontSize="18" VerticalAlignment="Center" />
-									<TextBlock Text="Confirm" FontSize="14" Margin="7,0,0,0" VerticalAlignment="Center" />
+							<!-- Each action occupies the exact same column as its editor. -->
+							<Button x:Name="ResetToZeroButton" Grid.Row="2" Grid.Column="0"
+							        Style="{StaticResource DashboardActionButtonStyle}" Click="OnResetToZeroClick">
+								<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+									<TextBlock Text="&#xE72C;" FontFamily="{StaticResource IconFontFamily}" FontSize="20" VerticalAlignment="Center" />
+									<TextBlock Text="Reset to zero" FontSize="14" Margin="7,0,0,0" VerticalAlignment="Center" />
 								</StackPanel>
 							</Button>
-						</StackPanel>
+							<Button x:Name="SetTargetButton" Grid.Row="2" Grid.Column="2"
+							        Style="{StaticResource DashboardActionButtonStyle}" Click="OnSetTargetClick">
+								<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+									<TextBlock Text="&#xE7C3;" FontFamily="{StaticResource IconFontFamily}" FontSize="20" VerticalAlignment="Center" />
+									<TextBlock Text="Set target" FontSize="14" Margin="7,0,0,0" VerticalAlignment="Center" />
+								</StackPanel>
+							</Button>
 
-						<!-- Divider -->
-						<Border Grid.Row="4" Background="{StaticResource CardBorderBrush}" Height="1" />
-
-						<!-- Output/h + counter actions -->
-						<Grid Grid.Row="6">
-							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="*" />
-								<ColumnDefinition Width="Auto" />
-							</Grid.ColumnDefinitions>
-							<StackPanel Grid.Column="0">
-								<TextBlock Text="Output / h" Foreground="{StaticResource TextMutedBrush}" FontSize="12" />
+							<StackPanel Grid.Row="0" Grid.Column="4" VerticalAlignment="Center">
+								<TextBlock Text="Output / h" Foreground="{StaticResource TextMutedBrush}"
+								           FontSize="12" />
 								<StackPanel Orientation="Horizontal" Margin="0,2,0,0">
 									<TextBlock Text="1,248" Foreground="{StaticResource TextPrimaryBrush}" FontSize="21" FontWeight="Medium" />
 									<TextBlock Text="&#xE70E;" FontFamily="{StaticResource IconFontFamily}"
@@ -251,65 +243,16 @@
                                                Margin="8,0,0,0" VerticalAlignment="Center" />
 								</StackPanel>
 							</StackPanel>
-							<StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-								<Button Padding="14,13" Height="52" Click="OnResetToZeroClick">
-									<StackPanel Orientation="Horizontal">
-										<TextBlock Text="&#xE72C;" FontFamily="{StaticResource IconFontFamily}" FontSize="19" VerticalAlignment="Center" />
-										<TextBlock Text="Reset to zero" FontSize="14" Margin="7,0,0,0" VerticalAlignment="Center" />
-									</StackPanel>
-								</Button>
-								<Button Padding="14,13" Height="52" Margin="8,0,0,0" Click="OnSetTargetClick">
-									<StackPanel Orientation="Horizontal">
-										<TextBlock Text="&#xE7C3;" FontFamily="{StaticResource IconFontFamily}" FontSize="19" VerticalAlignment="Center" />
-										<TextBlock Text="Set target" FontSize="14" Margin="7,0,0,0" VerticalAlignment="Center" />
-									</StackPanel>
-								</Button>
-							</StackPanel>
+
+							<Button x:Name="ConfirmCounterChangesButton" Grid.Row="2" Grid.Column="4"
+							        Style="{StaticResource DashboardActionButtonStyle}"
+							        Click="OnConfirmCounterChangesClick">
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Text="&#xE73E;" FontFamily="{StaticResource IconFontFamily}" FontSize="20" VerticalAlignment="Center" />
+									<TextBlock Text="Confirm" FontSize="14" Margin="7,0,0,0" VerticalAlignment="Center" />
+								</StackPanel>
+							</Button>
 						</Grid>
-
-						<!-- Mini stat strip - one box, vertical dividers between items -->
-						<Border Grid.Row="8" Background="{StaticResource ScreenBackgroundBrush}" CornerRadius="8" Padding="0">
-							<Grid>
-								<Grid.ColumnDefinitions>
-									<ColumnDefinition Width="*" />
-									<ColumnDefinition Width="1" />
-									<ColumnDefinition Width="*" />
-									<ColumnDefinition Width="1" />
-									<ColumnDefinition Width="*" />
-								</Grid.ColumnDefinitions>
-
-								<StackPanel Grid.Column="0" Orientation="Horizontal" Margin="16,12" HorizontalAlignment="Center">
-									<TextBlock Text="&#xE73E;" FontFamily="{StaticResource IconFontFamily}"
-                                               Foreground="{StaticResource TextMutedBrush}" FontSize="24" VerticalAlignment="Center" />
-									<StackPanel Margin="8,0,0,0">
-										<TextBlock Text="Completed sets" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
-										<TextBlock x:Name="MiniCompletedSetsText" Text="5,234" Foreground="{StaticResource TextPrimaryBrush}" FontSize="14" FontWeight="Medium" />
-									</StackPanel>
-								</StackPanel>
-
-								<Border Grid.Column="1" Background="{StaticResource CardBorderBrush}" Width="1" Margin="0,10" />
-
-								<StackPanel Grid.Column="2" Orientation="Horizontal" Margin="16,12" HorizontalAlignment="Center">
-									<TextBlock Text="&#xE81C;" FontFamily="{StaticResource IconFontFamily}"
-                                               Foreground="{StaticResource TextMutedBrush}" FontSize="24" VerticalAlignment="Center" />
-									<StackPanel Margin="8,0,0,0">
-										<TextBlock Text="Preset" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
-										<TextBlock x:Name="MiniPresetText" Text="&#8734;" Foreground="{StaticResource TextPrimaryBrush}" FontSize="14" FontWeight="Medium" />
-									</StackPanel>
-								</StackPanel>
-
-								<Border Grid.Column="3" Background="{StaticResource CardBorderBrush}" Width="1" Margin="0,10" />
-
-								<StackPanel Grid.Column="4" Orientation="Horizontal" Margin="16,12" HorizontalAlignment="Center">
-									<TextBlock Text="&#xE9D9;" FontFamily="{StaticResource IconFontFamily}"
-                                               Foreground="{StaticResource TextMutedBrush}" FontSize="24" VerticalAlignment="Center" />
-									<StackPanel Margin="8,0,0,0">
-										<TextBlock Text="Output / h" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
-										<TextBlock Text="1,248" Foreground="{StaticResource TextPrimaryBrush}" FontSize="14" FontWeight="Medium" />
-									</StackPanel>
-								</StackPanel>
-							</Grid>
-						</Border>
 					</Grid>
 				</Border>
 
@@ -319,8 +262,7 @@
                      windowed mode and on the 1024x768 tablet, where a fixed
                      tile height previously got clipped ("3/4 cut off"). When
                      there is room (full screen / taller windows) the tiles stay
-                     at their natural size, centred in the card instead of
-                     clumping against the title. -->
+                     at their natural size and are centred in the taller card. -->
 				<Border Grid.Row="2" Style="{StaticResource CardStyle}">
 					<Grid>
 						<Grid.RowDefinitions>
@@ -330,7 +272,7 @@
 						<TextBlock Grid.Row="0" Text="Machines" Foreground="{StaticResource TextPrimaryBrush}"
                                    FontSize="18" FontWeight="Medium" Margin="0,0,0,14" />
 						<Viewbox Grid.Row="1" Stretch="Uniform" StretchDirection="DownOnly"
-                                 HorizontalAlignment="Stretch" VerticalAlignment="Top">
+                                 HorizontalAlignment="Stretch" VerticalAlignment="Center">
 							<ItemsControl x:Name="MachineTilesControl" Width="600">
 								<ItemsControl.ItemsPanel>
 									<ItemsPanelTemplate>
@@ -412,18 +354,16 @@
 								<ColumnDefinition Width="10" />
 								<ColumnDefinition Width="*" />
 							</Grid.ColumnDefinitions>
-							<Button Grid.Column="0" Padding="0,12" Height="56" Background="{StaticResource JobsAccentBrush}"
-                                    Foreground="{StaticResource JobsAccentForegroundBrush}" BorderThickness="0"
-                                    Click="OnNewJobClick">
+							<Button Grid.Column="0" Style="{StaticResource DashboardActionButtonStyle}" Click="OnNewJobClick">
 								<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-									<TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFontFamily}" FontSize="24" VerticalAlignment="Center" />
-									<TextBlock Text="New job" FontSize="16" FontWeight="Medium" Margin="8,0,0,0" VerticalAlignment="Center" />
+									<TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFontFamily}" FontSize="20" VerticalAlignment="Center" />
+									<TextBlock Text="New job" FontSize="14" Margin="7,0,0,0" VerticalAlignment="Center" />
 								</StackPanel>
 							</Button>
-							<Button Grid.Column="2" Padding="0,12" Height="56" Click="OnLoadJobClick">
+							<Button Grid.Column="2" Style="{StaticResource DashboardActionButtonStyle}" Click="OnLoadJobClick">
 								<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-									<TextBlock Text="&#xE838;" FontFamily="{StaticResource IconFontFamily}" FontSize="24" VerticalAlignment="Center" />
-									<TextBlock Text="Load job" FontSize="16" Margin="8,0,0,0" VerticalAlignment="Center" />
+									<TextBlock Text="&#xE838;" FontFamily="{StaticResource IconFontFamily}" FontSize="20" VerticalAlignment="Center" />
+									<TextBlock Text="Load job" FontSize="14" Margin="7,0,0,0" VerticalAlignment="Center" />
 								</StackPanel>
 							</Button>
 						</Grid>
@@ -440,6 +380,7 @@
 						<Grid.RowDefinitions>
 							<RowDefinition Height="Auto" />
 							<RowDefinition Height="*" />
+							<RowDefinition Height="Auto" />
 						</Grid.RowDefinitions>
 						<TextBlock Grid.Row="0" Text="Active Alerts" Foreground="{StaticResource TextPrimaryBrush}"
                                    FontSize="17" FontWeight="Medium" Margin="0,0,0,14" />
@@ -447,26 +388,77 @@
 							<Grid.ColumnDefinitions>
 								<ColumnDefinition Width="Auto" />
 								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="Auto" />
 							</Grid.ColumnDefinitions>
 							<Border Grid.Column="0" x:Name="AlertsIconBg" Width="52" Height="52" CornerRadius="26"
-                                    Background="{StaticResource StatusRunningBgBrush}" VerticalAlignment="Top">
+                                    Background="{StaticResource StatusRunningBgBrush}" VerticalAlignment="Center">
 								<TextBlock x:Name="AlertsIconText" Text="&#xE73E;" FontFamily="{StaticResource IconFontFamily}"
                                            Foreground="{StaticResource StatusRunningBrush}" FontSize="26"
                                            HorizontalAlignment="Center" VerticalAlignment="Center" />
 							</Border>
-							<StackPanel Grid.Column="1" Margin="12,0,0,0">
+							<StackPanel Grid.Column="1" Margin="12,0" VerticalAlignment="Center">
 								<TextBlock x:Name="AlertsHeadlineText" Text="No active alerts"
                                            Foreground="{StaticResource TextPrimaryBrush}" FontSize="14" FontWeight="Medium" />
 								<TextBlock x:Name="AlertsSubtitleText" Text="All systems are operating normally."
-                                           Foreground="{StaticResource TextMutedBrush}" FontSize="12" Margin="0,2,0,10" TextWrapping="Wrap" />
-								<Button Padding="16,13" Height="52" HorizontalAlignment="Left" Click="OnViewErrorsClick">
-									<StackPanel Orientation="Horizontal">
-										<TextBlock Text="&#xE7C3;" FontFamily="{StaticResource IconFontFamily}" FontSize="20" VerticalAlignment="Center" />
-										<TextBlock Text="View errors" FontSize="15" Margin="7,0,0,0" VerticalAlignment="Center" />
-									</StackPanel>
-								</Button>
+                                           Foreground="{StaticResource TextMutedBrush}" FontSize="12" Margin="0,2,0,0" TextWrapping="Wrap" />
 							</StackPanel>
+							<Button x:Name="ViewErrorsButton" Grid.Column="2"
+							        Style="{StaticResource DashboardActionButtonStyle}"
+							        VerticalAlignment="Center" Click="OnViewErrorsClick">
+								<StackPanel Orientation="Horizontal">
+									<TextBlock Text="&#xE7C3;" FontFamily="{StaticResource IconFontFamily}" FontSize="20" VerticalAlignment="Center" />
+									<TextBlock Text="View errors" FontSize="14" Margin="7,0,0,0" VerticalAlignment="Center" />
+								</StackPanel>
+							</Button>
 						</Grid>
+
+						<!-- Live severity breakdown from the Errors screen. -->
+						<Border Grid.Row="2" Background="{StaticResource ScreenBackgroundBrush}"
+						        CornerRadius="8" Padding="12,10" Margin="0,14,0,0">
+							<Grid>
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="*" />
+									<ColumnDefinition Width="1" />
+									<ColumnDefinition Width="*" />
+									<ColumnDefinition Width="1" />
+									<ColumnDefinition Width="*" />
+								</Grid.ColumnDefinitions>
+
+								<StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center">
+									<Ellipse Width="9" Height="9" Fill="{StaticResource StatusErrorBrush}"
+									         Margin="0,0,7,0" VerticalAlignment="Center" />
+									<StackPanel>
+										<TextBlock Text="Critical" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
+										<TextBlock x:Name="AlertsCriticalCountText" Text="0"
+										           Foreground="{StaticResource TextPrimaryBrush}" FontSize="14" FontWeight="Medium" />
+									</StackPanel>
+								</StackPanel>
+
+								<Border Grid.Column="1" Background="{StaticResource CardBorderBrush}" />
+
+								<StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center">
+									<Ellipse Width="9" Height="9" Fill="{StaticResource WarningBrush}"
+									         Margin="0,0,7,0" VerticalAlignment="Center" />
+									<StackPanel>
+										<TextBlock Text="Warnings" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
+										<TextBlock x:Name="AlertsWarningCountText" Text="0"
+										           Foreground="{StaticResource TextPrimaryBrush}" FontSize="14" FontWeight="Medium" />
+									</StackPanel>
+								</StackPanel>
+
+								<Border Grid.Column="3" Background="{StaticResource CardBorderBrush}" />
+
+								<StackPanel Grid.Column="4" Orientation="Horizontal" HorizontalAlignment="Center">
+									<Ellipse Width="9" Height="9" Fill="{StaticResource StatusIdleBrush}"
+									         Margin="0,0,7,0" VerticalAlignment="Center" />
+									<StackPanel>
+										<TextBlock Text="Information" Foreground="{StaticResource TextMutedBrush}" FontSize="10" />
+										<TextBlock x:Name="AlertsInfoCountText" Text="0"
+										           Foreground="{StaticResource TextPrimaryBrush}" FontSize="14" FontWeight="Medium" />
+									</StackPanel>
+								</StackPanel>
+							</Grid>
+						</Border>
 					</Grid>
 				</Border>
 			</Grid>
