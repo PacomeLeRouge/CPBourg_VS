@@ -21,13 +21,12 @@ namespace CPBourg.NextGenGui.Views
     /// Selected Module and Configuration Status panels, and which Line
     /// Actions are enabled, all follow that focus. Add Module opens
     /// <see cref="AddModuleWizardDialog"/> (module type -> Before/After the
-    /// focused module -> technician code), which inserts locally on
+    /// focused module -> review), which inserts a pending local edit on
     /// Confirm. Module types already on the line are filtered out and a
-    /// second defensive check rejects duplicates at insertion time.
-    /// Confirm - nothing here is persisted or sent to the WFM yet (FR-01,
-    /// FR-02). Remove/Replace/Review Changes only show the stub feedback
-    /// line, same convention as unbuilt flows elsewhere (e.g. JobsView's
-    /// View Log).
+    /// second defensive check rejects duplicates at insertion time. Add,
+    /// Remove, and Replace remain pending until Review &amp; Confirm requests
+    /// one technician PIN for the complete line. Nothing is sent to the WFM
+    /// yet (FR-01, FR-02).
     /// </summary>
     public partial class MachineLineConfigurationView : UserControl
     {
@@ -43,13 +42,13 @@ namespace CPBourg.NextGenGui.Views
 
         private readonly List<MachineLineItemInfo> _machines = new List<MachineLineItemInfo>();
         private int _focusedIndex = -1;
+        private bool _hasPendingChanges;
         private MeasurementUnit _measurementUnit = MeasurementUnit.Millimeters;
 
         /// <summary>
-        /// Raised whenever the set of modules on the line changes (add /
-        /// remove / replace). MainWindow uses this to keep the Home
-        /// dashboard's Machines tiles in sync - only modules actually on the
-        /// line show as online there.
+        /// Raised after the complete pending line has been authorized with a
+        /// technician PIN. MainWindow uses this to publish the confirmed
+        /// modules to the Home dashboard.
         /// </summary>
         public event EventHandler LineChanged;
 
@@ -108,12 +107,6 @@ namespace CPBourg.NextGenGui.Views
             RefreshSelectedModule();
             RefreshConfigurationStatus();
             RefreshLineActionsEnabled();
-
-            // RefreshAll is only called when the line composition changes
-            // (initial load, add, remove, replace) - carousel navigation
-            // calls the individual refreshers instead - so this is the right
-            // place to notify listeners that the online modules changed.
-            LineChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private void RefreshCarousel()
@@ -296,7 +289,15 @@ namespace CPBourg.NextGenGui.Views
         private void RefreshConfigurationStatus()
         {
             bool hasMachines = _machines.Count > 0;
-            ConfigStatusText.Text = hasMachines ? "All machines online." : "No status.";
+            if (_hasPendingChanges)
+            {
+                ConfigStatusText.Text = "Unsaved changes — review and confirm.";
+                ConfigStatusIconBg.Background = (Brush)FindResource("WarningBgBrush");
+                ConfigStatusIconText.Foreground = (Brush)FindResource("WarningBrush");
+                return;
+            }
+
+            ConfigStatusText.Text = hasMachines ? "Configuration confirmed." : "No modules configured.";
             ConfigStatusIconBg.Background = (Brush)FindResource(hasMachines ? "StatusRunningBgBrush" : "StatusOfflineBgBrush");
             ConfigStatusIconText.Foreground = (Brush)FindResource(hasMachines ? "StatusRunningBrush" : "StatusOfflineBrush");
         }
@@ -309,7 +310,7 @@ namespace CPBourg.NextGenGui.Views
             AddModuleButton.IsEnabled = hasAvailableModules;
             RemoveModuleButton.IsEnabled = hasMachines;
             ReplaceModuleButton.IsEnabled = hasMachines;
-            ReviewChangesButton.IsEnabled = hasMachines;
+            ReviewChangesButton.IsEnabled = _hasPendingChanges;
         }
 
         // ================= Carousel navigation =================
@@ -383,9 +384,11 @@ namespace CPBourg.NextGenGui.Views
 
             _machines.Insert(insertIndex, machine);
             _focusedIndex = insertIndex;
+            _hasPendingChanges = true;
             RefreshAll();
 
-            LastActionText.Text = $"Last action: Added {request.ModuleType} ({request.PositionSummary}).";
+            LastActionText.Text =
+                $"Pending: Added {request.ModuleType} ({request.PositionSummary}). Select Review & Confirm when finished.";
         }
 
         private void OnRemoveModuleClick(object sender, RoutedEventArgs e)
@@ -397,7 +400,9 @@ namespace CPBourg.NextGenGui.Views
 
             _machines.RemoveAt(_focusedIndex);
             _focusedIndex = _machines.Count == 0 ? -1 : System.Math.Min(_focusedIndex, _machines.Count - 1);
+            _hasPendingChanges = true;
             RefreshAll();
+            LastActionText.Text = "Pending: Module removed. Select Review & Confirm when finished.";
         }
 
         private void OnReplaceModuleClick(object sender, RoutedEventArgs e)
@@ -422,12 +427,36 @@ namespace CPBourg.NextGenGui.Views
             }
 
             _machines[_focusedIndex] = CreateMachine(nextEntry.ModuleType);
+            _hasPendingChanges = true;
             RefreshAll();
+            LastActionText.Text =
+                $"Pending: Replaced {currentType} with {nextEntry.ModuleType}. Select Review & Confirm when finished.";
         }
 
         private void OnReviewChangesClick(object sender, RoutedEventArgs e)
         {
-            LastActionText.Text = "Last action: Review changes (stub)";
+            if (!_hasPendingChanges)
+            {
+                return;
+            }
+
+            string moduleSummary = _machines.Count == 0
+                ? "an empty machine line"
+                : _machines.Count + (_machines.Count == 1 ? " module" : " modules");
+            ConfigurationPinDialog.Open(
+                "Confirm Machine Line",
+                "Review complete. Enter the technician PIN once to apply " +
+                    moduleSummary + " and publish the configuration.",
+                "Confirm");
+        }
+
+        private void OnConfigurationPinConfirmed(object sender, string submittedCode)
+        {
+            _hasPendingChanges = false;
+            RefreshConfigurationStatus();
+            RefreshLineActionsEnabled();
+            LastActionText.Text = "Machine line configuration confirmed and applied.";
+            LineChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 }

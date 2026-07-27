@@ -20,13 +20,12 @@
           2. PositionStepPanel: Before/After the currently focused module on
                                  the line - skipped entirely when the line is
                                  empty (nothing to be before/after).
-          3. ConfirmStepPanel:  preview + an on-screen numeric keypad for the
-                                 "Technician Code" (touchscreen kiosk, so a
-                                 real keyboard can't be assumed).
+          3. ConfirmStepPanel:  preview and confirm this pending module edit.
 
         No Back button, matching the mock (Cancel is the only way out once
         started) - Continue is disabled until a selection is made on both
-        the Module and Position steps, matching the mock's greyed-out state.
+        the Module and Position steps. Technician authorization is deliberately
+        deferred to the Machine Line screen's final Review & Confirm action.
     -->
 
     <UserControl.Resources>
@@ -66,16 +65,6 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
-        </Style>
-
-        <!-- Numeric keypad key. -->
-        <Style x:Key="KeypadButtonStyle" TargetType="Button">
-            <Setter Property="MinHeight" Value="48" />
-            <Setter Property="Background" Value="{StaticResource ScreenBackgroundBrush}" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="FontSize" Value="16" />
-            <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-            <Setter Property="Margin" Value="4" />
         </Style>
     </UserControl.Resources>
 
@@ -135,9 +124,9 @@
                     </ItemsControl>
                 </StackPanel>
 
-                <!-- ===== Step 3: Technician Confirmation ===== -->
+                <!-- ===== Step 3: Review pending module ===== -->
                 <StackPanel x:Name="ConfirmStepPanel" Visibility="Collapsed">
-                    <TextBlock Text="Preview Changes:" FontSize="14" FontWeight="SemiBold"
+                    <TextBlock Text="Review Module:" FontSize="14" FontWeight="SemiBold"
                                Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,10" />
                     <Border Background="{StaticResource ScreenBackgroundBrush}" CornerRadius="8" Padding="14,12" Margin="0,0,0,16">
                         <StackPanel>
@@ -153,45 +142,9 @@
                             </Grid>
                         </StackPanel>
                     </Border>
-
-                    <TextBlock Text="Enter Technician Code:" FontSize="14" FontWeight="SemiBold"
-                               Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,8" />
-                    <Border Background="{StaticResource ScreenBackgroundBrush}" CornerRadius="8"
-                            BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="1" Margin="0,0,0,12">
-                        <TextBox x:Name="TechnicianCodeTextBox" Background="Transparent" BorderThickness="0"
-                                 Padding="12,12" FontSize="16" Height="48" VerticalContentAlignment="Center"
-                                 IsReadOnly="True" />
-                    </Border>
-
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-
-                        <Button Grid.Row="0" Grid.Column="0" Style="{StaticResource KeypadButtonStyle}" Tag="1" Click="OnDigitClick">1</Button>
-                        <Button Grid.Row="0" Grid.Column="1" Style="{StaticResource KeypadButtonStyle}" Tag="2" Click="OnDigitClick">2</Button>
-                        <Button Grid.Row="0" Grid.Column="2" Style="{StaticResource KeypadButtonStyle}" Tag="3" Click="OnDigitClick">3</Button>
-
-                        <Button Grid.Row="1" Grid.Column="0" Style="{StaticResource KeypadButtonStyle}" Tag="4" Click="OnDigitClick">4</Button>
-                        <Button Grid.Row="1" Grid.Column="1" Style="{StaticResource KeypadButtonStyle}" Tag="5" Click="OnDigitClick">5</Button>
-                        <Button Grid.Row="1" Grid.Column="2" Style="{StaticResource KeypadButtonStyle}" Tag="6" Click="OnDigitClick">6</Button>
-
-                        <Button Grid.Row="2" Grid.Column="0" Style="{StaticResource KeypadButtonStyle}" Tag="7" Click="OnDigitClick">7</Button>
-                        <Button Grid.Row="2" Grid.Column="1" Style="{StaticResource KeypadButtonStyle}" Tag="8" Click="OnDigitClick">8</Button>
-                        <Button Grid.Row="2" Grid.Column="2" Style="{StaticResource KeypadButtonStyle}" Tag="9" Click="OnDigitClick">9</Button>
-
-                        <Button Grid.Row="3" Grid.Column="0" Style="{StaticResource KeypadButtonStyle}" Click="OnClearClick">Clear</Button>
-                        <Button Grid.Row="3" Grid.Column="1" Style="{StaticResource KeypadButtonStyle}" Tag="0" Click="OnDigitClick">0</Button>
-                        <Button Grid.Row="3" Grid.Column="2" Style="{StaticResource KeypadButtonStyle}" Click="OnBackspaceClick">&#9003; Backspace</Button>
-                    </Grid>
+                    <TextBlock Text="This module will remain pending until the complete machine line is reviewed and authorized."
+                               FontSize="13" Foreground="{StaticResource TextMutedBrush}"
+                               TextWrapping="Wrap" />
                 </StackPanel>
 
                 <!-- ===== Cancel / Continue / Confirm ===== -->

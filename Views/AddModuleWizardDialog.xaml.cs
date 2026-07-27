@@ -14,8 +14,9 @@ namespace CPBourg.NextGenGui.Views
     /// </summary>
     public partial class AddModuleWizardDialog : UserControl
     {
-        /// <summary>Raised when Confirm is clicked with a non-empty
-        /// technician code entered.</summary>
+        /// <summary>Raised when the operator confirms the pending module
+        /// selection. Technician authorization happens later, once for the
+        /// complete line configuration.</summary>
         public event EventHandler<AddModuleRequestInfo> Confirmed;
 
         private string _anchorModuleType;
@@ -44,8 +45,6 @@ namespace CPBourg.NextGenGui.Views
                 .ToList();
             _pendingModuleType = options.FirstOrDefault()?.ModuleType;
             ModuleOptionsItemsControl.ItemsSource = options;
-
-            TechnicianCodeTextBox.Text = string.Empty;
 
             ShowModuleStep();
             Visibility = Visibility.Visible;
@@ -159,35 +158,10 @@ namespace CPBourg.NextGenGui.Views
             ShowConfirmStep();
         }
 
-        // ================= Step 3: Technician Confirmation =================
-
-        private void OnDigitClick(object sender, RoutedEventArgs e)
-        {
-            string digit = (string)((Button)sender).Tag;
-            TechnicianCodeTextBox.Text += digit;
-        }
-
-        private void OnClearClick(object sender, RoutedEventArgs e)
-        {
-            TechnicianCodeTextBox.Text = string.Empty;
-        }
-
-        private void OnBackspaceClick(object sender, RoutedEventArgs e)
-        {
-            string text = TechnicianCodeTextBox.Text;
-            if (text.Length > 0)
-            {
-                TechnicianCodeTextBox.Text = text.Substring(0, text.Length - 1);
-            }
-        }
+        // ================= Step 3: Review pending module =================
 
         private void OnConfirmClick(object sender, RoutedEventArgs e)
         {
-            if (TechnicianCodeTextBox.Text.Length == 0)
-            {
-                return;
-            }
-
             Visibility = Visibility.Collapsed;
             Confirmed?.Invoke(this, new AddModuleRequestInfo(_pendingModuleType, _pendingPlaceBeforeAnchor, BuildPositionSummary()));
         }

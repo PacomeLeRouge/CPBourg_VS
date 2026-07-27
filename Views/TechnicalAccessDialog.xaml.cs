@@ -23,7 +23,18 @@ namespace CPBourg.NextGenGui.Views
 
         public void Open()
         {
+            Open(
+                "Technical Access",
+                "Enter your technician code to unlock protected actions.",
+                "Unlock");
+        }
+
+        public void Open(string title, string description, string submitLabel)
+        {
             _code = string.Empty;
+            DialogTitleText.Text = title;
+            DialogDescriptionText.Text = description;
+            SubmitButtonText.Text = submitLabel;
             ValidationText.Visibility = Visibility.Collapsed;
             RefreshMaskedCode();
             Visibility = Visibility.Visible;

@@ -19,11 +19,12 @@
                 Background="{StaticResource CardBackgroundBrush}"
                 HorizontalAlignment="Center" VerticalAlignment="Center">
             <StackPanel>
-                <TextBlock Text="Technical Access" FontSize="22" FontWeight="Medium"
+                <TextBlock x:Name="DialogTitleText" Text="Technical Access" FontSize="22" FontWeight="Medium"
                            Foreground="{StaticResource TextPrimaryBrush}" />
-                <TextBlock Text="Enter your technician code to unlock protected actions."
+                <TextBlock x:Name="DialogDescriptionText"
+                           Text="Enter your technician code to unlock protected actions."
                            FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
-                           Margin="0,4,0,16" />
+                           TextWrapping="Wrap" Margin="0,4,0,16" />
                 <Border Height="1" Background="{StaticResource CardBorderBrush}" Margin="0,0,0,18" />
 
                 <TextBlock Text="Enter Technician Code:" FontSize="14" FontWeight="SemiBold"
@@ -77,7 +78,7 @@
                     <Button Grid.Column="2" MinHeight="52" Click="OnUnlockClick"
                             Background="{StaticResource JobsAccentBrush}"
                             Foreground="{StaticResource JobsAccentForegroundBrush}" BorderThickness="0">
-                        <TextBlock Text="Unlock" FontSize="15" FontWeight="Medium" />
+                        <TextBlock x:Name="SubmitButtonText" Text="Unlock" FontSize="15" FontWeight="Medium" />
                     </Button>
                 </Grid>
             </StackPanel>
