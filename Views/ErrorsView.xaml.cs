@@ -26,6 +26,10 @@ namespace CPBourg.NextGenGui.Views
         /// Alerts card reflects the real current state.</summary>
         public event EventHandler MessagesChanged;
 
+        /// <summary>Raised by the bottom-left Home action. MainWindow handles
+        /// the request through its shared navigation method.</summary>
+        public event EventHandler NavigateHomeRequested;
+
         public int CriticalCount { get; private set; }
         public int WarningCount { get; private set; }
         public int InfoCount { get; private set; }
@@ -117,6 +121,11 @@ namespace CPBourg.NextGenGui.Views
         {
             _allMessages.Clear();
             RefreshMessages();
+        }
+
+        private void OnHomeClick(object sender, RoutedEventArgs e)
+        {
+            NavigateHomeRequested?.Invoke(this, EventArgs.Empty);
         }
     }
 }

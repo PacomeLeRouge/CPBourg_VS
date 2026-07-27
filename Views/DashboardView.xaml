@@ -182,11 +182,11 @@
 								<TextBlock Text="Completed Sets" Foreground="{StaticResource TextMutedBrush}"
 								           FontSize="12" Margin="0,0,0,5" />
 								<StackPanel Orientation="Horizontal">
-									<Button Style="{StaticResource CounterStepButtonStyle}" Click="OnCompletedDecrementClick"
+									<Button x:Name="CompletedSetsMinusButton" Style="{StaticResource CounterStepButtonStyle}" Click="OnCompletedDecrementClick"
 									        ToolTip="Decrease completed sets by 1">
 										<TextBlock Text="&#xE738;" FontFamily="{StaticResource IconFontFamily}" FontSize="22" />
 									</Button>
-									<Button Style="{StaticResource CounterValueButtonStyle}" Click="OnCompletedInputClick"
+									<Button x:Name="CompletedSetsValueButton" Style="{StaticResource CounterValueButtonStyle}" Click="OnCompletedInputClick"
 									        ToolTip="Enter completed sets">
 										<Grid>
 											<Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
@@ -199,7 +199,7 @@
 											           VerticalAlignment="Center" />
 										</Grid>
 									</Button>
-									<Button Style="{StaticResource CounterStepButtonStyle}" Click="OnCompletedIncrementClick"
+									<Button x:Name="CompletedSetsPlusButton" Style="{StaticResource CounterStepButtonStyle}" Click="OnCompletedIncrementClick"
 									        ToolTip="Increase completed sets by 1">
 										<TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFontFamily}" FontSize="22" />
 									</Button>
@@ -214,11 +214,11 @@
 								<TextBlock Text="Preset (0 = unlimited)" Foreground="{StaticResource TextMutedBrush}"
 								           FontSize="12" Margin="0,0,0,5" />
 								<StackPanel Orientation="Horizontal">
-									<Button Style="{StaticResource CounterStepButtonStyle}" Click="OnCounterDecrementClick"
+									<Button x:Name="PresetMinusButton" Style="{StaticResource CounterStepButtonStyle}" Click="OnCounterDecrementClick"
 									        ToolTip="Decrease preset by 1">
 										<TextBlock Text="&#xE738;" FontFamily="{StaticResource IconFontFamily}" FontSize="22" />
 									</Button>
-									<Button Style="{StaticResource CounterValueButtonStyle}" Click="OnPresetInputClick"
+									<Button x:Name="PresetValueButton" Style="{StaticResource CounterValueButtonStyle}" Click="OnPresetInputClick"
 									        ToolTip="Enter preset sets">
 										<Grid>
 											<Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
@@ -231,7 +231,7 @@
 											           VerticalAlignment="Center" />
 										</Grid>
 									</Button>
-									<Button Style="{StaticResource CounterStepButtonStyle}" Click="OnCounterIncrementClick"
+									<Button x:Name="PresetPlusButton" Style="{StaticResource CounterStepButtonStyle}" Click="OnCounterIncrementClick"
 									        ToolTip="Increase preset by 1">
 										<TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFontFamily}" FontSize="22" />
 									</Button>

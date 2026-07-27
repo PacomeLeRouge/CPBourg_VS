@@ -43,6 +43,7 @@ namespace CPBourg.NextGenGui.Views
             Dashboard.NavigateToJobsRequested += (s, e) => NavigateTo("Job / File Menu");
             Dashboard.NavigateToErrorsRequested += (s, e) => NavigateTo("Error & Information");
             Dashboard.NavigateToStfoRequested += (s, e) => NavigateToStfo();
+            ErrorsScreen.NavigateHomeRequested += (s, e) => NavigateTo("Home");
 
             // The STFO wizard drives the shell header title as its step
             // changes, and asks to return to the dashboard on Back-from-first /

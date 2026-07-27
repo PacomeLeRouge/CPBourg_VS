@@ -1156,6 +1156,15 @@ sheets are moving. The controls use a clearly muted disabled appearance during
 the run and become available again in Ready, Paused, Stopped, and Completed
 states.
 
+### v41 - Persistent counter readouts and Errors Home action
+
+While production is Running, the Counter and Productivity number readouts stay
+at full contrast so operators can continue monitoring completed sets and the
+preset. Direct keypad entry remains blocked, while only the editable action
+buttons use the muted disabled treatment. The Errors & Information screen now
+also includes a bottom-left Home button that returns through the shell's shared
+navigation path.
+
 ### Languages (FR-10)
 
 The stage labels in `Startup/StartupStage.cs` are the strings that will move to

@@ -215,8 +215,21 @@
             </Grid>
         </Border>
 
-        <!-- Clear button - deliberately outside the white Active Messages
-             card, sitting on the page background, per feedback. -->
+        <!-- Home and Clear actions sit outside the white Active Messages
+             card on the page background. -->
+        <Button x:Name="HomeButton" Grid.Row="4" HorizontalAlignment="Left"
+                MinHeight="48" MinWidth="140" Padding="16,10"
+                Background="{StaticResource CardBackgroundBrush}"
+                BorderBrush="{StaticResource OutlineButtonBorderBrush}" BorderThickness="1"
+                Cursor="Hand" Click="OnHomeClick">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="&#xE80F;" FontFamily="{StaticResource IconFontFamily}" FontSize="16"
+                           Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                <TextBlock Text="Home" FontSize="15" Margin="9,0,0,0"
+                           Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+            </StackPanel>
+        </Button>
+
         <Button Grid.Row="4" HorizontalAlignment="Right" MinHeight="48" MinWidth="120"
                 Background="{StaticResource JobsAccentBrush}"
                 Foreground="{StaticResource JobsAccentForegroundBrush}" BorderThickness="0"
