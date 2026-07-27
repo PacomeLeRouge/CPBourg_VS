@@ -346,7 +346,7 @@
                                                Foreground="{StaticResource JobsAccentBrush}"
                                                HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
-                                <TextBlock Grid.Column="1" Text="Review Changes" FontSize="15" FontWeight="Medium"
+                                <TextBlock Grid.Column="1" Text="Review &amp; Confirm" FontSize="15" FontWeight="Medium"
                                            Margin="14,0,0,0" VerticalAlignment="Center" />
                             </Grid>
                         </Button>
@@ -393,5 +393,7 @@
         <!-- Action dialog overlay - covers the whole screen and shows/hides itself -->
         <local:AddModuleWizardDialog x:Name="AddModuleWizardDialogControl" Grid.Row="0" Grid.RowSpan="3"
                                       Confirmed="OnAddModuleConfirmed" />
+        <local:TechnicalAccessDialog x:Name="ConfigurationPinDialog" Grid.Row="0" Grid.RowSpan="3"
+                                     AccessGranted="OnConfigurationPinConfirmed" />
     </Grid>
 </UserControl>

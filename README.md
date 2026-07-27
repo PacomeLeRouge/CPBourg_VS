@@ -1165,6 +1165,24 @@ buttons use the muted disabled treatment. The Errors & Information screen now
 also includes a bottom-left Home button that returns through the shell's shared
 navigation path.
 
+### v42 - One final PIN for Machine Line Configuration
+
+Technician authorization now occurs once, at the end of the Machine Line
+Configuration workflow:
+
+- Add Module ends with a PIN-free review of the selected module and position.
+- Add, Remove, and Replace update the on-screen line as pending changes without
+  immediately publishing them to the Home dashboard.
+- Configuration Status clearly identifies unsaved changes, and **Review &
+  Confirm** becomes available whenever the line has pending edits.
+- Review & Confirm opens the technician keypad. A non-empty prototype PIN
+  applies the complete line, clears the pending status, and publishes one
+  confirmed `LineChanged` update to Home.
+
+Cancelling the final PIN leaves the configuration pending so the operator can
+continue editing or return to Review & Confirm later. The existing Technician
+Interface access prompt continues to use its original title and Unlock action.
+
 ### Languages (FR-10)
 
 The stage labels in `Startup/StartupStage.cs` are the strings that will move to
@@ -1196,8 +1214,9 @@ inline for the prototype and marked with a comment.
 | `Views/ErrorDetailDialog.xaml(.cs)` | Error/warning detail overlay |
 | `Views/ErrorSeverityToBrushConverter.cs` | Maps `ErrorSeverity` to theme brushes |
 | `Views/MachineLineConfigurationView.xaml(.cs)` | Machine Line Configuration screen (Empty / Single / Overview states) |
+| `Views/AddModuleWizardDialog.xaml(.cs)` | PIN-free module selection, position, and pending-edit review workflow |
 | `Views/TechnicianInterfaceView.xaml(.cs)` | Responsive Technician Interface screen and saved control state |
-| `Views/TechnicalAccessDialog.xaml(.cs)` | Masked numeric technician-code keypad overlay |
+| `Views/TechnicalAccessDialog.xaml(.cs)` | Configurable masked technician-code keypad used for protected final actions |
 | `Views/NumericInputDialog.xaml(.cs)` | Reusable touchscreen keypad for non-negative whole-number entry |
 | `Views/DecimalInputDialog.xaml(.cs)` | Decimal touchscreen keypad with optional negative-value entry |
 | `Views/DateTimeSettingsDialog.xaml(.cs)` | Operator-interface date and 24-hour time editor |
