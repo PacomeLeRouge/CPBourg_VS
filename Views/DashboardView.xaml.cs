@@ -63,6 +63,7 @@ namespace CPBourg.NextGenGui.Views
 
         private readonly DispatcherTimer _productionTimer;
         private ProductionState _productionState = ProductionState.Ready;
+        private int _activeErrorCount;
 
         private enum ProductionState
         {
@@ -136,6 +137,8 @@ namespace CPBourg.NextGenGui.Views
         /// </summary>
         public void UpdateAlertsSummary(int critical, int warning, int info, int total)
         {
+            _activeErrorCount = Math.Max(0, total);
+
             Brush fg, bg;
             string headline;
             string subtitle;
@@ -183,6 +186,7 @@ namespace CPBourg.NextGenGui.Views
             AlertsCriticalCountText.Text = critical.ToString("N0");
             AlertsWarningCountText.Text = warning.ToString("N0");
             AlertsInfoCountText.Text = info.ToString("N0");
+            RefreshProductionButtons();
         }
 
         // ================= Counter / line controls =================
@@ -284,6 +288,7 @@ namespace CPBourg.NextGenGui.Views
         private void MarkCounterChangesPending(string message)
         {
             _hasPendingCounterChanges = true;
+            RefreshProductionButtons();
             ShowAction(message + " Select Confirm to apply the changes.");
         }
 
@@ -403,6 +408,7 @@ namespace CPBourg.NextGenGui.Views
             _confirmedPresetTarget = _presetTarget;
             UpdateConfirmedCounterDisplay();
             _hasPendingCounterChanges = false;
+            RefreshProductionButtons();
 
             string target = _confirmedPresetTarget == 0
                 ? "unlimited"
@@ -432,16 +438,22 @@ namespace CPBourg.NextGenGui.Views
                 return;
             }
 
+            if (_activeErrorCount > 0)
+            {
+                ShowAction("Resolve all active errors before starting production.");
+                return;
+            }
+
             if (_hasPendingCounterChanges)
             {
                 ShowAction("Confirm the pending counter changes before starting.");
                 return;
             }
 
-            if (_productionState == ProductionState.Stopped ||
-                _productionState == ProductionState.Completed)
+            if (_productionState != ProductionState.Ready &&
+                _productionState != ProductionState.Paused &&
+                _productionState != ProductionState.Stopped)
             {
-                ShowAction("Purge the line before starting a new production run.");
                 return;
             }
 
@@ -453,10 +465,15 @@ namespace CPBourg.NextGenGui.Views
             }
 
             bool wasPaused = _productionState == ProductionState.Paused;
+            bool wasStopped = _productionState == ProductionState.Stopped;
             _productionState = ProductionState.Running;
             _productionTimer.Start();
             SetJobStatus("Running", "StatusRunningBrush", "StatusRunningBgBrush");
-            ShowAction(wasPaused ? "Production resumed." : "Production started.");
+            ShowAction(wasPaused
+                ? "Production resumed."
+                : wasStopped
+                    ? "Production restarted."
+                    : "Production started.");
             RefreshProductionButtons();
         }
 
@@ -485,7 +502,7 @@ namespace CPBourg.NextGenGui.Views
             _productionTimer.Stop();
             _productionState = ProductionState.Stopped;
             SetJobStatus("Stopped", "StatusErrorBrush", "StatusErrorBgBrush");
-            ShowAction("Production stopped. Purge is required before restarting.");
+            ShowAction("Production stopped. Select Start to restart or Purge to reset the line.");
             RefreshProductionButtons();
         }
 
@@ -546,13 +563,20 @@ namespace CPBourg.NextGenGui.Views
         private void RefreshProductionButtons()
         {
             bool hasJob = _currentJob != null;
-            StartButton.IsEnabled = hasJob &&
+            bool canStartFromState =
                 (_productionState == ProductionState.Ready ||
-                 _productionState == ProductionState.Paused);
+                 _productionState == ProductionState.Paused ||
+                 _productionState == ProductionState.Stopped);
+
+            StartButton.IsEnabled = hasJob &&
+                                    _activeErrorCount == 0 &&
+                                    !_hasPendingCounterChanges &&
+                                    canStartFromState;
             PauseButton.IsEnabled = _productionState == ProductionState.Running;
             StopButton.IsEnabled = _productionState == ProductionState.Running ||
                                    _productionState == ProductionState.Paused;
-            PurgeButton.IsEnabled = true;
+            PurgeButton.IsEnabled = _productionState == ProductionState.Stopped ||
+                                    _productionState == ProductionState.Completed;
         }
     }
 }
