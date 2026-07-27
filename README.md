@@ -1092,6 +1092,24 @@ and conveyor counting/advance indices are intentionally unchanged.
 The selected unit is session-local like the other operator preferences; future
 durable preference storage can persist the same `MeasurementUnit` value.
 
+### v38 - Run simulation button-state behavior
+
+The Dashboard production controls now follow the live machine state and the
+active Errors-screen total:
+
+- **Start** is available with a loaded job, no active errors, no unconfirmed
+  counter edits, and a Ready, Paused, or Stopped machine.
+- **Pause** is available while production is Running.
+- **Stop** is available while production is Running or Paused.
+- **Purge** is available only after the machine is Stopped or a preset run is
+  Completed.
+
+Stopping no longer makes Purge a prerequisite for another run. With no active
+errors, Start restarts directly from Stopped while retaining the completed
+count; Purge remains the explicit option for resetting the line, completed
+sets, and preset. Changes to the Errors screen immediately refresh Start
+availability.
+
 ### Languages (FR-10)
 
 The stage labels in `Startup/StartupStage.cs` are the strings that will move to
