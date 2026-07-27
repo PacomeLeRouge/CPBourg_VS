@@ -130,9 +130,9 @@ namespace CPBourg.NextGenGui.Views
         /// <summary>
         /// Reflects the real alert counts from the Errors & Information
         /// screen. Shows the plain "No active alerts" / all-clear message
-        /// only when <paramref name="total"/> is zero; otherwise shows the
-        /// actual counts and a status coloured by the highest severity
-        /// present (critical > warning > info).
+        /// only when <paramref name="total"/> is zero; otherwise the severity
+        /// strip supplies the detailed counts and the summary is coloured by
+        /// the highest severity present (critical > warning > info).
         /// </summary>
         public void UpdateAlertsSummary(int critical, int warning, int info, int total)
         {
@@ -169,12 +169,7 @@ namespace CPBourg.NextGenGui.Views
                 }
 
                 headline = total + (total == 1 ? " active alert" : " active alerts");
-
-                var parts = new List<string>();
-                if (critical > 0) parts.Add(critical + " critical");
-                if (warning > 0) parts.Add(warning + " warning" + (warning == 1 ? "" : "s"));
-                if (info > 0) parts.Add(info + " info");
-                subtitle = string.Join(" \u00b7 ", parts);
+                subtitle = string.Empty;
             }
 
             AlertsIconText.Foreground = fg;
@@ -182,6 +177,12 @@ namespace CPBourg.NextGenGui.Views
             AlertsIconText.Text = iconGlyph;
             AlertsHeadlineText.Text = headline;
             AlertsSubtitleText.Text = subtitle;
+            AlertsSubtitleText.Visibility = total == 0
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+            AlertsCriticalCountText.Text = critical.ToString("N0");
+            AlertsWarningCountText.Text = warning.ToString("N0");
+            AlertsInfoCountText.Text = info.ToString("N0");
         }
 
         // ================= Counter / line controls =================
@@ -198,6 +199,7 @@ namespace CPBourg.NextGenGui.Views
         private int _presetTarget;   // 0 == unlimited (shown as the infinity glyph)
         private int _confirmedCompletedSets;
         private int _confirmedPresetTarget;
+        private bool _hasPendingCounterChanges;
         private CounterInputKind _pendingCounterInput;
         private JobRecord _currentJob;
         private MeasurementUnit _measurementUnit = MeasurementUnit.Millimeters;
@@ -228,9 +230,7 @@ namespace CPBourg.NextGenGui.Views
                 ? "\u221E"
                 : _confirmedPresetTarget.ToString("N0");
 
-            MiniCompletedSetsText.Text = completed;
             JobCompletedText.Text = completed;
-            MiniPresetText.Text = target;
             JobQuantityText.Text = target;
         }
 
@@ -283,7 +283,7 @@ namespace CPBourg.NextGenGui.Views
 
         private void MarkCounterChangesPending(string message)
         {
-            ConfirmCounterChangesButton.IsEnabled = true;
+            _hasPendingCounterChanges = true;
             ShowAction(message + " Select Confirm to apply the changes.");
         }
 
@@ -402,7 +402,7 @@ namespace CPBourg.NextGenGui.Views
             _confirmedCompletedSets = _completedSets;
             _confirmedPresetTarget = _presetTarget;
             UpdateConfirmedCounterDisplay();
-            ConfirmCounterChangesButton.IsEnabled = false;
+            _hasPendingCounterChanges = false;
 
             string target = _confirmedPresetTarget == 0
                 ? "unlimited"
@@ -432,7 +432,7 @@ namespace CPBourg.NextGenGui.Views
                 return;
             }
 
-            if (ConfirmCounterChangesButton.IsEnabled)
+            if (_hasPendingCounterChanges)
             {
                 ShowAction("Confirm the pending counter changes before starting.");
                 return;
@@ -537,7 +537,7 @@ namespace CPBourg.NextGenGui.Views
                 _presetTarget = _confirmedPresetTarget;
             }
 
-            ConfirmCounterChangesButton.IsEnabled = false;
+            _hasPendingCounterChanges = false;
             UpdateCounterDisplay();
             UpdateConfirmedCounterDisplay();
             RefreshProductionButtons();

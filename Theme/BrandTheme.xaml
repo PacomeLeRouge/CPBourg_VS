@@ -66,10 +66,10 @@
     <SolidColorBrush x:Key="PrimaryButtonForegroundBrush" Color="#FFFFFFFF" />
     <SolidColorBrush x:Key="OutlineButtonBorderBrush"     Color="#FFCACBCF" />
 
-    <!-- === Current Jobs accent ===
-         Per feedback, the "New Job" button uses blue (matching the Idle
-         status colour) rather than the orange brand accent, to distinguish
-         job actions from machine-control actions. -->
+    <!-- === Interactive accent ===
+         Blue marks selected states and primary actions in focused workflows
+         such as dialogs. Secondary Home-card actions intentionally retain
+         the shared neutral system-button treatment. -->
     <SolidColorBrush x:Key="JobsAccentBrush" Color="#FF2F6FED" />
     <SolidColorBrush x:Key="JobsAccentForegroundBrush" Color="#FFFFFFFF" />
 

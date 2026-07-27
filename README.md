@@ -1092,6 +1092,43 @@ and conveyor counting/advance indices are intentionally unchanged.
 The selected unit is session-local like the other operator preferences; future
 durable preference storage can persist the same `MeasurementUnit` value.
 
+### v38 - Dashboard counter and alert alignment
+
+The Home dashboard now uses shared grid tracks for related controls instead of
+positioning each row independently. **Reset to zero** occupies the same column
+and width as the Completed Sets editor, while **Set target** does the same for
+the Preset editor. Their alignment therefore remains stable when the window is
+resized or maximized.
+
+The former grey Completed sets / Preset / Output per-hour footer has been
+removed because it repeated the information directly above it. The editable
+Completed Sets and Preset values, Confirm, Reset to zero, Set target, and
+Output per hour now form a strict two-row control area. The first row contains
+Completed Sets, Preset, and Output per hour; the second row contains their
+corresponding Reset to zero, Set target, and Confirm actions. The Counter card
+now receives 6/11 of the left-column height instead of 2/3, giving the Machines
+card the remaining 5/11 and vertically centring its module tiles in the larger
+area.
+
+Home-page action buttons now use the same neutral system button treatment and
+52-pixel touch height. New job no longer has a one-off blue background, and
+its label uses the same regular weight as Load job. Confirm also no longer
+changes to a lighter visual style when there are no pending
+edits. Pending counter state is tracked separately so production still cannot
+start until changed values are confirmed.
+
+The Active Alerts summary is a single icon / message / action grid. **View
+errors** stays vertically centred with the alert summary rather than wrapping
+under the message or drifting within the extra full-screen space. A live
+severity strip now shows separate Critical, Warning, and Information counts
+from the same Errors-screen data source. When alerts exist, the former
+count-summary subtitle is hidden so those counts are displayed only once; the
+all-clear explanatory subtitle remains when the total is zero. The headline
+block is vertically centred against the alert icon in both states.
+
+The revised dashboard was render-checked at the default 1280 x 820 window size
+and at a 2048 x 1192 widescreen size.
+
 ### Languages (FR-10)
 
 The stage labels in `Startup/StartupStage.cs` are the strings that will move to
