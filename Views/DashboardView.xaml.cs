@@ -563,6 +563,7 @@ namespace CPBourg.NextGenGui.Views
         private void RefreshProductionButtons()
         {
             bool hasJob = _currentJob != null;
+            bool canEditCounters = _productionState != ProductionState.Running;
             bool canStartFromState =
                 (_productionState == ProductionState.Ready ||
                  _productionState == ProductionState.Paused ||
@@ -577,6 +578,27 @@ namespace CPBourg.NextGenGui.Views
                                    _productionState == ProductionState.Paused;
             PurgeButton.IsEnabled = _productionState == ProductionState.Stopped ||
                                     _productionState == ProductionState.Completed;
+
+            // Counter values form one transactional editing surface. Lock all
+            // entry points while sheets are moving, then restore them when the
+            // line is paused, stopped, completed, or ready.
+            CompletedSetsMinusButton.IsEnabled = canEditCounters;
+            CompletedSetsPlusButton.IsEnabled = canEditCounters;
+            PresetMinusButton.IsEnabled = canEditCounters;
+            PresetPlusButton.IsEnabled = canEditCounters;
+            ResetToZeroButton.IsEnabled = canEditCounters;
+            SetTargetButton.IsEnabled = canEditCounters;
+            ConfirmCounterChangesButton.IsEnabled = canEditCounters;
+
+            // Keep the live number displays fully legible while blocking
+            // mouse, touch, and keyboard entry until production is paused or
+            // stopped. They deliberately remain enabled visually.
+            CompletedSetsValueButton.IsHitTestVisible = canEditCounters;
+            CompletedSetsValueButton.Focusable = canEditCounters;
+            CompletedSetsValueButton.Cursor = canEditCounters ? Cursors.Hand : Cursors.Arrow;
+            PresetValueButton.IsHitTestVisible = canEditCounters;
+            PresetValueButton.Focusable = canEditCounters;
+            PresetValueButton.Cursor = canEditCounters ? Cursors.Hand : Cursors.Arrow;
         }
     }
 }
