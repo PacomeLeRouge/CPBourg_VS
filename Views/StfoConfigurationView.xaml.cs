@@ -11,7 +11,7 @@ namespace CPBourg.NextGenGui.Views
 {
     /// <summary>
     /// Individual Machine Configuration screen for the STFO (booklet maker) -
-    /// a five-step wizard (Menu / Stitching / Folding / Trimming / Conveyor)
+    /// a five-step wizard (Overview / Stitching / Folding / Trimming / Conveyor)
     /// for a job's settings. Reached by tapping the STFO tile on the Home
     /// dashboard (see <see cref="DashboardView.NavigateToStfoRequested"/>).
     ///
@@ -25,16 +25,7 @@ namespace CPBourg.NextGenGui.Views
     {
         private static readonly string[] StepNames =
         {
-            "Menu", "Stitching", "Folding", "Trimming", "Conveyor",
-        };
-
-        private static readonly string[] StepCaptions =
-        {
-            "Overview and live machine preview.",
-            "Configure stitching for this job.",
-            "Configure folding for this job.",
-            "Configure trimming for this job.",
-            "Configure the conveyor / output for this job.",
+            "Overview", "Stitching", "Folding", "Trimming", "Conveyor",
         };
 
         private const int StitchingStep = 1;
@@ -56,7 +47,7 @@ namespace CPBourg.NextGenGui.Views
 
         private const bool DefaultTrimEnabled = true;
         private const double DefaultFinalLength = 205;
-        private const string DefaultClampHeight = "Auto";
+        private const double DefaultClampPressure = 50;
         private const bool DefaultChipBlower = true;
 
         private const int DefaultBookletSpacing = 8;
@@ -105,11 +96,8 @@ namespace CPBourg.NextGenGui.Views
         // Trimming parameters (defaults match the controls set in XAML).
         private bool _trimEnabled = DefaultTrimEnabled;
         private double _finalLength = DefaultFinalLength;
-        private string _clampHeight = DefaultClampHeight;
+        private double _clampPressure = DefaultClampPressure;
         private bool _chipBlower = DefaultChipBlower;
-
-        private Button[] _clampButtons;
-        private TextBlock[] _clampLabels;
 
         // Conveyor parameters (defaults match the controls set in XAML).
         private int _bookletSpacing = DefaultBookletSpacing;
@@ -143,7 +131,7 @@ namespace CPBourg.NextGenGui.Views
         {
             public bool Enabled;
             public double FinalLength;
-            public string ClampHeight;
+            public double ClampPressure;
             public bool ChipBlower;
         }
 
@@ -188,8 +176,8 @@ namespace CPBourg.NextGenGui.Views
             UpdateFoldSummary();
             RedrawFoldPreview();
 
-            _clampButtons = new[] { ClampAutoButton, ClampMaximumButton, ClampMinimumButton };
-            _clampLabels = new[] { ClampAutoLabel, ClampMaximumLabel, ClampMinimumLabel };
+            _clampPressure = ClampPressureSlider.Value;
+            ClampPressureValueText.Text = _clampPressure.ToString("0", CultureInfo.InvariantCulture) + "%";
             RefreshTrimChoiceButtons();
             UpdateTrimSummary();
             RedrawTrimPreview();
@@ -267,8 +255,8 @@ namespace CPBourg.NextGenGui.Views
             RedrawTrimPreview();
         }
 
-        /// <summary>Resets the wizard to the first (Menu) step. Called when the
-        /// dashboard navigates in, so entry always lands on Menu.</summary>
+        /// <summary>Resets the wizard to the first (Overview) step. Called when
+        /// the dashboard navigates in, so entry always lands on Overview.</summary>
         public void ResetToStart()
         {
             RestoreSavedConfiguration(_currentStep);
@@ -315,14 +303,14 @@ namespace CPBourg.NextGenGui.Views
             ConveyorContent.Visibility = isConveyor ? Visibility.Visible : Visibility.Collapsed;
             OverviewContent.Visibility = (!isStitching && !isFolding && !isTrimming && !isConveyor) ? Visibility.Visible : Visibility.Collapsed;
 
-            StepCaptionText.Text = StepCaptions[_currentStep];
-
             BackButtonText.Text = _currentStep == 0 ? "Back" : "Back: " + StepNames[_currentStep - 1];
 
             // Last step commits the whole configuration (Confirm) rather than
             // advancing.
             bool isLast = _currentStep == StepNames.Length - 1;
             NextButtonText.Text = isLast ? "Confirm" : "Next: " + StepNames[_currentStep + 1];
+            ResetStepButton.Visibility = _currentStep == 0 ? Visibility.Collapsed : Visibility.Visible;
+            SaveStepButton.Visibility = _currentStep == 0 ? Visibility.Collapsed : Visibility.Visible;
 
             FooterStatusText.Text = string.Empty;
 
@@ -417,7 +405,7 @@ namespace CPBourg.NextGenGui.Views
             {
                 Enabled = settings.TrimEnabled,
                 FinalLength = settings.FinalBookletLength,
-                ClampHeight = settings.ClampHeight,
+                ClampPressure = settings.ClampPressure,
                 ChipBlower = settings.ChipBlower,
             });
             ApplyConveyorConfiguration(new ConveyorConfiguration
@@ -451,7 +439,7 @@ namespace CPBourg.NextGenGui.Views
 
                 TrimEnabled = _savedTrimming.Enabled,
                 FinalBookletLength = _savedTrimming.FinalLength,
-                ClampHeight = _savedTrimming.ClampHeight,
+                ClampPressure = _savedTrimming.ClampPressure,
                 ChipBlower = _savedTrimming.ChipBlower,
 
                 BookletSpacing = _savedConveyor.Spacing,
@@ -555,7 +543,7 @@ namespace CPBourg.NextGenGui.Views
             {
                 Enabled = _trimEnabled,
                 FinalLength = _finalLength,
-                ClampHeight = _clampHeight,
+                ClampPressure = _clampPressure,
                 ChipBlower = _chipBlower,
             };
         }
@@ -600,7 +588,7 @@ namespace CPBourg.NextGenGui.Views
             {
                 Enabled = DefaultTrimEnabled,
                 FinalLength = DefaultFinalLength,
-                ClampHeight = DefaultClampHeight,
+                ClampPressure = DefaultClampPressure,
                 ChipBlower = DefaultChipBlower,
             };
         }
@@ -652,7 +640,7 @@ namespace CPBourg.NextGenGui.Views
             _loaded = false;
             _foldEnabled = configuration.Enabled;
             _foldPosition = configuration.Position;
-            _pressureMode = configuration.PressureMode;
+            _pressureMode = configuration.PressureMode == "Manual" ? "Manual" : "Auto";
             FoldPositionSlider.Value = _foldPosition;
             FoldPositionValueText.Text = DisplayValue(_foldPosition, "0.0", "0.000");
             PressureSlider.Value = configuration.PressureLevel;
@@ -673,9 +661,11 @@ namespace CPBourg.NextGenGui.Views
             _loaded = false;
             _trimEnabled = configuration.Enabled;
             _finalLength = configuration.FinalLength;
-            _clampHeight = configuration.ClampHeight;
+            _clampPressure = Clamp(configuration.ClampPressure, 0, 100);
             _chipBlower = configuration.ChipBlower;
             FinalLengthBox.Text = DisplayValue(_finalLength, "0.0", "0.000");
+            ClampPressureSlider.Value = _clampPressure;
+            ClampPressureValueText.Text = _clampPressure.ToString("0", CultureInfo.InvariantCulture) + "%";
             _loaded = wasLoaded;
             RefreshTrimChoiceButtons();
             UpdateTrimSummary();
@@ -943,8 +933,9 @@ namespace CPBourg.NextGenGui.Views
             var labelBrush = (Brush)FindResource("TextSecondaryBrush");
             var stitchBrush = (Brush)FindResource("TextSecondaryBrush");
             var foldBrush = (Brush)FindResource("TextMutedBrush");
+            var pathBrush = (Brush)FindResource("JobsAccentBrush");
 
-            const double left = 90, top = 46, right = 20, bottom = 20;
+            const double left = 90, top = 46, right = 20, bottom = 58;
             double areaW = canvas.Width - left - right;
             double areaH = canvas.Height - top - bottom;
 
@@ -993,28 +984,41 @@ namespace CPBourg.NextGenGui.Views
                 case "Saddle":
                     // Centre fold (the spine) + a pair of stitches on it.
                     canvas.Children.Add(new Line { X1 = cx, Y1 = y0, X2 = cx, Y2 = y0 + sheetH, Stroke = foldBrush, StrokeThickness = 1, StrokeDashArray = new DoubleCollection { 3, 3 } });
-                    AddStitch(canvas, cx, Clamp(cy - halfGap, y0 + pad, y0 + sheetH - pad), 4, 14, 0, stitchBrush);
-                    AddStitch(canvas, cx, Clamp(cy + halfGap, y0 + pad, y0 + sheetH - pad), 4, 14, 0, stitchBrush);
+                    AddStitch(canvas, cx, Clamp(cy - halfGap, y0 + pad, y0 + sheetH - pad), 3, 14, -18, stitchBrush);
+                    AddStitch(canvas, cx, Clamp(cy + halfGap, y0 + pad, y0 + sheetH - pad), 3, 14, -18, stitchBrush);
                     break;
 
                 case "Top":
                     double ty = Clamp(y0 + 18 + _vOffset * pxPerMm, y0 + pad, y0 + sheetH - pad);
-                    AddStitch(canvas, Clamp(cx - halfGap, x0 + pad, x0 + sheetW - pad), ty, 14, 4, 0, stitchBrush);
-                    AddStitch(canvas, Clamp(cx + halfGap, x0 + pad, x0 + sheetW - pad), ty, 14, 4, 0, stitchBrush);
+                    AddStitch(canvas, Clamp(cx - halfGap, x0 + pad, x0 + sheetW - pad), ty, 3, 14, -18, stitchBrush);
+                    AddStitch(canvas, Clamp(cx + halfGap, x0 + pad, x0 + sheetW - pad), ty, 3, 14, -18, stitchBrush);
                     break;
 
                 case "Right Corner":
-                    AddStitch(canvas, x0 + sheetW - 20, y0 + 20, 18, 4, 45, stitchBrush);
+                    AddStitch(canvas, x0 + sheetW - 20, y0 + 20, 3, 18, -38, stitchBrush);
                     break;
 
                 case "Left Corner":
-                    AddStitch(canvas, x0 + 20, y0 + 20, 18, 4, -45, stitchBrush);
+                    AddStitch(canvas, x0 + 20, y0 + 20, 3, 18, 38, stitchBrush);
                     break;
 
                 case "None":
                     AddLabel(canvas, "No stitching", x0, y0 + sheetH / 2 - 10, sheetW, dimBrush, TextAlignment.Center);
                     break;
             }
+
+            double pathY = canvas.Height - 18;
+            AddHArrow(canvas, 52, 288, pathY, pathBrush, false);
+            var pathLabel = new TextBlock
+            {
+                Text = "INFEED  \u2192  PAPER PATH  \u2192  OUTPUT",
+                Width = 236,
+                FontSize = 15,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = pathBrush,
+                TextAlignment = TextAlignment.Center,
+            };
+            canvas.Children.Add(Positioned(pathLabel, 52, pathY - 26));
         }
 
         private static double Clamp(double value, double min, double max)
@@ -1129,7 +1133,7 @@ namespace CPBourg.NextGenGui.Views
         private void OnPressureChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             // Pressure level is internal state only in this prototype; the mode
-            // (Auto / Default / Manual) is what the summary reflects.
+            // (Auto / Manual) is what the summary reflects.
         }
 
         private void RefreshFoldChoiceButtons()
@@ -1137,15 +1141,16 @@ namespace CPBourg.NextGenGui.Views
             SetChoiceSelected(FoldEnabledButton, _foldEnabled);
             SetChoiceSelected(FoldDisabledButton, !_foldEnabled);
             SetChoiceSelected(PressureAutoButton, _pressureMode == "Auto");
-            SetChoiceSelected(PressureDefaultButton, _pressureMode == "Default");
             SetChoiceSelected(PressureManualButton, _pressureMode == "Manual");
 
             // Fold position only matters when folding is on; pressure is only
-            // hand-set in Manual mode (Auto/Default drive it automatically).
+            // hand-set in Manual mode (Auto drives it automatically).
             FoldMinusButton.IsEnabled = _foldEnabled;
             FoldPlusButton.IsEnabled = _foldEnabled;
             FoldPositionSlider.IsEnabled = _foldEnabled;
-            PressureSlider.IsEnabled = _pressureMode == "Manual";
+            PressureAutoButton.IsEnabled = _foldEnabled;
+            PressureManualButton.IsEnabled = _foldEnabled;
+            PressureSlider.IsEnabled = _foldEnabled && _pressureMode == "Manual";
         }
 
         private void SetChoiceSelected(Button button, bool selected)
@@ -1158,17 +1163,16 @@ namespace CPBourg.NextGenGui.Views
         private void UpdateFoldSummary()
         {
             FoldSummaryFolding.Text = _foldEnabled ? "Enabled" : "Disabled";
-            FoldSummaryPosition.Text = DisplayLength(_foldPosition, "0.00", "0.000");
-            FoldSummaryPressure.Text = _pressureMode;
+            FoldSummaryPosition.Text = _foldEnabled
+                ? DisplayLength(_foldPosition, "0.00", "0.000")
+                : "Bypass to top tray";
+            FoldSummaryPressure.Text = _foldEnabled ? _pressureMode : "Not used";
         }
 
         // ---- Folding live preview ----
         //
-        // An open booklet with a movable dashed fold line: the line (and the
-        // "Fold direction" arrow) shift to whichever side is selected via the
-        // fold position, and the offset arrow beneath shows the distance from
-        // centre. Positive = Forward (fold shifts right); negative = Backward
-        // (left).
+        // Shows the sheet moving left-to-right through the fold rollers. When
+        // folding is disabled the alternate path to the top tray is explicit.
 
         private void RedrawFoldPreview()
         {
@@ -1182,55 +1186,65 @@ namespace CPBourg.NextGenGui.Views
             var navy = (Brush)FindResource("HeaderBackgroundBrush");
             var labelBrush = (Brush)FindResource("TextSecondaryBrush");
 
-            const double cx = 170;
+            AddLabel(canvas, "Infeed", 12, 14, 70, labelBrush, TextAlignment.Left);
+            AddLabel(canvas, "BBM output", 247, 14, 82, labelBrush, TextAlignment.Right);
+            AddHArrow(canvas, 48, 294, 46, navy, false);
 
-            // Open booklet - left page recedes, right page faces the viewer.
-            AddPolygon(canvas, new double[,] { { 170, 102 }, { 96, 74 }, { 96, 210 }, { 170, 250 } }, pageFill, stroke);
-            AddPolygon(canvas, new double[,] { { 170, 102 }, { 250, 120 }, { 250, 252 }, { 170, 250 } }, pageFill, stroke);
+            // Incoming sheet and its adjustable fold line.
+            AddPolygon(canvas, new double[,] { { 32, 112 }, { 126, 94 }, { 126, 220 }, { 32, 238 } }, pageFill, stroke);
+            AddLine(canvas, 48, 142, 107, 132, grey, 4);
+            AddLine(canvas, 48, 158, 107, 148, grey, 4);
 
-            // Sample content on the front page.
-            AddLine(canvas, 192, 152, 236, 152, grey, 5);
-            AddLine(canvas, 192, 167, 236, 167, grey, 5);
-            AddLine(canvas, 192, 182, 230, 182, grey, 5);
-            AddRect(canvas, 196, 200, 26, 34, grey);
-
-            if (_foldEnabled)
+            if (!_foldEnabled)
             {
-                const double pxPerMm = 1.4;
-                double foldX = Clamp(cx + _foldPosition * pxPerMm, 104, 246);
-
-                canvas.Children.Add(new Line
-                {
-                    X1 = foldX,
-                    Y1 = 86,
-                    X2 = foldX,
-                    Y2 = 256,
-                    Stroke = muted,
-                    StrokeThickness = 1.5,
-                    StrokeDashArray = new DoubleCollection { 4, 3 },
-                });
-
-                double half = Clamp(Math.Abs(_foldPosition) * pxPerMm, 26, 120);
-                AddHArrow(canvas, cx - half, cx + half, 284, navy, true);
-                AddLabel(canvas, "Fold offset (from center)", cx - 120, 296, 240, labelBrush, TextAlignment.Center);
-
-                if (Math.Abs(_foldPosition) > 0.001)
-                {
-                    AddLabel(canvas, "Fold direction", 246, 126, 92, labelBrush, TextAlignment.Center);
-                    if (_foldPosition > 0)
-                    {
-                        AddHArrow(canvas, 262, 300, 158, navy, false);
-                    }
-                    else
-                    {
-                        AddHArrow(canvas, 300, 262, 158, navy, false);
-                    }
-                }
+                // Disabled sheets are diverted upward to the top tray.
+                AddArrow(canvas, 126, 150, 225, 82, navy);
+                AddLine(canvas, 220, 78, 302, 78, stroke, 3);
+                AddLine(canvas, 224, 85, 306, 85, grey, 3);
+                AddLine(canvas, 228, 92, 310, 92, grey, 3);
+                AddLabel(canvas, "Top tray", 224, 100, 86, labelBrush, TextAlignment.Center);
+                AddLabel(canvas, "Folding disabled: sheet bypasses fold rollers",
+                    35, 276, 270, muted, TextAlignment.Center);
+                return;
             }
-            else
+
+            const double centerX = 79;
+            const double pxPerMm = 0.9;
+            double foldX = Clamp(centerX + _foldPosition * pxPerMm, 48, 110);
+            canvas.Children.Add(new Line
             {
-                AddLabel(canvas, "Folding disabled", cx - 120, 286, 240, muted, TextAlignment.Center);
-            }
+                X1 = foldX,
+                Y1 = 102,
+                X2 = foldX,
+                Y2 = 229,
+                Stroke = muted,
+                StrokeThickness = 1.5,
+                StrokeDashArray = new DoubleCollection { 4, 3 },
+            });
+
+            // Fold rollers and paper movement through them.
+            canvas.Children.Add(Positioned(new Ellipse
+            {
+                Width = 34, Height = 34, Fill = grey, Stroke = stroke, StrokeThickness = 1.5,
+            }, 146, 120));
+            canvas.Children.Add(Positioned(new Ellipse
+            {
+                Width = 34, Height = 34, Fill = grey, Stroke = stroke, StrokeThickness = 1.5,
+            }, 146, 170));
+            AddArrow(canvas, 124, 163, 193, 163, navy);
+            AddLabel(canvas, "Fold rollers", 126, 212, 76, muted, TextAlignment.Center);
+
+            // A clearly folded, closed booklet leaving the rollers.
+            AddPolygon(canvas, new double[,] { { 208, 126 }, { 292, 143 }, { 292, 218 }, { 208, 202 } }, pageFill, stroke);
+            AddPolygon(canvas, new double[,] { { 208, 126 }, { 218, 119 }, { 302, 136 }, { 292, 143 } }, grey, stroke);
+            AddPolygon(canvas, new double[,] { { 292, 143 }, { 302, 136 }, { 302, 211 }, { 292, 218 } }, grey, stroke);
+            AddLine(canvas, 224, 153, 276, 164, grey, 4);
+            AddLine(canvas, 224, 169, 276, 180, grey, 4);
+            AddLabel(canvas, "Folded booklet", 214, 232, 92, labelBrush, TextAlignment.Center);
+
+            double half = Clamp(Math.Abs(_foldPosition) * 0.9, 18, 54);
+            AddHArrow(canvas, centerX - half, centerX + half, 264, navy, true);
+            AddLabel(canvas, "Offset from centre", 18, 276, 126, labelBrush, TextAlignment.Center);
         }
 
         private void AddPolygon(Canvas canvas, double[,] points, Brush fill, Brush stroke)
@@ -1259,6 +1273,33 @@ namespace CPBourg.NextGenGui.Views
             {
                 AddArrowHead(canvas, x1, y, -dir, brush);
             }
+        }
+
+        private void AddArrow(Canvas canvas, double x1, double y1, double x2, double y2, Brush brush)
+        {
+            AddLine(canvas, x1, y1, x2, y2, brush, 2);
+            double dx = x2 - x1;
+            double dy = y2 - y1;
+            double length = Math.Sqrt(dx * dx + dy * dy);
+            if (length < 0.001)
+            {
+                return;
+            }
+
+            double ux = dx / length;
+            double uy = dy / length;
+            double baseX = x2 - ux * 11;
+            double baseY = y2 - uy * 11;
+            double px = -uy * 6;
+            double py = ux * 6;
+            var head = new Polygon { Fill = brush };
+            head.Points = new PointCollection
+            {
+                new Point(x2, y2),
+                new Point(baseX + px, baseY + py),
+                new Point(baseX - px, baseY - py),
+            };
+            canvas.Children.Add(head);
         }
 
         private void AddArrowHead(Canvas canvas, double tipX, double y, int dir, Brush brush)
@@ -1296,15 +1337,17 @@ namespace CPBourg.NextGenGui.Views
             }
         }
 
-        private void OnClampHeightClick(object sender, RoutedEventArgs e)
+        private void OnClampPressureChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (sender is Button button && button.Tag is string mode)
+            if (!_loaded)
             {
-                _clampHeight = mode;
-                RefreshClampButtons();
-                UpdateTrimSummary();
-                RedrawTrimPreview();
+                return;
             }
+
+            _clampPressure = Math.Round(ClampPressureSlider.Value / 10.0) * 10.0;
+            ClampPressureValueText.Text = _clampPressure.ToString("0", CultureInfo.InvariantCulture) + "%";
+            UpdateTrimSummary();
+            RedrawTrimPreview();
         }
 
         private void OnFinalLengthChanged(object sender, TextChangedEventArgs e)
@@ -1361,52 +1404,37 @@ namespace CPBourg.NextGenGui.Views
             SetChoiceSelected(TrimDisabledButton, !_trimEnabled);
             SetChoiceSelected(ChipOnButton, _chipBlower);
             SetChoiceSelected(ChipOffButton, !_chipBlower);
-            RefreshClampButtons();
-
-            // Length and clamp height only matter while trimming is on.
+            // Length and clamp pressure only matter while trimming is on.
             FinalLengthMinus.IsEnabled = _trimEnabled;
             FinalLengthPlus.IsEnabled = _trimEnabled;
             FinalLengthBox.IsEnabled = _trimEnabled;
-            foreach (var button in _clampButtons)
-            {
-                button.IsEnabled = _trimEnabled;
-            }
-        }
-
-        private void RefreshClampButtons()
-        {
-            var selBorder = (Brush)FindResource("JobsAccentBrush");
-            var selBg = (Brush)FindResource("StatusIdleBgBrush");
-            var selText = (Brush)FindResource("JobsAccentBrush");
-            var normBorder = (Brush)FindResource("CardBorderBrush");
-            var normBg = (Brush)FindResource("CardBackgroundBrush");
-            var normText = (Brush)FindResource("TextSecondaryBrush");
-
-            for (int i = 0; i < _clampButtons.Length; i++)
-            {
-                bool isSelected = (string)_clampButtons[i].Tag == _clampHeight;
-                _clampButtons[i].BorderBrush = isSelected ? selBorder : normBorder;
-                _clampButtons[i].BorderThickness = new Thickness(isSelected ? 2 : 1);
-                _clampButtons[i].Background = isSelected ? selBg : normBg;
-                _clampLabels[i].Foreground = isSelected ? selText : normText;
-                _clampLabels[i].FontWeight = isSelected ? FontWeights.SemiBold : FontWeights.Normal;
-            }
+            ClampPressureSlider.IsEnabled = _trimEnabled;
         }
 
         private void UpdateTrimSummary()
         {
             TrimSummaryTrimming.Text = _trimEnabled ? "Enabled" : "Disabled";
             TrimSummaryLength.Text = DisplayLength(_finalLength, "0.0", "0.000");
-            TrimSummaryClamp.Text = _clampHeight == "Auto" ? "Automatic" : _clampHeight;
+            TrimSummaryTotal.Text = DisplayLength(TotalBookletLength, "0.0", "0.000");
+            TrimSummaryStrip.Text = DisplayLength(TrimmedStripLength, "0.0", "0.000");
+            TotalBookletLengthText.Text = DisplayLength(TotalBookletLength, "0.0", "0.000");
+            TrimmedStripLengthText.Text = DisplayLength(TrimmedStripLength, "0.0", "0.000");
+            TrimSummaryClamp.Text = _clampPressure.ToString("0", CultureInfo.InvariantCulture) + "%";
             TrimSummaryChip.Text = _chipBlower ? "On" : "Off";
         }
+
+        private double TotalBookletLength => Math.Max(_paperW, _finalLength);
+
+        private double TrimmedStripLength => _trimEnabled
+            ? Math.Max(0, TotalBookletLength - _finalLength)
+            : 0;
 
         // ---- Trimming live preview ----
         //
         // Top: the booklet drawn front-on, its width scaled to the final
-        // booklet length (with a dimension line and, when trimming is on, the
-        // trimmed fore-edge strip). Bottom: a side view of the clamp conveyor
-        // whose height marker reflects the selected clamp mode.
+        // booklet length (with dimension lines for finished, total and strip).
+        // Bottom: a side view of the clamp whose marker follows the graduated
+        // pressure setting.
 
         private void RedrawTrimPreview()
         {
@@ -1420,16 +1448,20 @@ namespace CPBourg.NextGenGui.Views
             var navy = (Brush)FindResource("HeaderBackgroundBrush");
             var label = (Brush)FindResource("TextSecondaryBrush");
 
-            // Top booklet - width tracks the final length.
-            const double pxPerMm = 0.73;
-            double w = Clamp(_finalLength * pxPerMm, 80, 190);
+            // Top booklet - total width is shown, with the removable strip
+            // separated from the finished booklet at the trim line.
+            const double pxPerMm = 0.72;
+            double totalW = Clamp(TotalBookletLength * pxPerMm, 100, 215);
+            double finishedRatio = TotalBookletLength <= 0 ? 1 : _finalLength / TotalBookletLength;
+            double finishedW = Clamp(totalW * finishedRatio, 72, totalW);
+            double stripW = Math.Max(0, totalW - finishedW);
             double h = 118;
-            double bx = 150 - w / 2;
-            double by = 64;
+            double bx = 160 - totalW / 2;
+            double by = 72;
 
             canvas.Children.Add(Positioned(new Rectangle
             {
-                Width = w,
+                Width = finishedW,
                 Height = h,
                 RadiusX = 5,
                 RadiusY = 5,
@@ -1438,16 +1470,17 @@ namespace CPBourg.NextGenGui.Views
                 StrokeThickness = 1.5,
             }, bx, by));
             AddLine(canvas, bx + 6, by + 6, bx + 6, by + h - 6, muted, 1);
-            AddLine(canvas, bx + 18, by + 34, bx + w - 14, by + 34, grey, 4);
-            AddLine(canvas, bx + 18, by + 50, bx + w - 14, by + 50, grey, 4);
-            AddLine(canvas, bx + 18, by + 66, bx + w - 30, by + 66, grey, 4);
+            AddLine(canvas, bx + 18, by + 34, bx + finishedW - 14, by + 34, grey, 4);
+            AddLine(canvas, bx + 18, by + 50, bx + finishedW - 14, by + 50, grey, 4);
+            AddLine(canvas, bx + 18, by + 66, bx + finishedW - 30, by + 66, grey, 4);
 
-            AddHArrow(canvas, bx, bx + w, by - 16, navy, true);
-            AddLabel(canvas, DisplayLength(_finalLength, "0.0", "0.000"), bx - 30, by - 38, w + 60, label, TextAlignment.Center);
+            AddHArrow(canvas, bx, bx + finishedW, by - 16, navy, true);
+            AddLabel(canvas, "Finished " + DisplayLength(_finalLength, "0.0", "0.000"),
+                bx - 30, by - 40, finishedW + 60, label, TextAlignment.Center);
 
-            if (_trimEnabled)
+            if (_trimEnabled && stripW > 0.1)
             {
-                double tx = bx + w + 10;
+                double tx = bx + finishedW;
                 canvas.Children.Add(new Line
                 {
                     X1 = tx,
@@ -1458,11 +1491,24 @@ namespace CPBourg.NextGenGui.Views
                     StrokeThickness = 1.5,
                     StrokeDashArray = new DoubleCollection { 4, 3 },
                 });
-                AddRect(canvas, tx + 6, by, 8, h, grey);
+                canvas.Children.Add(Positioned(new Rectangle
+                {
+                    Width = Math.Max(8, stripW),
+                    Height = h,
+                    Fill = grey,
+                    Stroke = muted,
+                    StrokeThickness = 1,
+                }, tx + 4, by));
+                AddLabel(canvas, "Trim strip " + DisplayLength(TrimmedStripLength, "0.0", "0.000"),
+                    tx - 18, by + h + 7, Math.Max(80, stripW + 36), label, TextAlignment.Center);
             }
 
+            AddHArrow(canvas, bx, bx + totalW, by + h + 38, muted, true);
+            AddLabel(canvas, "Total before trim " + DisplayLength(TotalBookletLength, "0.0", "0.000"),
+                bx - 30, by + h + 48, totalW + 60, label, TextAlignment.Center);
+
             // Bottom side view of the clamp conveyor.
-            const double baseY = 300;
+            const double baseY = 326;
             canvas.Children.Add(Positioned(new Rectangle
             {
                 Width = 120,
@@ -1472,17 +1518,19 @@ namespace CPBourg.NextGenGui.Views
                 Fill = fill,
                 Stroke = stroke,
                 StrokeThickness = 1.2,
-            }, 80, 244));
-            AddLine(canvas, 86, 250, 200, 250, grey, 1.5);
-            AddLine(canvas, 86, 255, 200, 255, grey, 1.5);
-            AddPolygon(canvas, new double[,] { { 70, 300 }, { 220, 300 }, { 220, 262 } }, grey, stroke);
+            }, 80, 270));
+            AddLine(canvas, 86, 276, 200, 276, grey, 1.5);
+            AddLine(canvas, 86, 281, 200, 281, grey, 1.5);
+            AddPolygon(canvas, new double[,] { { 70, 326 }, { 220, 326 }, { 220, 288 } }, grey, stroke);
             if (_trimEnabled)
             {
-                AddRect(canvas, 232, 250, 8, 50, grey);
+                AddRect(canvas, 232, 276, 8, 50, grey);
             }
 
-            double heightMarker = _clampHeight == "Maximum" ? 66 : _clampHeight == "Minimum" ? 26 : 46;
+            double heightMarker = 22 + _clampPressure / 100.0 * 48;
             AddVArrow(canvas, 256, baseY - heightMarker, baseY, navy);
+            AddLabel(canvas, "Clamp " + _clampPressure.ToString("0", CultureInfo.InvariantCulture) + "%",
+                268, baseY - heightMarker / 2 - 9, 68, label, TextAlignment.Left);
         }
 
         private void AddVArrow(Canvas canvas, double x, double y1, double y2, Brush brush)
