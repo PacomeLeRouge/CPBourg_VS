@@ -1147,6 +1147,15 @@ count; Purge remains the explicit option for resetting the line, completed
 sets, and preset. The detailed alert strip and Start availability refresh
 together whenever the Errors screen changes.
 
+### v40 - Counter editing lock during production
+
+The Counter and Productivity editing surface is locked while production is
+Running. Completed Sets and Preset decrement, value/keypad, and increment
+buttons, plus Reset to zero, Set target, and Confirm, cannot be operated while
+sheets are moving. The controls use a clearly muted disabled appearance during
+the run and become available again in Ready, Paused, Stopped, and Completed
+states.
+
 ### Languages (FR-10)
 
 The stage labels in `Startup/StartupStage.cs` are the strings that will move to

@@ -17,6 +17,13 @@
 			<Setter Property="Height" Value="52" />
 			<Setter Property="Padding" Value="0" />
 			<Setter Property="FontSize" Value="22" />
+			<Setter Property="Cursor" Value="Hand" />
+			<Style.Triggers>
+				<Trigger Property="IsEnabled" Value="False">
+					<Setter Property="Opacity" Value="0.35" />
+					<Setter Property="Cursor" Value="Arrow" />
+				</Trigger>
+			</Style.Triggers>
 		</Style>
 
 		<Style x:Key="CounterValueButtonStyle" TargetType="Button">
@@ -27,6 +34,13 @@
 			<Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
 			<Setter Property="BorderBrush" Value="{StaticResource OutlineButtonBorderBrush}" />
 			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="Cursor" Value="Hand" />
+			<Style.Triggers>
+				<Trigger Property="IsEnabled" Value="False">
+					<Setter Property="Opacity" Value="0.35" />
+					<Setter Property="Cursor" Value="Arrow" />
+				</Trigger>
+			</Style.Triggers>
 		</Style>
 
 		<!-- Neutral secondary actions on the Home cards share one touch size
@@ -35,6 +49,13 @@
 		<Style x:Key="DashboardActionButtonStyle" TargetType="Button">
 			<Setter Property="Height" Value="52" />
 			<Setter Property="Padding" Value="14,13" />
+			<Setter Property="Cursor" Value="Hand" />
+			<Style.Triggers>
+				<Trigger Property="IsEnabled" Value="False">
+					<Setter Property="Opacity" Value="0.35" />
+					<Setter Property="Cursor" Value="Arrow" />
+				</Trigger>
+			</Style.Triggers>
 		</Style>
 
 		<!-- One machine tile. Keeps the enlarged status icon, but uses a
