@@ -1257,6 +1257,27 @@ tray diagram, finished/total/trim-strip measurements, graduated clamp pressure,
 and Reset Step action. Metric/imperial changes update these newer measurements
 alongside the existing STFO fields.
 
+### v46 - Jobs, Errors, and Technician settings integration
+
+The remaining operational screens now participate in the applied operator
+settings:
+
+- **Jobs / File Menu** and all of its dialogs translate their fixed labels,
+  generated status messages, barcode feedback, confirmation copy, validation
+  messages, custom-format classification, and exported job-log headings.
+  Metric/imperial dimensions continue to update in the list summary, new-job
+  editor, and exported log.
+- **Errors & Information** translates severity labels, sample machine
+  messages, list details, empty state, and the selected-error detail overlay.
+- **Technician Interface** translates every setting and machine action,
+  protected-access keypad copy, saved/reset feedback, and access state. Its
+  live speed readout follows the selected `mm/s` or `in/s` unit.
+
+Changing language while any of these screens is open refreshes both static and
+runtime-generated text immediately. The semantic values saved for jobs and
+technician settings remain language-neutral, so switching languages does not
+alter stored configuration data.
+
 ---
 
 ## Files
@@ -1291,6 +1312,7 @@ alongside the existing STFO fields.
 | `Views/ScreenCalibrationDialog.xaml(.cs)` | Four-point touch-screen calibration/verification workflow |
 | `Views/LocalizationManager.cs` | Runtime English/French/Dutch/German/Spanish/Italian translations |
 | `Views/LocalizationManager.Stfo.cs` | Complete six-language STFO wizard and keypad translation catalog |
+| `Views/LocalizationManager.Operations.cs` | Six-language Jobs, Errors, and Technician translation catalog |
 | `Views/KeyboardLayoutManager.cs` | Maps AZERTY/QWERTY/QWERTZ preferences to Windows input languages |
 | `Views/FontSizeManager.cs` | Applies Small / Medium / Large text sizing without resizing touch targets |
 | `Views/GlobalMenuView.xaml(.cs)` | Slide-out global navigation overlay |

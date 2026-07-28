@@ -207,7 +207,8 @@
                         <Grid>
                             <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
                             <Grid>
-                                <TextBlock Text="7.  Sheet in Compiler Restart" FontSize="17" FontWeight="SemiBold" />
+                                <TextBlock Text="7.  Sheet in Compiler Restart" FontSize="17"
+                                           FontWeight="SemiBold" Margin="0,0,34,0" />
                                 <TextBlock Text="&#xE777;" FontFamily="{StaticResource IconFontFamily}" FontSize="21"
                                            HorizontalAlignment="Right" Foreground="{StaticResource HeaderBackgroundBrush}" />
                             </Grid>

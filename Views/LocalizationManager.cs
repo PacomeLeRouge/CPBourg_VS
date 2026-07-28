@@ -284,6 +284,7 @@ namespace CPBourg.NextGenGui.Views
                 "Calibration complete", "Calibrazione completata");
 
             AddStfoTranslations();
+            AddOperationsTranslations();
         }
 
         public static string CurrentLanguage => _language;

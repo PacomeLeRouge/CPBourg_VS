@@ -33,7 +33,10 @@ namespace CPBourg.NextGenGui.Views
                 LocalizationManager.SetLanguage(language);
                 LocalizationManager.Apply(this);
                 GlobalMenu.ApplyLanguage();
+                JobsScreen.ApplyLanguage();
+                ErrorsScreen.ApplyLanguage();
                 StfoScreen.ApplyLanguage();
+                TechnicianScreen.ApplyLanguage();
             };
             SettingsScreen.UnitsChanged += (s, unit) => ApplyMeasurementUnit(unit);
             SettingsScreen.DateTimeOffsetChanged += (s, offset) =>

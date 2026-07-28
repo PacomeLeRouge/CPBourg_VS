@@ -37,10 +37,37 @@ namespace CPBourg.NextGenGui.Views
 
         private List<ErrorRecord> _allMessages;
 
+        private sealed class ErrorDisplayItem
+        {
+            public ErrorDisplayItem(ErrorRecord record)
+            {
+                Record = record;
+                SeverityLabel = LocalizationManager.Translate(record.SeverityLabel);
+                Source = LocalizationManager.Translate(record.Source);
+                ModuleOrJob = record.ModuleOrJob;
+                Time = record.Time;
+                Details = LocalizationManager.Translate(record.Details);
+            }
+
+            public ErrorRecord Record { get; }
+            public string SeverityLabel { get; }
+            public string Source { get; }
+            public string ModuleOrJob { get; }
+            public string Time { get; }
+            public string Details { get; }
+        }
+
         public ErrorsView()
         {
             InitializeComponent();
             LoadSampleMessages();
+        }
+
+        public void ApplyLanguage()
+        {
+            LocalizationManager.Apply(this);
+            RefreshMessages();
+            ErrorDetailDialogControl.ApplyLanguage();
         }
 
         private void LoadSampleMessages()
@@ -75,7 +102,8 @@ namespace CPBourg.NextGenGui.Views
         private void RefreshMessages()
         {
             MessagesListBox.ItemsSource = null;
-            MessagesListBox.ItemsSource = _allMessages;
+            MessagesListBox.ItemsSource = _allMessages.Select(record =>
+                new ErrorDisplayItem(record)).ToList();
 
             CriticalCount = _allMessages.Count(m => m.Severity == ErrorSeverity.Critical);
             WarningCount = _allMessages.Count(m => m.Severity == ErrorSeverity.Warning);
@@ -97,13 +125,13 @@ namespace CPBourg.NextGenGui.Views
 
         private void OnMessageSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var record = MessagesListBox.SelectedItem as ErrorRecord;
-            if (record == null)
+            var displayItem = MessagesListBox.SelectedItem as ErrorDisplayItem;
+            if (displayItem == null)
             {
                 return;
             }
 
-            ErrorDetailDialogControl.Open(record);
+            ErrorDetailDialogControl.Open(displayItem.Record);
 
             // Clear the ListBox's own selection highlight once the detail
             // overlay is showing, so re-clicking the same row still raises

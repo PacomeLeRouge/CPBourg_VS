@@ -18,10 +18,11 @@ namespace CPBourg.NextGenGui.Views
 
         public void Open(string jobName, string format)
         {
+            Visibility = Visibility.Visible;
+            LocalizationManager.Apply(this);
             JobNameText.Text = jobName;
             JobFormatText.Text = format;
             LoadRunAdjustmentsCheckBox.IsChecked = false;
-            Visibility = Visibility.Visible;
         }
 
         private void OnOpenClick(object sender, RoutedEventArgs e)

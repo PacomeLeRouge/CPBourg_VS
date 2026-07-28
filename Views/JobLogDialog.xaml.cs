@@ -27,11 +27,25 @@ namespace CPBourg.NextGenGui.Views
 
         public void Open(JobRecord job)
         {
+            Visibility = Visibility.Visible;
             _job = job;
             JobNameText.Text = job?.Name ?? "-";
-            LogGrid.ItemsSource = job?.LogEntries;
             ExportStatusText.Text = string.Empty;
-            Visibility = Visibility.Visible;
+            ApplyLanguage();
+        }
+
+        public void ApplyLanguage()
+        {
+            LocalizationManager.Apply(this);
+            DateTimeColumn.Header = LocalizationManager.Translate("Date & Time");
+            ActionColumn.Header = LocalizationManager.Translate("Action");
+            DetailsColumn.Header = LocalizationManager.Translate("Details");
+            LogGrid.ItemsSource = _job?.LogEntries.Select(entry => new
+            {
+                entry.TimestampLabel,
+                Action = LocalizationManager.Translate(entry.Action),
+                Details = LocalizeDetails(_job, entry),
+            }).ToList();
         }
 
         public void SetMeasurementUnit(MeasurementUnit unit)
@@ -48,10 +62,12 @@ namespace CPBourg.NextGenGui.Views
 
             var dialog = new SaveFileDialog
             {
-                Title = "Export Job Log",
+                Title = LocalizationManager.Translate("Export Job Log"),
                 FileName = MakeSafeFileName(_job.Name) + "-log.csv",
                 DefaultExt = ".csv",
-                Filter = "CSV log (*.csv)|*.csv|Text log (*.txt)|*.txt|All files (*.*)|*.*",
+                Filter = LocalizationManager.Translate("CSV log (*.csv)") + "|*.csv|" +
+                    LocalizationManager.Translate("Text log (*.txt)") + "|*.txt|" +
+                    LocalizationManager.Translate("All files (*.*)") + "|*.*",
                 AddExtension = true,
                 OverwritePrompt = true,
             };
@@ -65,13 +81,15 @@ namespace CPBourg.NextGenGui.Views
             {
                 File.WriteAllText(dialog.FileName, BuildCsv(_job, _measurementUnit), new UTF8Encoding(true));
                 ExportStatusText.Foreground = (System.Windows.Media.Brush)FindResource("StatusRunningBrush");
-                ExportStatusText.Text = "Log saved to " + dialog.FileName;
+                ExportStatusText.Text = string.Format(CultureInfo.CurrentCulture,
+                    LocalizationManager.Translate("Log saved to {0}"), dialog.FileName);
                 Exported?.Invoke(this, dialog.FileName);
             }
             catch (Exception ex)
             {
                 ExportStatusText.Foreground = (System.Windows.Media.Brush)FindResource("StatusErrorBrush");
-                ExportStatusText.Text = "The log could not be saved: " + ex.Message;
+                ExportStatusText.Text = string.Format(CultureInfo.CurrentCulture,
+                    LocalizationManager.Translate("The log could not be saved: {0}"), ex.Message);
             }
         }
 
@@ -79,18 +97,49 @@ namespace CPBourg.NextGenGui.Views
         {
             var lines = new List<string>
             {
-                "Job Name," + Csv(job.Name),
-                "Barcode ID," + Csv(job.BarcodeId),
-                "Format," + Csv(job.Format),
-                "Dimensions (" + MeasurementFormatter.UnitSymbol(unit) + ")," +
+                LocalizationManager.Translate("Job Name") + "," + Csv(job.Name),
+                LocalizationManager.Translate("Barcode ID") + "," + Csv(job.BarcodeId),
+                LocalizationManager.Translate("Format") + "," + Csv(job.Format),
+                LocalizationManager.Translate("Dimensions") + " (" + MeasurementFormatter.UnitSymbol(unit) + ")," +
                     Csv(MeasurementFormatter.FormatDimensions(job.WidthMm, job.LengthMm, unit)),
-                "Pages," + job.Pages.ToString(CultureInfo.InvariantCulture),
+                LocalizationManager.Translate("Pages") + "," + job.Pages.ToString(CultureInfo.InvariantCulture),
                 string.Empty,
-                "Timestamp,Action,Details",
+                LocalizationManager.Translate("Timestamp") + "," +
+                    LocalizationManager.Translate("Action") + "," +
+                    LocalizationManager.Translate("Details"),
             };
             lines.AddRange(job.LogEntries.Select(entry =>
-                Csv(entry.TimestampLabel) + "," + Csv(entry.Action) + "," + Csv(entry.Details)));
+                Csv(entry.TimestampLabel) + "," +
+                Csv(LocalizationManager.Translate(entry.Action)) + "," +
+                Csv(LocalizeDetails(job, entry))));
             return string.Join(Environment.NewLine, lines);
+        }
+
+        private static string LocalizeDetails(JobRecord job, JobLogEntry entry)
+        {
+            if (entry.Action == "Job saved")
+            {
+                return string.Format(CultureInfo.CurrentCulture,
+                    LocalizationManager.Translate("{0}, {1} pages"),
+                    LocalizationManager.Translate(job.Format), job.Pages);
+            }
+
+            if (entry.Action == "Job loaded")
+            {
+                return LocalizationManager.Translate("Loaded as the current production job.");
+            }
+
+            if (entry.Action == "Barcode scanned")
+            {
+                return string.Format(CultureInfo.CurrentCulture,
+                    LocalizationManager.Translate("Barcode {0} matched this saved job."),
+                    job.BarcodeId);
+            }
+
+            // Comment text is operator-authored data and must not be translated.
+            return entry.Action == "Comment updated"
+                ? entry.Details
+                : LocalizationManager.Translate(entry.Details);
         }
 
         private static string Csv(string value)

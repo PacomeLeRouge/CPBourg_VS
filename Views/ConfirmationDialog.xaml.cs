@@ -18,9 +18,10 @@ namespace CPBourg.NextGenGui.Views
 
         public void Open(string title, string message)
         {
+            Visibility = Visibility.Visible;
+            LocalizationManager.Apply(this);
             TitleText.Text = title;
             MessageText.Text = message;
-            Visibility = Visibility.Visible;
         }
 
         private void OnOkClick(object sender, RoutedEventArgs e)
