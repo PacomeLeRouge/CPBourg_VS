@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -22,6 +23,7 @@ namespace CPBourg.NextGenGui.Views
         private string _anchorModuleType;
         private string _pendingModuleType;
         private bool? _pendingPlaceBeforeAnchor;
+        private List<string> _moduleTypeCatalog = new List<string>();
 
         public AddModuleWizardDialog()
         {
@@ -40,14 +42,37 @@ namespace CPBourg.NextGenGui.Views
             _pendingModuleType = null;
             _pendingPlaceBeforeAnchor = null;
 
-            var options = moduleTypeCatalog
-                .Select((moduleType, index) => new ModuleTypeOptionInfo(moduleType, isSelected: index == 0))
-                .ToList();
-            _pendingModuleType = options.FirstOrDefault()?.ModuleType;
-            ModuleOptionsItemsControl.ItemsSource = options;
+            _moduleTypeCatalog = moduleTypeCatalog?.ToList() ?? new List<string>();
+            _pendingModuleType = _moduleTypeCatalog.FirstOrDefault();
 
             ShowModuleStep();
             Visibility = Visibility.Visible;
+            ApplyLanguage();
+        }
+
+        public void ApplyLanguage()
+        {
+            LocalizationManager.Apply(this);
+            RebuildModuleOptions();
+
+            if (PositionStepPanel.Visibility == Visibility.Visible)
+            {
+                RefreshPositionStep();
+            }
+            else if (ConfirmStepPanel.Visibility == Visibility.Visible)
+            {
+                RefreshConfirmStep();
+            }
+        }
+
+        private void RebuildModuleOptions()
+        {
+            ModuleOptionsItemsControl.ItemsSource = _moduleTypeCatalog
+                .Select(moduleType => new ModuleTypeOptionInfo(
+                    moduleType,
+                    T(moduleType),
+                    isSelected: moduleType == _pendingModuleType))
+                .ToList();
         }
 
         // ================= Step switching =================
@@ -76,11 +101,16 @@ namespace CPBourg.NextGenGui.Views
             PositionContinueButton.IsEnabled = false;
             _pendingPlaceBeforeAnchor = null;
 
-            PositionStepModuleText.Text = _pendingModuleType;
+            RefreshPositionStep();
+        }
+
+        private void RefreshPositionStep()
+        {
+            PositionStepModuleText.Text = T(_pendingModuleType);
             PositionOptionsItemsControl.ItemsSource = new List<LinePositionOptionInfo>
             {
-                new LinePositionOptionInfo(true, $"Before {_anchorModuleType}"),
-                new LinePositionOptionInfo(false, $"After {_anchorModuleType}"),
+                new LinePositionOptionInfo(true, TF("Before {0}", T(_anchorModuleType))),
+                new LinePositionOptionInfo(false, TF("After {0}", T(_anchorModuleType))),
             };
         }
 
@@ -94,7 +124,12 @@ namespace CPBourg.NextGenGui.Views
             PositionContinueButton.Visibility = Visibility.Collapsed;
             ConfirmButton.Visibility = Visibility.Visible;
 
-            ConfirmModuleText.Text = _pendingModuleType;
+            RefreshConfirmStep();
+        }
+
+        private void RefreshConfirmStep()
+        {
+            ConfirmModuleText.Text = T(_pendingModuleType);
             ConfirmPositionText.Text = BuildPositionSummary();
         }
 
@@ -102,10 +137,11 @@ namespace CPBourg.NextGenGui.Views
         {
             if (_pendingPlaceBeforeAnchor == null)
             {
-                return "Start of line";
+                return T("Start of line");
             }
 
-            return (_pendingPlaceBeforeAnchor.Value ? "Before " : "After ") + _anchorModuleType;
+            return TF(_pendingPlaceBeforeAnchor.Value ? "Before {0}" : "After {0}",
+                T(_anchorModuleType));
         }
 
         // ================= Step 1: Module Selection =================
@@ -163,7 +199,8 @@ namespace CPBourg.NextGenGui.Views
         private void OnConfirmClick(object sender, RoutedEventArgs e)
         {
             Visibility = Visibility.Collapsed;
-            Confirmed?.Invoke(this, new AddModuleRequestInfo(_pendingModuleType, _pendingPlaceBeforeAnchor, BuildPositionSummary()));
+            Confirmed?.Invoke(this, new AddModuleRequestInfo(
+                _pendingModuleType, _pendingPlaceBeforeAnchor, _anchorModuleType));
         }
 
         // ================= Cancel =================
@@ -176,6 +213,16 @@ namespace CPBourg.NextGenGui.Views
         private void OnScrimMouseDown(object sender, MouseButtonEventArgs e)
         {
             Visibility = Visibility.Collapsed;
+        }
+
+        private static string T(string source)
+        {
+            return LocalizationManager.Translate(source);
+        }
+
+        private static string TF(string source, params object[] values)
+        {
+            return string.Format(CultureInfo.CurrentCulture, T(source), values);
         }
     }
 }

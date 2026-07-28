@@ -1278,6 +1278,20 @@ runtime-generated text immediately. The semantic values saved for jobs and
 technician settings remain language-neutral, so switching languages does not
 alter stored configuration data.
 
+### v47 - Machine Line Configuration localization
+
+Machine Line Configuration and its complete edit workflow now follow the
+applied language. This includes carousel and selected-module labels, module
+names, registration/configuration states, action buttons, empty states,
+position summaries, pending add/remove/replace feedback, the Add Module
+wizard, and final technician-PIN review copy.
+
+Module types and before/after placement remain language-neutral values in the
+line model. Localized display names are generated separately, so switching
+languages—even while returning to a previously configured line—does not alter
+module identity, order, duplicate prevention, or pending edits. The selected
+module speed continues to follow the metric/imperial setting.
+
 ---
 
 ## Files
@@ -1312,7 +1326,7 @@ alter stored configuration data.
 | `Views/ScreenCalibrationDialog.xaml(.cs)` | Four-point touch-screen calibration/verification workflow |
 | `Views/LocalizationManager.cs` | Runtime English/French/Dutch/German/Spanish/Italian translations |
 | `Views/LocalizationManager.Stfo.cs` | Complete six-language STFO wizard and keypad translation catalog |
-| `Views/LocalizationManager.Operations.cs` | Six-language Jobs, Errors, and Technician translation catalog |
+| `Views/LocalizationManager.Operations.cs` | Six-language Jobs, Errors, Machine Line, and Technician translation catalog |
 | `Views/KeyboardLayoutManager.cs` | Maps AZERTY/QWERTY/QWERTZ preferences to Windows input languages |
 | `Views/FontSizeManager.cs` | Applies Small / Medium / Large text sizing without resizing touch targets |
 | `Views/GlobalMenuView.xaml(.cs)` | Slide-out global navigation overlay |
@@ -1339,6 +1353,8 @@ alter stored configuration data.
 | `Models/ErrorSeverity.cs` | Critical / Warning / Info / Resolved enum |
 | `Models/ErrorRecord.cs` | Data for one error/warning message |
 | `Models/MachineLineItemInfo.cs` | Data for one machine/module on the LINE CANVAS |
+| `Models/ModuleTypeOptionInfo.cs` / `Models/LinePositionOptionInfo.cs` | Semantic and localized choices used by Add Module |
+| `Models/AddModuleRequestInfo.cs` | Language-neutral module and anchor placement returned by the wizard |
 | `Models/TechnicianSettings.cs` | Saved Technician Interface option values and defaults |
 | `Models/TechnicianSettingsStore.cs` | User-local XML persistence for technician settings |
 | `Startup/StartupStage.cs` | The five boot phases + display text |

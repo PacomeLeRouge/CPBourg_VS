@@ -145,6 +145,57 @@ namespace CPBourg.NextGenGui.Views
             Op("Machine needs setup", "La machine doit être configurée", "Machine moet worden ingesteld", "Maschine muss eingerichtet werden", "La máquina necesita configuración", "La macchina richiede configurazione");
             Op("The machine requires initial setup before it can run a job.", "La machine nécessite une configuration initiale avant de pouvoir exécuter une tâche.", "De machine moet eerst worden ingesteld voordat een taak kan worden uitgevoerd.", "Die Maschine muss zunächst eingerichtet werden, bevor ein Auftrag ausgeführt werden kann.", "La máquina requiere una configuración inicial antes de poder ejecutar un trabajo.", "La macchina richiede una configurazione iniziale prima di poter eseguire un lavoro.");
 
+            // Machine Line Configuration and Add Module workflow.
+            Op("Machine Line", "Ligne de machines", "Machinelijn", "Maschinenlinie", "Línea de máquinas", "Linea macchina");
+            Op("Previous module", "Module précédent", "Vorige module", "Vorheriges Modul", "Módulo anterior", "Modulo precedente");
+            Op("Next module", "Module suivant", "Volgende module", "Nächstes Modul", "Módulo siguiente", "Modulo successivo");
+            Op("No modules configured.", "Aucun module configuré.", "Geen modules geconfigureerd.", "Keine Module konfiguriert.", "No hay módulos configurados.", "Nessun modulo configurato.");
+            Op("Add Module", "Ajouter un module", "Module toevoegen", "Modul hinzufügen", "Añadir módulo", "Aggiungi modulo");
+            Op("Add a module", "Ajouter un module", "Een module toevoegen", "Ein Modul hinzufügen", "Añadir un módulo", "Aggiungi un modulo");
+            Op("Selected Module", "Module sélectionné", "Geselecteerde module", "Ausgewähltes Modul", "Módulo seleccionado", "Modulo selezionato");
+            Op("No module selected.", "Aucun module sélectionné.", "Geen module geselecteerd.", "Kein Modul ausgewählt.", "No hay ningún módulo seleccionado.", "Nessun modulo selezionato.");
+            Op("Position", "Position", "Positie", "Position", "Posición", "Posizione");
+            Op("Speed", "Vitesse", "Snelheid", "Geschwindigkeit", "Velocidad", "Velocità");
+            Op("Line Actions", "Actions de la ligne", "Lijnacties", "Linienaktionen", "Acciones de la línea", "Azioni linea");
+            Op("Remove Module", "Supprimer le module", "Module verwijderen", "Modul entfernen", "Eliminar módulo", "Rimuovi modulo");
+            Op("Replace Module", "Remplacer le module", "Module vervangen", "Modul ersetzen", "Sustituir módulo", "Sostituisci modulo");
+            Op("Review & Confirm", "Vérifier et confirmer", "Controleren en bevestigen", "Prüfen und bestätigen", "Revisar y confirmar", "Controlla e conferma");
+            Op("Configuration Status", "État de la configuration", "Configuratiestatus", "Konfigurationsstatus", "Estado de configuración", "Stato configurazione");
+            Op("No status.", "Aucun état.", "Geen status.", "Kein Status.", "Sin estado.", "Nessuno stato.");
+            Op("Registered", "Enregistré", "Geregistreerd", "Registriert", "Registrado", "Registrato");
+            Op("Not Registered", "Non enregistré", "Niet geregistreerd", "Nicht registriert", "No registrado", "Non registrato");
+            Op("{0} of {1}", "{0} sur {1}", "{0} van {1}", "{0} von {1}", "{0} de {1}", "{0} di {1}");
+            Op("Unsaved changes — review and confirm.", "Modifications non enregistrées — vérifiez et confirmez.", "Niet-opgeslagen wijzigingen — controleren en bevestigen.", "Nicht gespeicherte Änderungen — prüfen und bestätigen.", "Cambios sin guardar — revise y confirme.", "Modifiche non salvate — controlla e conferma.");
+            Op("Configuration confirmed.", "Configuration confirmée.", "Configuratie bevestigd.", "Konfiguration bestätigt.", "Configuración confirmada.", "Configurazione confermata.");
+            Op("All available module types are already on the line.", "Tous les types de modules disponibles sont déjà sur la ligne.", "Alle beschikbare moduletypen staan al op de lijn.", "Alle verfügbaren Modultypen befinden sich bereits in der Linie.", "Todos los tipos de módulos disponibles ya están en la línea.", "Tutti i tipi di modulo disponibili sono già sulla linea.");
+            Op("{0} is already on the line and cannot be added again.", "{0} est déjà sur la ligne et ne peut pas être ajouté à nouveau.", "{0} staat al op de lijn en kan niet opnieuw worden toegevoegd.", "{0} befindet sich bereits in der Linie und kann nicht erneut hinzugefügt werden.", "{0} ya está en la línea y no se puede añadir de nuevo.", "{0} è già sulla linea e non può essere aggiunto di nuovo.");
+            Op("Pending: Added {0} ({1}). Select Review & Confirm when finished.", "En attente : {0} ajouté ({1}). Sélectionnez Vérifier et confirmer lorsque vous avez terminé.", "In behandeling: {0} toegevoegd ({1}). Selecteer Controleren en bevestigen wanneer u klaar bent.", "Ausstehend: {0} hinzugefügt ({1}). Wählen Sie anschließend Prüfen und bestätigen.", "Pendiente: se añadió {0} ({1}). Seleccione Revisar y confirmar cuando termine.", "In sospeso: aggiunto {0} ({1}). Al termine seleziona Controlla e conferma.");
+            Op("Pending: Module removed. Select Review & Confirm when finished.", "En attente : module supprimé. Sélectionnez Vérifier et confirmer lorsque vous avez terminé.", "In behandeling: module verwijderd. Selecteer Controleren en bevestigen wanneer u klaar bent.", "Ausstehend: Modul entfernt. Wählen Sie anschließend Prüfen und bestätigen.", "Pendiente: módulo eliminado. Seleccione Revisar y confirmar cuando termine.", "In sospeso: modulo rimosso. Al termine seleziona Controlla e conferma.");
+            Op("No unused module type is available for replacement.", "Aucun type de module inutilisé n’est disponible pour le remplacement.", "Er is geen ongebruikt moduletype beschikbaar als vervanging.", "Kein unbenutzter Modultyp ist als Ersatz verfügbar.", "No hay ningún tipo de módulo sin usar disponible para sustituirlo.", "Nessun tipo di modulo inutilizzato è disponibile per la sostituzione.");
+            Op("Pending: Replaced {0} with {1}. Select Review & Confirm when finished.", "En attente : {0} remplacé par {1}. Sélectionnez Vérifier et confirmer lorsque vous avez terminé.", "In behandeling: {0} vervangen door {1}. Selecteer Controleren en bevestigen wanneer u klaar bent.", "Ausstehend: {0} durch {1} ersetzt. Wählen Sie anschließend Prüfen und bestätigen.", "Pendiente: se sustituyó {0} por {1}. Seleccione Revisar y confirmar cuando termine.", "In sospeso: {0} sostituito con {1}. Al termine seleziona Controlla e conferma.");
+            Op("Confirm Machine Line", "Confirmer la ligne de machines", "Machinelijn bevestigen", "Maschinenlinie bestätigen", "Confirmar línea de máquinas", "Conferma linea macchina");
+            Op("Review complete. Enter the technician PIN once to apply {0} and publish the configuration.", "Vérification terminée. Saisissez une fois le code PIN technicien pour appliquer {0} et publier la configuration.", "Controle voltooid. Voer eenmaal de technicus-PIN in om {0} toe te passen en de configuratie te publiceren.", "Prüfung abgeschlossen. Geben Sie einmal die Techniker-PIN ein, um {0} anzuwenden und die Konfiguration zu veröffentlichen.", "Revisión completa. Introduzca una vez el PIN técnico para aplicar {0} y publicar la configuración.", "Controllo completato. Inserisci una volta il PIN tecnico per applicare {0} e pubblicare la configurazione.");
+            Op("an empty machine line", "une ligne de machines vide", "een lege machinelijn", "eine leere Maschinenlinie", "una línea de máquinas vacía", "una linea macchina vuota");
+            Op("{0} module", "{0} module", "{0} module", "{0} Modul", "{0} módulo", "{0} modulo");
+            Op("{0} modules", "{0} modules", "{0} modules", "{0} Module", "{0} módulos", "{0} moduli");
+            Op("Machine line configuration confirmed and applied.", "Configuration de la ligne confirmée et appliquée.", "Machinelijnconfiguratie bevestigd en toegepast.", "Maschinenlinienkonfiguration bestätigt und angewendet.", "Configuración de la línea confirmada y aplicada.", "Configurazione della linea confermata e applicata.");
+            Op("Add a machine module to the line.", "Ajoutez un module machine à la ligne.", "Voeg een machinemodule toe aan de lijn.", "Fügen Sie der Linie ein Maschinenmodul hinzu.", "Añada un módulo de máquina a la línea.", "Aggiungi un modulo macchina alla linea.");
+            Op("Available Modules:", "Modules disponibles :", "Beschikbare modules:", "Verfügbare Module:", "Módulos disponibles:", "Moduli disponibili:");
+            Op("Module Selected: ", "Module sélectionné : ", "Geselecteerde module: ", "Ausgewähltes Modul: ", "Módulo seleccionado: ", "Modulo selezionato: ");
+            Op("Select Position:", "Sélectionner la position :", "Positie selecteren:", "Position auswählen:", "Seleccionar posición:", "Seleziona posizione:");
+            Op("Review Module:", "Vérifier le module :", "Module controleren:", "Modul prüfen:", "Revisar módulo:", "Controlla modulo:");
+            Op("Selected Module:", "Module sélectionné :", "Geselecteerde module:", "Ausgewähltes Modul:", "Módulo seleccionado:", "Modulo selezionato:");
+            Op("Position:", "Position :", "Positie:", "Position:", "Posición:", "Posizione:");
+            Op("This module will remain pending until the complete machine line is reviewed and authorized.", "Ce module restera en attente jusqu’à la vérification et l’autorisation de toute la ligne.", "Deze module blijft in behandeling totdat de volledige machinelijn is gecontroleerd en geautoriseerd.", "Dieses Modul bleibt ausstehend, bis die gesamte Maschinenlinie geprüft und autorisiert wurde.", "Este módulo permanecerá pendiente hasta que se revise y autorice toda la línea.", "Questo modulo rimarrà in sospeso finché l’intera linea non sarà controllata e autorizzata.");
+            Op("Continue", "Continuer", "Doorgaan", "Weiter", "Continuar", "Continua");
+            Op("Before {0}", "Avant {0}", "Vóór {0}", "Vor {0}", "Antes de {0}", "Prima di {0}");
+            Op("After {0}", "Après {0}", "Na {0}", "Nach {0}", "Después de {0}", "Dopo {0}");
+            Op("Start of line", "Début de la ligne", "Begin van de lijn", "Linienanfang", "Inicio de la línea", "Inizio della linea");
+            Op("Feeder", "Margeur", "Invoer", "Anleger", "Alimentador", "Alimentatore");
+            Op("Booklet Maker", "Brocheuse", "Boekjesmaker", "Broschürenfertiger", "Creador de folletos", "Fascicolatore");
+            Op("Stacker", "Empileur", "Stapelaar", "Stapler", "Apilador", "Impilatore");
+            Op("Trimmer", "Massicot", "Snijder", "Schneider", "Cortadora", "Rifilatore");
+
             // Technician Interface.
             Op("Technician Mode", "Mode technicien", "Technicusmodus", "Technikermodus", "Modo técnico", "Modalità tecnico");
             Op("Status:", "État :", "Status:", "Status:", "Estado:", "Stato:");

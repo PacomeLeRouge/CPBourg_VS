@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -44,6 +45,7 @@ namespace CPBourg.NextGenGui.Views
         private int _focusedIndex = -1;
         private bool _hasPendingChanges;
         private MeasurementUnit _measurementUnit = MeasurementUnit.Millimeters;
+        private Func<string> _lastActionRenderer;
 
         /// <summary>
         /// Raised after the complete pending line has been authorized with a
@@ -71,6 +73,15 @@ namespace CPBourg.NextGenGui.Views
                 machine.Speed = FormatSampleSpeed();
             }
             RefreshSelectedModule();
+        }
+
+        public void ApplyLanguage()
+        {
+            LocalizationManager.Apply(this);
+            RefreshAll();
+            AddModuleWizardDialogControl.ApplyLanguage();
+            ConfigurationPinDialog.ApplyLanguage();
+            RenderLastAction();
         }
 
         private string FormatSampleSpeed()
@@ -169,7 +180,7 @@ namespace CPBourg.NextGenGui.Views
 
             var nameText = new TextBlock
             {
-                Text = machine.ModuleType,
+                Text = T(machine.ModuleType),
                 FontSize = 12,
                 FontWeight = isFocused ? FontWeights.SemiBold : FontWeights.Normal,
                 Foreground = (Brush)FindResource(isFocused ? "TextPrimaryBrush" : "TextSecondaryBrush"),
@@ -256,7 +267,7 @@ namespace CPBourg.NextGenGui.Views
                 Margin = new Thickness(6, 0, 6, 0),
                 Background = Brushes.Transparent,   // make the whole tile hit-testable, not just the shapes
                 Cursor = Cursors.Hand,
-                ToolTip = "Add a module",
+                ToolTip = T("Add a module"),
             };
             grid.Children.Add(rect);
             grid.Children.Add(iconCircle);
@@ -280,9 +291,9 @@ namespace CPBourg.NextGenGui.Views
             }
 
             var focused = _machines[_focusedIndex];
-            SelectedModuleLineText.Text = $"{focused.ModelCode} {focused.ModuleType}";
-            PositionValueText.Text = $"{_focusedIndex + 1} of {_machines.Count}";
-            StatusValueText.Text = focused.IsRegistered ? "Registered" : "Not Registered";
+            SelectedModuleLineText.Text = focused.ModelCode + " " + T(focused.ModuleType);
+            PositionValueText.Text = TF("{0} of {1}", _focusedIndex + 1, _machines.Count);
+            StatusValueText.Text = T(focused.IsRegistered ? "Registered" : "Not Registered");
             SpeedValueText.Text = focused.Speed;
         }
 
@@ -291,13 +302,15 @@ namespace CPBourg.NextGenGui.Views
             bool hasMachines = _machines.Count > 0;
             if (_hasPendingChanges)
             {
-                ConfigStatusText.Text = "Unsaved changes — review and confirm.";
+                ConfigStatusText.Text = T("Unsaved changes — review and confirm.");
                 ConfigStatusIconBg.Background = (Brush)FindResource("WarningBgBrush");
                 ConfigStatusIconText.Foreground = (Brush)FindResource("WarningBrush");
                 return;
             }
 
-            ConfigStatusText.Text = hasMachines ? "Configuration confirmed." : "No modules configured.";
+            ConfigStatusText.Text = T(hasMachines
+                ? "Configuration confirmed."
+                : "No modules configured.");
             ConfigStatusIconBg.Background = (Brush)FindResource(hasMachines ? "StatusRunningBgBrush" : "StatusOfflineBgBrush");
             ConfigStatusIconText.Foreground = (Brush)FindResource(hasMachines ? "StatusRunningBrush" : "StatusOfflineBrush");
         }
@@ -354,7 +367,7 @@ namespace CPBourg.NextGenGui.Views
                 .ToList();
             if (availableModuleTypes.Count == 0)
             {
-                LastActionText.Text = "All available module types are already on the line.";
+                SetLastAction(() => T("All available module types are already on the line."));
                 return;
             }
 
@@ -366,7 +379,10 @@ namespace CPBourg.NextGenGui.Views
         {
             if (_machines.Any(m => m.ModuleType == request.ModuleType))
             {
-                LastActionText.Text = request.ModuleType + " is already on the line and cannot be added again.";
+                string duplicateType = request.ModuleType;
+                SetLastAction(() => TF(
+                    "{0} is already on the line and cannot be added again.",
+                    T(duplicateType)));
                 return;
             }
 
@@ -387,8 +403,12 @@ namespace CPBourg.NextGenGui.Views
             _hasPendingChanges = true;
             RefreshAll();
 
-            LastActionText.Text =
-                $"Pending: Added {request.ModuleType} ({request.PositionSummary}). Select Review & Confirm when finished.";
+            string addedType = request.ModuleType;
+            bool? placeBefore = request.PlaceBeforeAnchor;
+            string anchorType = request.AnchorModuleType;
+            SetLastAction(() => TF(
+                "Pending: Added {0} ({1}). Select Review & Confirm when finished.",
+                T(addedType), FormatPositionSummary(placeBefore, anchorType)));
         }
 
         private void OnRemoveModuleClick(object sender, RoutedEventArgs e)
@@ -402,7 +422,8 @@ namespace CPBourg.NextGenGui.Views
             _focusedIndex = _machines.Count == 0 ? -1 : System.Math.Min(_focusedIndex, _machines.Count - 1);
             _hasPendingChanges = true;
             RefreshAll();
-            LastActionText.Text = "Pending: Module removed. Select Review & Confirm when finished.";
+            SetLastAction(() => T(
+                "Pending: Module removed. Select Review & Confirm when finished."));
         }
 
         private void OnReplaceModuleClick(object sender, RoutedEventArgs e)
@@ -422,15 +443,17 @@ namespace CPBourg.NextGenGui.Views
                 .FirstOrDefault(entry => !moduleTypesAtOtherPositions.Contains(entry.ModuleType));
             if (string.IsNullOrEmpty(nextEntry.ModuleType))
             {
-                LastActionText.Text = "No unused module type is available for replacement.";
+                SetLastAction(() => T("No unused module type is available for replacement."));
                 return;
             }
 
             _machines[_focusedIndex] = CreateMachine(nextEntry.ModuleType);
             _hasPendingChanges = true;
             RefreshAll();
-            LastActionText.Text =
-                $"Pending: Replaced {currentType} with {nextEntry.ModuleType}. Select Review & Confirm when finished.";
+            string replacementType = nextEntry.ModuleType;
+            SetLastAction(() => TF(
+                "Pending: Replaced {0} with {1}. Select Review & Confirm when finished.",
+                T(currentType), T(replacementType)));
         }
 
         private void OnReviewChangesClick(object sender, RoutedEventArgs e)
@@ -441,13 +464,13 @@ namespace CPBourg.NextGenGui.Views
             }
 
             string moduleSummary = _machines.Count == 0
-                ? "an empty machine line"
-                : _machines.Count + (_machines.Count == 1 ? " module" : " modules");
+                ? T("an empty machine line")
+                : TF(_machines.Count == 1 ? "{0} module" : "{0} modules", _machines.Count);
             ConfigurationPinDialog.Open(
-                "Confirm Machine Line",
-                "Review complete. Enter the technician PIN once to apply " +
-                    moduleSummary + " and publish the configuration.",
-                "Confirm");
+                T("Confirm Machine Line"),
+                TF("Review complete. Enter the technician PIN once to apply {0} and publish the configuration.",
+                    moduleSummary),
+                T("Confirm"));
         }
 
         private void OnConfigurationPinConfirmed(object sender, string submittedCode)
@@ -455,8 +478,43 @@ namespace CPBourg.NextGenGui.Views
             _hasPendingChanges = false;
             RefreshConfigurationStatus();
             RefreshLineActionsEnabled();
-            LastActionText.Text = "Machine line configuration confirmed and applied.";
+            SetLastAction(() => T("Machine line configuration confirmed and applied."));
             LineChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private static string FormatPositionSummary(bool? placeBeforeAnchor,
+            string anchorModuleType)
+        {
+            if (placeBeforeAnchor == null)
+            {
+                return T("Start of line");
+            }
+
+            return TF(placeBeforeAnchor.Value ? "Before {0}" : "After {0}",
+                T(anchorModuleType));
+        }
+
+        private void SetLastAction(Func<string> renderer)
+        {
+            _lastActionRenderer = renderer;
+            RenderLastAction();
+        }
+
+        private void RenderLastAction()
+        {
+            LastActionText.Text = _lastActionRenderer == null
+                ? string.Empty
+                : _lastActionRenderer();
+        }
+
+        private static string T(string source)
+        {
+            return LocalizationManager.Translate(source);
+        }
+
+        private static string TF(string source, params object[] values)
+        {
+            return string.Format(CultureInfo.CurrentCulture, T(source), values);
         }
     }
 }

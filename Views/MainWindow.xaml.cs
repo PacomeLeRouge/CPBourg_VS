@@ -35,6 +35,7 @@ namespace CPBourg.NextGenGui.Views
                 GlobalMenu.ApplyLanguage();
                 JobsScreen.ApplyLanguage();
                 ErrorsScreen.ApplyLanguage();
+                MachineLineConfigScreen.ApplyLanguage();
                 StfoScreen.ApplyLanguage();
                 TechnicianScreen.ApplyLanguage();
             };
@@ -180,6 +181,22 @@ namespace CPBourg.NextGenGui.Views
             {
                 FontSizeManager.Apply(screen, _fontSizeSetting);
                 LocalizationManager.Apply(screen);
+                if (ReferenceEquals(screen, JobsScreen))
+                {
+                    JobsScreen.ApplyLanguage();
+                }
+                else if (ReferenceEquals(screen, ErrorsScreen))
+                {
+                    ErrorsScreen.ApplyLanguage();
+                }
+                else if (ReferenceEquals(screen, MachineLineConfigScreen))
+                {
+                    MachineLineConfigScreen.ApplyLanguage();
+                }
+                else if (ReferenceEquals(screen, TechnicianScreen))
+                {
+                    TechnicianScreen.ApplyLanguage();
+                }
             }));
         }
 
