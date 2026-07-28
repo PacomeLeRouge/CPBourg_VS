@@ -1183,6 +1183,32 @@ Cancelling the final PIN leaves the configuration pending so the operator can
 continue editing or return to Review & Confirm later. The existing Technician
 Interface access prompt continues to use its original title and Unlock action.
 
+### v43 - Clearer BBM configuration guidance and diagrams
+
+The BBM configuration landing step is now an **Overview** rather than an
+ambiguous Menu. It explains that the operator should review the paper path and
+then configure Stitching, Folding, Trimming, and Conveyor. The machine
+illustration has a labelled left-to-right paper path, each downstream stage has
+a short purpose description, and Reset/Save are hidden on the read-only
+overview. Configuration steps label Reset as **Reset Step** to make its scope
+clear.
+
+Stitching now displays the infeed-to-output direction beneath the live sheet.
+Saddle, top, and corner staple marks use diagonal staple geometry consistently
+in both the selection tiles and live preview.
+
+Folding now offers only **Auto** and **Manual** pressure modes. Its live diagram
+shows the incoming sheet, fold rollers, and folded booklet as a left-to-right
+process. Disabling folding draws the alternate route to the top tray, and the
+summary explicitly reports **Bypass to top tray** and that pressure is not
+used.
+
+Trimming displays three distinct dimensions: finished booklet length, total
+booklet length before trimming, and trimmed-strip length. Clamp pressure is now
+a 0–100% slider with ten-percent graduations instead of three categorical
+height choices. The per-job settings model stores the numeric pressure, and
+the preview reflects both the removed strip and selected clamp pressure.
+
 ### Languages (FR-10)
 
 The stage labels in `Startup/StartupStage.cs` are the strings that will move to
