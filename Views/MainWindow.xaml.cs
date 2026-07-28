@@ -33,6 +33,7 @@ namespace CPBourg.NextGenGui.Views
                 LocalizationManager.SetLanguage(language);
                 LocalizationManager.Apply(this);
                 GlobalMenu.ApplyLanguage();
+                StfoScreen.ApplyLanguage();
             };
             SettingsScreen.UnitsChanged += (s, unit) => ApplyMeasurementUnit(unit);
             SettingsScreen.DateTimeOffsetChanged += (s, offset) =>
@@ -58,8 +59,7 @@ namespace CPBourg.NextGenGui.Views
             // The STFO wizard drives the shell header title as its step
             // changes, and asks to return to the dashboard on Back-from-first /
             // Finish.
-            StfoScreen.TitleChanged += (s, title) =>
-                LocalizationManager.SetLocalizedText(PageTitleText, title);
+            StfoScreen.TitleChanged += (s, title) => PageTitleText.Text = title;
             StfoScreen.CloseRequested += (s, e) => NavigateTo("Home");
 
             TechnicianScreen.CloseRequested += (s, e) => NavigateTo("Home");
@@ -165,6 +165,7 @@ namespace CPBourg.NextGenGui.Views
             HideContentScreens();
             StfoScreen.Visibility = Visibility.Visible;
             StfoScreen.ResetToStart();
+            StfoScreen.ApplyLanguage();
         }
 
         private void ShowContentScreen(UIElement screen, string title)

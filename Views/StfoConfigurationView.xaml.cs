@@ -213,8 +213,8 @@ namespace CPBourg.NextGenGui.Views
             RestoreSavedConfiguration(_currentStep);
             _currentJob = job;
             CurrentJobNameRun.Text = job == null
-                ? "No job loaded"
-                : job.Name + " (" + job.Format + ", " + job.Pages + " pages)";
+                ? T("No job loaded")
+                : job.Name + " (" + job.Format + ", " + TF("{0} pages", job.Pages) + ")";
 
             if (job == null)
             {
@@ -229,6 +229,32 @@ namespace CPBourg.NextGenGui.Views
             }
 
             SaveAllCurrentConfigurations();
+        }
+
+        /// <summary>Re-applies fixed and generated copy after the operator
+        /// changes language without discarding the current configuration.</summary>
+        public void ApplyLanguage()
+        {
+            LocalizationManager.Apply(this);
+            RefreshUi();
+            UpdateStitchSummary();
+            RedrawStitchPreview();
+            UpdateFoldSummary();
+            RedrawFoldPreview();
+            UpdateTrimSummary();
+            RedrawTrimPreview();
+            UpdateConveyorSummary();
+            RedrawConveyorPreview();
+
+            if (_currentJob == null)
+            {
+                CurrentJobNameRun.Text = T("No job loaded");
+            }
+            else
+            {
+                CurrentJobNameRun.Text = _currentJob.Name + " (" + _currentJob.Format + ", " +
+                    TF("{0} pages", _currentJob.Pages) + ")";
+            }
         }
 
         public void SetMeasurementUnit(MeasurementUnit unit)
@@ -315,18 +341,26 @@ namespace CPBourg.NextGenGui.Views
             ConveyorContent.Visibility = isConveyor ? Visibility.Visible : Visibility.Collapsed;
             OverviewContent.Visibility = (!isStitching && !isFolding && !isTrimming && !isConveyor) ? Visibility.Visible : Visibility.Collapsed;
 
-            StepCaptionText.Text = StepCaptions[_currentStep];
+            StepCaptionText.Text = T(StepCaptions[_currentStep]);
 
-            BackButtonText.Text = _currentStep == 0 ? "Back" : "Back: " + StepNames[_currentStep - 1];
+            BackButtonText.Text = _currentStep == 0
+                ? T("Back")
+                : TF("Back: {0}", T(StepNames[_currentStep - 1]));
 
             // Last step commits the whole configuration (Confirm) rather than
             // advancing.
             bool isLast = _currentStep == StepNames.Length - 1;
-            NextButtonText.Text = isLast ? "Confirm" : "Next: " + StepNames[_currentStep + 1];
+            NextButtonText.Text = isLast
+                ? T("Confirm")
+                : TF("Next: {0}", T(StepNames[_currentStep + 1]));
 
             FooterStatusText.Text = string.Empty;
 
-            TitleChanged?.Invoke(this, "STFO - " + StepNames[_currentStep]);
+            LocalizationManager.Apply(this);
+            if (Visibility == Visibility.Visible)
+            {
+                TitleChanged?.Invoke(this, "STFO - " + T(StepNames[_currentStep]));
+            }
         }
 
         // ================= Wizard navigation =================
@@ -368,26 +402,27 @@ namespace CPBourg.NextGenGui.Views
         {
             if (_currentStep == 0)
             {
-                FooterStatusText.Text = "Select a configuration step to reset its settings.";
+                FooterStatusText.Text = T("Select a configuration step to reset its settings.");
                 return;
             }
 
             ApplyDefaultConfiguration(_currentStep);
-            FooterStatusText.Text = StepNames[_currentStep] +
-                                    " settings reset to defaults. Select Save to keep them.";
+            FooterStatusText.Text = TF(
+                "{0} settings reset to defaults. Select Save to keep them.",
+                T(StepNames[_currentStep]));
         }
 
         private void OnSaveClick(object sender, RoutedEventArgs e)
         {
             if (_currentStep == 0)
             {
-                FooterStatusText.Text = "Select a configuration step to save its settings.";
+                FooterStatusText.Text = T("Select a configuration step to save its settings.");
                 return;
             }
 
             SaveCurrentConfiguration(_currentStep);
             SaveConfigurationsToCurrentJob();
-            FooterStatusText.Text = StepNames[_currentStep] + " configuration saved.";
+            FooterStatusText.Text = TF("{0} configuration saved.", T(StepNames[_currentStep]));
         }
 
         private void ApplyJobSettings(StfoJobSettings settings)
@@ -721,41 +756,41 @@ namespace CPBourg.NextGenGui.Views
             {
                 case "PaperWidth":
                     _pendingStitchNumericField = StitchNumericField.PaperWidth;
-                    title = "Set Paper Width";
-                    label = "Paper width (" + unit + ")";
-                    description = "Enter the sheet width used by the stitching job.";
+                    title = T("Set Paper Width");
+                    label = TF("Paper width ({0})", unit);
+                    description = T("Enter the sheet width used by the stitching job.");
                     value = MeasurementFormatter.ToDisplay(_paperW, _measurementUnit);
                     allowNegative = false;
                     break;
                 case "PaperLength":
                     _pendingStitchNumericField = StitchNumericField.PaperLength;
-                    title = "Set Paper Length";
-                    label = "Paper length (" + unit + ")";
-                    description = "Enter the sheet length used by the stitching job.";
+                    title = T("Set Paper Length");
+                    label = TF("Paper length ({0})", unit);
+                    description = T("Enter the sheet length used by the stitching job.");
                     value = MeasurementFormatter.ToDisplay(_paperL, _measurementUnit);
                     allowNegative = false;
                     break;
                 case "Spacing":
                     _pendingStitchNumericField = StitchNumericField.Spacing;
-                    title = "Set Stitch Spacing";
-                    label = "Spacing between stitches (" + unit + ")";
-                    description = "Enter the distance between stitch positions.";
+                    title = T("Set Stitch Spacing");
+                    label = TF("Spacing between stitches ({0})", unit);
+                    description = T("Enter the distance between stitch positions.");
                     value = MeasurementFormatter.ToDisplay(_spacing, _measurementUnit);
                     allowNegative = false;
                     break;
                 case "HorizontalOffset":
                     _pendingStitchNumericField = StitchNumericField.HorizontalOffset;
-                    title = "Set Horizontal Offset";
-                    label = "Horizontal offset (" + unit + ")";
-                    description = "Use a negative value for left or a positive value for right.";
+                    title = T("Set Horizontal Offset");
+                    label = TF("Horizontal offset ({0})", unit);
+                    description = T("Use a negative value for left or a positive value for right.");
                     value = MeasurementFormatter.ToDisplay(_hOffset, _measurementUnit);
                     allowNegative = true;
                     break;
                 case "VerticalOffset":
                     _pendingStitchNumericField = StitchNumericField.VerticalOffset;
-                    title = "Set Vertical Offset";
-                    label = "Vertical offset (" + unit + ")";
-                    description = "Use a negative value for front or a positive value for rear.";
+                    title = T("Set Vertical Offset");
+                    label = TF("Vertical offset ({0})", unit);
+                    description = T("Use a negative value for front or a positive value for rear.");
                     value = MeasurementFormatter.ToDisplay(_vOffset, _measurementUnit);
                     allowNegative = true;
                     break;
@@ -816,8 +851,8 @@ namespace CPBourg.NextGenGui.Views
                     return;
             }
 
-            FooterStatusText.Text = fieldLabel + " updated to " + formatted + " " +
-                MeasurementFormatter.UnitSymbol(_measurementUnit) + ".";
+            FooterStatusText.Text = TF("{0} updated to {1} {2}.", T(fieldLabel), formatted,
+                MeasurementFormatter.UnitSymbol(_measurementUnit));
         }
 
         private void OnParamChanged(object sender, TextChangedEventArgs e)
@@ -909,7 +944,7 @@ namespace CPBourg.NextGenGui.Views
         {
             SummaryPaperSize.Text = MeasurementFormatter.FormatDimensions(
                 _paperW, _paperL, _measurementUnit);
-            SummaryStitchMode.Text = _stitchMode;
+            SummaryStitchMode.Text = T(_stitchMode);
             SummarySpacing.Text = DisplayLength(_spacing, "0.0", "0.000");
             SummaryHOffset.Text = DisplayLength(_hOffset, "0.0", "0.000");
             SummaryVOffset.Text = DisplayLength(_vOffset, "0.0", "0.000");
@@ -918,6 +953,16 @@ namespace CPBourg.NextGenGui.Views
         private static string Fmt(double value, string format)
         {
             return value.ToString(format, CultureInfo.InvariantCulture);
+        }
+
+        private static string T(string source)
+        {
+            return LocalizationManager.Translate(source);
+        }
+
+        private static string TF(string source, params object[] values)
+        {
+            return string.Format(CultureInfo.CurrentCulture, T(source), values);
         }
 
         // ---- Live preview drawing ----
@@ -1012,7 +1057,7 @@ namespace CPBourg.NextGenGui.Views
                     break;
 
                 case "None":
-                    AddLabel(canvas, "No stitching", x0, y0 + sheetH / 2 - 10, sheetW, dimBrush, TextAlignment.Center);
+                    AddLabel(canvas, T("No stitching"), x0, y0 + sheetH / 2 - 10, sheetW, dimBrush, TextAlignment.Center);
                     break;
             }
         }
@@ -1105,10 +1150,10 @@ namespace CPBourg.NextGenGui.Views
             _pendingStitchNumericField = StitchNumericField.FoldPosition;
             string unit = MeasurementFormatter.UnitSymbol(_measurementUnit);
             StitchNumericDialog.Open(
-                "Set Fold Position",
-                "Fold position (" + unit + ")",
-                "Enter a value from " + DisplayLength(-50) + " (backward) to " +
-                    DisplayLength(50) + " (forward).",
+                T("Set Fold Position"),
+                TF("Fold position ({0})", unit),
+                TF("Enter a value from {0} (backward) to {1} (forward).",
+                    DisplayLength(-50), DisplayLength(50)),
                 MeasurementFormatter.ToDisplay(_foldPosition, _measurementUnit),
                 true);
         }
@@ -1157,9 +1202,9 @@ namespace CPBourg.NextGenGui.Views
 
         private void UpdateFoldSummary()
         {
-            FoldSummaryFolding.Text = _foldEnabled ? "Enabled" : "Disabled";
+            FoldSummaryFolding.Text = T(_foldEnabled ? "Enabled" : "Disabled");
             FoldSummaryPosition.Text = DisplayLength(_foldPosition, "0.00", "0.000");
-            FoldSummaryPressure.Text = _pressureMode;
+            FoldSummaryPressure.Text = T(_pressureMode);
         }
 
         // ---- Folding live preview ----
@@ -1212,11 +1257,11 @@ namespace CPBourg.NextGenGui.Views
 
                 double half = Clamp(Math.Abs(_foldPosition) * pxPerMm, 26, 120);
                 AddHArrow(canvas, cx - half, cx + half, 284, navy, true);
-                AddLabel(canvas, "Fold offset (from center)", cx - 120, 296, 240, labelBrush, TextAlignment.Center);
+                AddLabel(canvas, T("Fold offset (from center)"), cx - 120, 296, 240, labelBrush, TextAlignment.Center);
 
                 if (Math.Abs(_foldPosition) > 0.001)
                 {
-                    AddLabel(canvas, "Fold direction", 246, 126, 92, labelBrush, TextAlignment.Center);
+                    AddLabel(canvas, T("Fold direction"), 246, 126, 92, labelBrush, TextAlignment.Center);
                     if (_foldPosition > 0)
                     {
                         AddHArrow(canvas, 262, 300, 158, navy, false);
@@ -1229,7 +1274,7 @@ namespace CPBourg.NextGenGui.Views
             }
             else
             {
-                AddLabel(canvas, "Folding disabled", cx - 120, 286, 240, muted, TextAlignment.Center);
+                AddLabel(canvas, T("Folding disabled"), cx - 120, 286, 240, muted, TextAlignment.Center);
             }
         }
 
@@ -1340,10 +1385,10 @@ namespace CPBourg.NextGenGui.Views
             _pendingStitchNumericField = StitchNumericField.FinalBookletLength;
             string unit = MeasurementFormatter.UnitSymbol(_measurementUnit);
             StitchNumericDialog.Open(
-                "Set Final Booklet Length",
-                "Final booklet length (" + unit + ")",
-                "Enter the desired finished length from " + DisplayLength(50) +
-                    " to " + DisplayLength(350) + ".",
+                T("Set Final Booklet Length"),
+                TF("Final booklet length ({0})", unit),
+                TF("Enter the desired finished length from {0} to {1}.",
+                    DisplayLength(50), DisplayLength(350)),
                 MeasurementFormatter.ToDisplay(_finalLength, _measurementUnit),
                 false);
         }
@@ -1395,10 +1440,10 @@ namespace CPBourg.NextGenGui.Views
 
         private void UpdateTrimSummary()
         {
-            TrimSummaryTrimming.Text = _trimEnabled ? "Enabled" : "Disabled";
+            TrimSummaryTrimming.Text = T(_trimEnabled ? "Enabled" : "Disabled");
             TrimSummaryLength.Text = DisplayLength(_finalLength, "0.0", "0.000");
-            TrimSummaryClamp.Text = _clampHeight == "Auto" ? "Automatic" : _clampHeight;
-            TrimSummaryChip.Text = _chipBlower ? "On" : "Off";
+            TrimSummaryClamp.Text = T(_clampHeight == "Auto" ? "Automatic" : _clampHeight);
+            TrimSummaryChip.Text = T(_chipBlower ? "On" : "Off");
         }
 
         // ---- Trimming live preview ----
@@ -1564,17 +1609,17 @@ namespace CPBourg.NextGenGui.Views
             if (field == "Spacing")
             {
                 _pendingConveyorNumericField = ConveyorNumericField.Spacing;
-                title = "Set Booklet Spacing";
-                label = "Booklet spacing";
-                description = "Enter the output conveyor advance from 1 to 30.";
+                title = T("Set Booklet Spacing");
+                label = T("Booklet spacing");
+                description = T("Enter the output conveyor advance from 1 to 30.");
                 value = _bookletSpacing;
             }
             else if (field == "Offset")
             {
                 _pendingConveyorNumericField = ConveyorNumericField.Offset;
-                title = "Set Booklet Offset";
-                label = "Booklet offset";
-                description = "Enter how often a booklet should be offset, from 1 to 30.";
+                title = T("Set Booklet Offset");
+                label = T("Booklet offset");
+                description = T("Enter how often a booklet should be offset, from 1 to 30.");
                 value = _bookletOffset;
             }
             else
@@ -1584,7 +1629,7 @@ namespace CPBourg.NextGenGui.Views
 
             e.Handled = true;
             ConveyorNumericDialog.Open(title, label, description, value, 1, 30,
-                "Enter a whole number from 1 to 30.");
+                T("Enter a whole number from 1 to 30."));
         }
 
         private void OnConveyorNumericValueConfirmed(object sender, int value)
@@ -1602,8 +1647,8 @@ namespace CPBourg.NextGenGui.Views
                 fieldLabel = "Booklet offset";
             }
 
-            FooterStatusText.Text = fieldLabel + " updated to " +
-                                    value.ToString(CultureInfo.InvariantCulture) + ".";
+            FooterStatusText.Text = TF("{0} updated to {1}.", T(fieldLabel),
+                value.ToString(CultureInfo.InvariantCulture));
         }
 
         private void OnFullDetectionClick(object sender, RoutedEventArgs e)
@@ -1626,7 +1671,7 @@ namespace CPBourg.NextGenGui.Views
         {
             ConvSummarySpacing.Text = _bookletSpacing.ToString(CultureInfo.InvariantCulture);
             ConvSummaryOffset.Text = _bookletOffset.ToString(CultureInfo.InvariantCulture);
-            ConvSummaryDetection.Text = _fullDetection ? "Enabled" : "Disabled";
+            ConvSummaryDetection.Text = T(_fullDetection ? "Enabled" : "Disabled");
         }
 
         // ---- Conveyor live preview ----

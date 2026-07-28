@@ -37,21 +37,23 @@ namespace CPBourg.NextGenGui.Views
         public void Open(string title, string fieldLabel, string description,
             int initialValue, int minimumValue, int maximumValue, string hint)
         {
+            Visibility = Visibility.Visible;
+            LocalizationManager.Apply(this);
             _minimumValue = Math.Max(0, minimumValue);
             _maximumValue = Math.Min(MaximumValue, Math.Max(_minimumValue, maximumValue));
             TitleText.Text = title;
             FieldLabelText.Text = fieldLabel + ":";
             DescriptionText.Text = description;
-            HintText.Text = hint ?? string.Empty;
-            ValidationText.Text = "Enter a value from " +
-                                  _minimumValue.ToString("N0", CultureInfo.CurrentCulture) + " to " +
-                                  _maximumValue.ToString("N0", CultureInfo.CurrentCulture) + ".";
+            HintText.Text = LocalizationManager.Translate(hint ?? string.Empty);
+            ValidationText.Text = string.Format(CultureInfo.CurrentCulture,
+                LocalizationManager.Translate("Enter a value from {0} to {1}."),
+                _minimumValue.ToString("N0", CultureInfo.CurrentCulture),
+                _maximumValue.ToString("N0", CultureInfo.CurrentCulture));
             int boundedInitialValue = Math.Max(_minimumValue, Math.Min(_maximumValue, initialValue));
             _digits = boundedInitialValue.ToString(CultureInfo.InvariantCulture);
             _replaceOnNextDigit = true;
             ValidationText.Visibility = Visibility.Collapsed;
             RefreshValue();
-            Visibility = Visibility.Visible;
         }
 
         private void OnDigitClick(object sender, RoutedEventArgs e)

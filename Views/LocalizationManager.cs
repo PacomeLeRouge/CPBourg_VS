@@ -15,7 +15,7 @@ namespace CPBourg.NextGenGui.Views
     /// retains its English source in an attached property, allowing repeated
     /// language changes without rebuilding each view.
     /// </summary>
-    public static class LocalizationManager
+    public static partial class LocalizationManager
     {
         private static readonly DependencyProperty SourceTextProperty =
             DependencyProperty.RegisterAttached("SourceText", typeof(string),
@@ -282,6 +282,8 @@ namespace CPBourg.NextGenGui.Views
                 "Tap the centre of each target.", "Tocca il centro di ogni bersaglio.",
                 "Target {0} of {1}", "Bersaglio {0} di {1}",
                 "Calibration complete", "Calibrazione completata");
+
+            AddStfoTranslations();
         }
 
         public static string CurrentLanguage => _language;
@@ -447,6 +449,21 @@ namespace CPBourg.NextGenGui.Views
                 dictionary[pairs[index]] = pairs[index + 1];
             }
             Translations[code] = dictionary;
+        }
+
+        private static void AddTo(string code, params string[] pairs)
+        {
+            Dictionary<string, string> dictionary;
+            if (!Translations.TryGetValue(code, out dictionary))
+            {
+                dictionary = new Dictionary<string, string>(StringComparer.Ordinal);
+                Translations[code] = dictionary;
+            }
+
+            for (int index = 0; index + 1 < pairs.Length; index += 2)
+            {
+                dictionary[pairs[index]] = pairs[index + 1];
+            }
         }
     }
 }

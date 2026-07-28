@@ -1213,6 +1213,19 @@ Runtime translations are managed by `Views/LocalizationManager.cs`. Internal
 navigation tags and machine/job data remain language-neutral; only displayed
 operator text is translated.
 
+### v44 - Complete STFO localization
+
+All five STFO configuration steps now follow the selected language. This
+includes the step tabs, live-preview headings and captions, parameter labels,
+choice buttons, saved-value summaries, Back/Next footer actions, validation
+messages, and decimal/integer keypad prompts. Runtime-generated copy such as
+the current job page count, save/reset feedback, and preview annotations is
+translated at the point it is produced.
+
+Changing language while the STFO wizard is open refreshes the current step
+immediately without changing any pending machine settings. Moving to another
+STFO step after the switch also retains the chosen language.
+
 ---
 
 ## Files
@@ -1246,6 +1259,7 @@ operator text is translated.
 | `Views/DateTimeSettingsDialog.xaml(.cs)` | Operator-interface date and 24-hour time editor |
 | `Views/ScreenCalibrationDialog.xaml(.cs)` | Four-point touch-screen calibration/verification workflow |
 | `Views/LocalizationManager.cs` | Runtime English/French/Dutch/German/Spanish/Italian translations |
+| `Views/LocalizationManager.Stfo.cs` | Complete six-language STFO wizard and keypad translation catalog |
 | `Views/KeyboardLayoutManager.cs` | Maps AZERTY/QWERTY/QWERTZ preferences to Windows input languages |
 | `Views/FontSizeManager.cs` | Applies Small / Medium / Large text sizing without resizing touch targets |
 | `Views/GlobalMenuView.xaml(.cs)` | Slide-out global navigation overlay |
