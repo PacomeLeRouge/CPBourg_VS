@@ -200,9 +200,7 @@ namespace CPBourg.NextGenGui.Views
         {
             RestoreSavedConfiguration(_currentStep);
             _currentJob = job;
-            CurrentJobNameRun.Text = job == null
-                ? T("No job loaded")
-                : job.Name + " (" + job.Format + ", " + TF("{0} pages", job.Pages) + ")";
+            RefreshCurrentJobLabel();
 
             if (job == null)
             {
@@ -234,15 +232,7 @@ namespace CPBourg.NextGenGui.Views
             UpdateConveyorSummary();
             RedrawConveyorPreview();
 
-            if (_currentJob == null)
-            {
-                CurrentJobNameRun.Text = T("No job loaded");
-            }
-            else
-            {
-                CurrentJobNameRun.Text = _currentJob.Name + " (" + _currentJob.Format + ", " +
-                    TF("{0} pages", _currentJob.Pages) + ")";
-            }
+            RefreshCurrentJobLabel();
         }
 
         public void SetMeasurementUnit(MeasurementUnit unit)
@@ -345,10 +335,19 @@ namespace CPBourg.NextGenGui.Views
             FooterStatusText.Text = string.Empty;
 
             LocalizationManager.Apply(this);
+            RefreshCurrentJobLabel();
             if (Visibility == Visibility.Visible)
             {
                 TitleChanged?.Invoke(this, "STFO - " + T(StepNames[_currentStep]));
             }
+        }
+
+        private void RefreshCurrentJobLabel()
+        {
+            CurrentJobNameRun.Text = _currentJob == null
+                ? T("No job loaded")
+                : _currentJob.Name + " (" + _currentJob.Format + ", " +
+                    TF("{0} pages", _currentJob.Pages) + ")";
         }
 
         // ================= Wizard navigation =================
