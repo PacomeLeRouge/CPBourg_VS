@@ -28,6 +28,12 @@ namespace CPBourg.NextGenGui.Views
             GlobalMenu.ItemSelected += OnGlobalMenuItemSelected;
 
             SettingsScreen.LanguageChanged += (s, abbreviation) => LanguageIndicatorText.Text = abbreviation;
+            SettingsScreen.UiLanguageChanged += (s, language) =>
+            {
+                LocalizationManager.SetLanguage(language);
+                LocalizationManager.Apply(this);
+                GlobalMenu.ApplyLanguage();
+            };
             SettingsScreen.UnitsChanged += (s, unit) => ApplyMeasurementUnit(unit);
             SettingsScreen.DateTimeOffsetChanged += (s, offset) =>
             {
@@ -39,6 +45,10 @@ namespace CPBourg.NextGenGui.Views
                 _fontSizeSetting = setting;
                 FontSizeManager.Apply(this, _fontSizeSetting);
             };
+            SettingsScreen.KeyboardLayoutChanged += (s, layout) =>
+                KeyboardLayoutManager.Apply(layout, this);
+            SettingsScreen.MouseCursorChanged += (s, enabled) =>
+                Cursor = enabled ? System.Windows.Input.Cursors.Arrow : System.Windows.Input.Cursors.None;
 
             Dashboard.NavigateToJobsRequested += (s, e) => NavigateTo("Job / File Menu");
             Dashboard.NavigateToErrorsRequested += (s, e) => NavigateTo("Error & Information");
@@ -48,7 +58,8 @@ namespace CPBourg.NextGenGui.Views
             // The STFO wizard drives the shell header title as its step
             // changes, and asks to return to the dashboard on Back-from-first /
             // Finish.
-            StfoScreen.TitleChanged += (s, title) => PageTitleText.Text = title;
+            StfoScreen.TitleChanged += (s, title) =>
+                LocalizationManager.SetLocalizedText(PageTitleText, title);
             StfoScreen.CloseRequested += (s, e) => NavigateTo("Home");
 
             TechnicianScreen.CloseRequested += (s, e) => NavigateTo("Home");
@@ -66,6 +77,11 @@ namespace CPBourg.NextGenGui.Views
             MachineLineConfigScreen.LineChanged += (s, e) => UpdateDashboardMachines();
             UpdateDashboardMachines();
 
+            // Settings loads durable preferences during construction; emit
+            // them now that the shell has subscribed to every preference.
+            SettingsScreen.ApplyStoredPreferences();
+            LocalizationManager.Apply(this);
+
             _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             _clockTimer.Tick += (s, e) => UpdateClock();
             _clockTimer.Start();
@@ -77,6 +93,10 @@ namespace CPBourg.NextGenGui.Views
             GlobalMenu.Visibility = GlobalMenu.Visibility == Visibility.Visible
                 ? Visibility.Collapsed
                 : Visibility.Visible;
+            if (GlobalMenu.Visibility == Visibility.Visible)
+            {
+                GlobalMenu.ApplyLanguage();
+            }
         }
 
         private void OnBellClick(object sender, RoutedEventArgs e)
@@ -130,7 +150,7 @@ namespace CPBourg.NextGenGui.Views
             }
             else
             {
-                PageTitleText.Text = itemName;
+                LocalizationManager.SetLocalizedText(PageTitleText, itemName);
             }
         }
 
@@ -151,8 +171,12 @@ namespace CPBourg.NextGenGui.Views
         {
             HideContentScreens();
             screen.Visibility = Visibility.Visible;
-            PageTitleText.Text = title;
-            Dispatcher.BeginInvoke(new Action(() => FontSizeManager.Apply(screen, _fontSizeSetting)));
+            LocalizationManager.SetLocalizedText(PageTitleText, title);
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                FontSizeManager.Apply(screen, _fontSizeSetting);
+                LocalizationManager.Apply(screen);
+            }));
         }
 
         private void HideContentScreens()

@@ -18,8 +18,8 @@ namespace CPBourg.NextGenGui.Views
     ///   - Preferences saved: Apply was clicked after a change
     ///
     /// Language, Units, Keyboard Layout, Mouse Cursor, and Font Size use the
-    /// reusable option picker. Date &amp; Time uses a date/time editor. Screen
-    /// Calibration remains the only prototype-only placeholder.
+    /// reusable option picker. Date &amp; Time uses a date/time editor and
+    /// Screen Calibration uses a four-point touch workflow.
     ///
     /// PENDING vs APPLIED: each picker-backed setting has a
     /// "pending" value (shown in the row as soon as you pick it in the
@@ -31,8 +31,8 @@ namespace CPBourg.NextGenGui.Views
     /// is what makes Cancel actually mean something, and what keeps the
     /// header from updating before Apply is clicked.
     ///
-    /// Preferences are retained for the current application session. Wire
-    /// durable preference storage in once the settings model is defined.
+    /// Preferences are saved under the current user's LocalAppData folder and
+    /// reapplied when the application starts.
     /// </summary>
     public partial class SettingsView : UserControl
     {
@@ -40,35 +40,41 @@ namespace CPBourg.NextGenGui.Views
         /// Raised when the APPLIED language changes (i.e. after clicking
         /// Apply, not just after picking a language in the dialog), carrying
         /// the new two-letter abbreviation (e.g. "FR"). MainWindow listens
-        /// to this to keep the header's language indicator in sync. This
-        /// does NOT translate the rest of the UI yet - that is future work
-        /// (FR-10).
+        /// to this to keep the header's language indicator in sync.
         /// </summary>
         public event EventHandler<string> LanguageChanged;
+        public event EventHandler<string> UiLanguageChanged;
         public event EventHandler<MeasurementUnit> UnitsChanged;
         public event EventHandler<TimeSpan> DateTimeOffsetChanged;
         public event EventHandler<string> FontSizeChanged;
+        public event EventHandler<string> KeyboardLayoutChanged;
+        public event EventHandler<bool> MouseCursorChanged;
 
         // Applied = currently in effect. Pending = selected but not yet
         // applied; this is what the rows display, so you can see your
         // selection immediately, even before clicking Apply.
-        private string _appliedLanguage = "English";
-        private string _pendingLanguage = "English";
+        private string _appliedLanguage;
+        private string _pendingLanguage;
 
-        private string _appliedUnits = "Millimeters";
-        private string _pendingUnits = "Millimeters";
+        private string _appliedUnits;
+        private string _pendingUnits;
 
-        private string _appliedKeyboardLayout = "AZERTY";
-        private string _pendingKeyboardLayout = "AZERTY";
+        private string _appliedKeyboardLayout;
+        private string _pendingKeyboardLayout;
 
-        private string _appliedMouseCursor = "Disabled";
-        private string _pendingMouseCursor = "Disabled";
+        private string _appliedMouseCursor;
+        private string _pendingMouseCursor;
 
         private TimeSpan _appliedDateTimeOffset = TimeSpan.Zero;
         private TimeSpan _pendingDateTimeOffset = TimeSpan.Zero;
 
-        private string _appliedFontSize = "Medium";
-        private string _pendingFontSize = "Medium";
+        private string _appliedFontSize;
+        private string _pendingFontSize;
+
+        private bool _appliedScreenCalibrated;
+        private bool _pendingScreenCalibrated;
+        private double _appliedCalibrationErrorPixels;
+        private double _pendingCalibrationErrorPixels;
 
         // Which row's dialog is currently open, so OnChangeDialogConfirmed
         // knows which field to update.
@@ -77,16 +83,27 @@ namespace CPBourg.NextGenGui.Views
         // Keeps the Date & Time row showing the real current time, same as
         // the header clock, rather than a fixed sample value.
         private readonly DispatcherTimer _clockTimer;
+        private readonly OperatorPreferencesStore _preferencesStore;
 
         public SettingsView()
+            : this(new OperatorPreferencesStore())
+        {
+        }
+
+        internal SettingsView(OperatorPreferencesStore preferencesStore)
         {
             InitializeComponent();
+
+            _preferencesStore = preferencesStore ?? new OperatorPreferencesStore();
+            ApplyPreferencesToState(_preferencesStore.Load());
+            LocalizationManager.SetLanguage(_appliedLanguage);
 
             _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             _clockTimer.Tick += (s, e) => RefreshRows();
             _clockTimer.Start();
 
             RefreshRows();
+            Dispatcher.BeginInvoke(new Action(() => LocalizationManager.Apply(this)));
         }
 
         private void RefreshRows()
@@ -95,17 +112,18 @@ namespace CPBourg.NextGenGui.Views
 
             LanguageRegionItems.ItemsSource = new List<SettingsItemInfo>
             {
-                new SettingsItemInfo("\uE774", "Language", _pendingLanguage, "Change", "Language"),
-                new SettingsItemInfo("\uE9D9", "Units", _pendingUnits, "Change", "Units"),
-                new SettingsItemInfo("\uE787", "Date and Time", currentDateTime, "Change", "DateTime"),
+                new SettingsItemInfo("\uE774", T("Language"), _pendingLanguage, T("Change"), "Language"),
+                new SettingsItemInfo("\uE9D9", T("Units"), T(_pendingUnits), T("Change"), "Units"),
+                new SettingsItemInfo("\uE787", T("Date and Time"), currentDateTime, T("Change"), "DateTime"),
             };
 
             DisplayItems.ItemsSource = new List<SettingsItemInfo>
             {
-                new SettingsItemInfo("\uE765", "Keyboard Layout", _pendingKeyboardLayout, "Change", "KeyboardLayout"),
-                new SettingsItemInfo("\uE962", "Mouse Cursor", _pendingMouseCursor, "Change", "MouseCursor"),
-                new SettingsItemInfo("Aa", "Font Size", _pendingFontSize, "Change", "FontSize", isLetterIcon: true),
-                new SettingsItemInfo("\uE946", "Screen Calibration", "Required if touch offset occurs", "Calibrate", "ScreenCalibration"),
+                new SettingsItemInfo("\uE765", T("Keyboard Layout"), _pendingKeyboardLayout, T("Change"), "KeyboardLayout"),
+                new SettingsItemInfo("\uE962", T("Mouse Cursor"), T(_pendingMouseCursor), T("Change"), "MouseCursor"),
+                new SettingsItemInfo("Aa", T("Font Size"), T(_pendingFontSize), T("Change"), "FontSize", isLetterIcon: true),
+                new SettingsItemInfo("\uE946", T("Screen Calibration"), CalibrationDisplay(),
+                    T("Calibrate"), "ScreenCalibration"),
             };
 
             if (_appliedFontSize != "Medium")
@@ -138,9 +156,8 @@ namespace CPBourg.NextGenGui.Views
                 case "FontSize":
                     OpenFontSizeDialog();
                     break;
-                default:
-                    // Screen Calibration remains a prototype placeholder.
-                    ShowBanner(unsaved: true, saved: false);
+                case "ScreenCalibration":
+                    ScreenCalibrationDialog.Open();
                     break;
             }
         }
@@ -155,9 +172,9 @@ namespace CPBourg.NextGenGui.Views
                 new ChangeOptionInfo("Nederlands", "Nederlands", _pendingLanguage == "Nederlands", "\ud83c\uddf3\ud83c\uddf1"),
                 new ChangeOptionInfo("Deutsch", "Deutsch", _pendingLanguage == "Deutsch", "\ud83c\udde9\ud83c\uddea"),
                 new ChangeOptionInfo("Espa\u00f1ol", "Espa\u00f1ol", _pendingLanguage == "Espa\u00f1ol", "\ud83c\uddea\ud83c\uddf8"),
-                new ChangeOptionInfo("Italiana", "Italiana", _pendingLanguage == "Italiana", "\ud83c\uddee\ud83c\uddf9"),
+                new ChangeOptionInfo("Italiano", "Italiano", _pendingLanguage == "Italiano", "\ud83c\uddee\ud83c\uddf9"),
             };
-            ChangeDialog.Open("Change Language", _pendingLanguage, options);
+            ChangeDialog.Open(T("Change Language"), _pendingLanguage, options);
         }
 
         private void OpenUnitsDialog()
@@ -165,10 +182,10 @@ namespace CPBourg.NextGenGui.Views
             _pendingSettingTag = "Units";
             var options = new List<ChangeOptionInfo>
             {
-                new ChangeOptionInfo("Millimeters", "Metric (millimeters)", _pendingUnits == "Millimeters"),
-                new ChangeOptionInfo("Inches", "Imperial (inches)", _pendingUnits == "Inches"),
+                new ChangeOptionInfo("Millimeters", T("Metric (millimeters)"), _pendingUnits == "Millimeters"),
+                new ChangeOptionInfo("Inches", T("Imperial (inches)"), _pendingUnits == "Inches"),
             };
-            ChangeDialog.Open("Change Units", _pendingUnits, options);
+            ChangeDialog.Open(T("Change Units"), T(_pendingUnits), options);
         }
 
         private void OpenKeyboardLayoutDialog()
@@ -180,7 +197,7 @@ namespace CPBourg.NextGenGui.Views
                 new ChangeOptionInfo("QWERTY", "QWERTY", _pendingKeyboardLayout == "QWERTY"),
                 new ChangeOptionInfo("QWERTZ", "QWERTZ", _pendingKeyboardLayout == "QWERTZ"),
             };
-            ChangeDialog.Open("Change Keyboard Layout", _pendingKeyboardLayout, options);
+            ChangeDialog.Open(T("Change Keyboard Layout"), _pendingKeyboardLayout, options);
         }
 
         private void OpenMouseCursorDialog()
@@ -188,10 +205,10 @@ namespace CPBourg.NextGenGui.Views
             _pendingSettingTag = "MouseCursor";
             var options = new List<ChangeOptionInfo>
             {
-                new ChangeOptionInfo("Disabled", "Disabled", _pendingMouseCursor == "Disabled"),
-                new ChangeOptionInfo("Enabled", "Enabled", _pendingMouseCursor == "Enabled"),
+                new ChangeOptionInfo("Disabled", T("Disabled"), _pendingMouseCursor == "Disabled"),
+                new ChangeOptionInfo("Enabled", T("Enabled"), _pendingMouseCursor == "Enabled"),
             };
-            ChangeDialog.Open("Change Mouse Cursor", _pendingMouseCursor, options);
+            ChangeDialog.Open(T("Change Mouse Cursor"), T(_pendingMouseCursor), options);
         }
 
         private void OpenFontSizeDialog()
@@ -199,11 +216,11 @@ namespace CPBourg.NextGenGui.Views
             _pendingSettingTag = "FontSize";
             var options = new List<ChangeOptionInfo>
             {
-                new ChangeOptionInfo("Small", "Small", _pendingFontSize == "Small"),
-                new ChangeOptionInfo("Medium", "Medium (recommended)", _pendingFontSize == "Medium"),
-                new ChangeOptionInfo("Large", "Large", _pendingFontSize == "Large"),
+                new ChangeOptionInfo("Small", T("Small"), _pendingFontSize == "Small"),
+                new ChangeOptionInfo("Medium", T("Medium (recommended)"), _pendingFontSize == "Medium"),
+                new ChangeOptionInfo("Large", T("Large"), _pendingFontSize == "Large"),
             };
-            ChangeDialog.Open("Change Font Size", _pendingFontSize, options);
+            ChangeDialog.Open(T("Change Font Size"), T(_pendingFontSize), options);
         }
 
         private void OnDateTimeConfirmed(object sender, DateTime selectedDateTime)
@@ -230,23 +247,12 @@ namespace CPBourg.NextGenGui.Views
             ShowBanner(unsaved: true, saved: false);
         }
 
-        /// <summary>
-        /// Two-letter abbreviation shown in the header for a given language
-        /// display name. This only drives that header label - it does not
-        /// translate anything else in the UI yet (FR-10 future work).
-        /// </summary>
-        private static string GetLanguageAbbreviation(string language)
+        private void OnScreenCalibrationConfirmed(object sender, ScreenCalibrationResult result)
         {
-            switch (language)
-            {
-                case "English": return "EN";
-                case "Fran\u00e7ais": return "FR";
-                case "Nederlands": return "NL";
-                case "Deutsch": return "DE";
-                case "Espa\u00f1ol": return "ES";
-                case "Italiana": return "IT";
-                default: return "EN";
-            }
+            _pendingScreenCalibrated = true;
+            _pendingCalibrationErrorPixels = result.AverageErrorPixels;
+            RefreshRows();
+            ShowBanner(unsaved: true, saved: false);
         }
 
         private void OnApplyClick(object sender, RoutedEventArgs e)
@@ -255,18 +261,28 @@ namespace CPBourg.NextGenGui.Views
             bool unitsChanged = _pendingUnits != _appliedUnits;
             bool dateTimeChanged = _pendingDateTimeOffset != _appliedDateTimeOffset;
             bool fontSizeChanged = _pendingFontSize != _appliedFontSize;
+            bool keyboardChanged = _pendingKeyboardLayout != _appliedKeyboardLayout;
+            bool cursorChanged = _pendingMouseCursor != _appliedMouseCursor;
 
-            // Commit pending -> applied for all picker-backed settings.
-            _appliedLanguage = _pendingLanguage;
-            _appliedUnits = _pendingUnits;
-            _appliedKeyboardLayout = _pendingKeyboardLayout;
-            _appliedMouseCursor = _pendingMouseCursor;
-            _appliedDateTimeOffset = _pendingDateTimeOffset;
-            _appliedFontSize = _pendingFontSize;
+            string errorMessage;
+            OperatorPreferences pendingPreferences = CreatePendingPreferences();
+            if (!_preferencesStore.TrySave(pendingPreferences, out errorMessage))
+            {
+                UnsavedDetailText.Text = errorMessage;
+                ShowBanner(unsaved: true, saved: false);
+                return;
+            }
+
+            // Commit pending -> applied only after durable storage succeeds.
+            ApplyPreferencesToState(pendingPreferences);
 
             if (languageChanged)
             {
-                LanguageChanged?.Invoke(this, GetLanguageAbbreviation(_appliedLanguage));
+                LocalizationManager.SetLanguage(_appliedLanguage);
+                UiLanguageChanged?.Invoke(this, _appliedLanguage);
+                LanguageChanged?.Invoke(this, LocalizationManager.GetAbbreviation(_appliedLanguage));
+                RefreshRows();
+                LocalizationManager.Apply(this);
             }
             if (unitsChanged)
             {
@@ -282,7 +298,16 @@ namespace CPBourg.NextGenGui.Views
             {
                 FontSizeChanged?.Invoke(this, _appliedFontSize);
             }
+            if (keyboardChanged)
+            {
+                KeyboardLayoutChanged?.Invoke(this, _appliedKeyboardLayout);
+            }
+            if (cursorChanged)
+            {
+                MouseCursorChanged?.Invoke(this, _appliedMouseCursor == "Enabled");
+            }
 
+            UnsavedDetailText.Text = T("Please apply changes before exiting.");
             ShowBanner(unsaved: false, saved: true);
         }
 
@@ -295,6 +320,8 @@ namespace CPBourg.NextGenGui.Views
             _pendingMouseCursor = _appliedMouseCursor;
             _pendingDateTimeOffset = _appliedDateTimeOffset;
             _pendingFontSize = _appliedFontSize;
+            _pendingScreenCalibrated = _appliedScreenCalibrated;
+            _pendingCalibrationErrorPixels = _appliedCalibrationErrorPixels;
 
             RefreshRows();
             ShowBanner(unsaved: false, saved: false);
@@ -309,6 +336,89 @@ namespace CPBourg.NextGenGui.Views
         {
             UnsavedBanner.Visibility = unsaved ? Visibility.Visible : Visibility.Collapsed;
             SavedBanner.Visibility = saved ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        /// <summary>Applies preferences loaded before MainWindow subscribed to
+        /// this view's events.</summary>
+        public void ApplyStoredPreferences()
+        {
+            LocalizationManager.SetLanguage(_appliedLanguage);
+            UiLanguageChanged?.Invoke(this, _appliedLanguage);
+            LanguageChanged?.Invoke(this, LocalizationManager.GetAbbreviation(_appliedLanguage));
+            UnitsChanged?.Invoke(this, _appliedUnits == "Inches"
+                ? MeasurementUnit.Inches : MeasurementUnit.Millimeters);
+            DateTimeOffsetChanged?.Invoke(this, _appliedDateTimeOffset);
+            FontSizeChanged?.Invoke(this, _appliedFontSize);
+            KeyboardLayoutChanged?.Invoke(this, _appliedKeyboardLayout);
+            MouseCursorChanged?.Invoke(this, _appliedMouseCursor == "Enabled");
+        }
+
+        private void ApplyPreferencesToState(OperatorPreferences preferences)
+        {
+            _appliedLanguage = preferences.Language;
+            _pendingLanguage = preferences.Language;
+            _appliedUnits = preferences.Units;
+            _pendingUnits = preferences.Units;
+            _appliedKeyboardLayout = preferences.KeyboardLayout;
+            _pendingKeyboardLayout = preferences.KeyboardLayout;
+            _appliedMouseCursor = preferences.MouseCursor;
+            _pendingMouseCursor = preferences.MouseCursor;
+            _appliedDateTimeOffset = SafeDateTimeOffset(preferences.DateTimeOffsetTicks);
+            _pendingDateTimeOffset = _appliedDateTimeOffset;
+            _appliedFontSize = preferences.FontSize;
+            _pendingFontSize = preferences.FontSize;
+            _appliedScreenCalibrated = preferences.ScreenCalibrated;
+            _pendingScreenCalibrated = preferences.ScreenCalibrated;
+            double calibrationError = preferences.CalibrationErrorPixels;
+            if (double.IsNaN(calibrationError) || double.IsInfinity(calibrationError) ||
+                calibrationError < 0)
+            {
+                calibrationError = 0;
+            }
+            _appliedCalibrationErrorPixels = calibrationError;
+            _pendingCalibrationErrorPixels = calibrationError;
+        }
+
+        private OperatorPreferences CreatePendingPreferences()
+        {
+            return new OperatorPreferences
+            {
+                Language = _pendingLanguage,
+                Units = _pendingUnits,
+                KeyboardLayout = _pendingKeyboardLayout,
+                MouseCursor = _pendingMouseCursor,
+                DateTimeOffsetTicks = _pendingDateTimeOffset.Ticks,
+                FontSize = _pendingFontSize,
+                ScreenCalibrated = _pendingScreenCalibrated,
+                CalibrationErrorPixels = _pendingCalibrationErrorPixels,
+            };
+        }
+
+        private string CalibrationDisplay()
+        {
+            if (!_pendingScreenCalibrated)
+            {
+                return T("Not calibrated");
+            }
+
+            return T("Calibrated") + " (" +
+                   _pendingCalibrationErrorPixels.ToString("0.0") + " px)";
+        }
+
+        private static string T(string source) => LocalizationManager.Translate(source);
+
+        private static TimeSpan SafeDateTimeOffset(long ticks)
+        {
+            try
+            {
+                TimeSpan offset = TimeSpan.FromTicks(ticks);
+                DateTime.Now.Add(offset);
+                return offset;
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                return TimeSpan.Zero;
+            }
         }
     }
 }

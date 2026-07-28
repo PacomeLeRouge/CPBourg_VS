@@ -32,7 +32,7 @@ namespace CPBourg.NextGenGui.Views
         public void Open(string title, string currentValueDisplay, List<ChangeOptionInfo> options)
         {
             DialogTitleText.Text = title;
-            CurrentValueText.Text = "Current: " + currentValueDisplay;
+            CurrentValueText.Text = LocalizationManager.Translate("Current: ") + currentValueDisplay;
             _pendingSelection = null;
 
             foreach (var option in options)
@@ -46,6 +46,7 @@ namespace CPBourg.NextGenGui.Views
 
             OptionsItemsControl.ItemsSource = options;
             Visibility = Visibility.Visible;
+            LocalizationManager.Apply(this);
         }
 
         private void OnOptionChecked(object sender, RoutedEventArgs e)

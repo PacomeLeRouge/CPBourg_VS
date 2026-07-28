@@ -8,14 +8,14 @@
     <!--
         Settings / Operator Preferences screen (FR-09 minimal configurator).
 
-        Demonstrates the three states from the reference mock as an actual
-        interactive stub, rather than three separate static screens:
+        Implements the three states from the reference mock as one interactive
+        screen:
           - Default:          no banner, Apply/Cancel present but inactive
           - Unsaved changes:  clicking any "Change"/"Calibrate" row button
                                shows the amber banner
           - Preferences saved: clicking "Apply" shows the green banner
-        Clicking "Cancel" or the banner's close (x) returns to Default.
-        See SettingsView.xaml.cs for the small state machine.
+        Clicking "Cancel" returns pending choices to the durable applied
+        preferences. See SettingsView.xaml.cs for persistence and application.
 
         ICON NOTE: the row icons below use Segoe MDL2 Assets glyphs. Codepoints
         marked "confirmed" have already rendered correctly elsewhere in this
@@ -149,7 +149,7 @@
                     <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
                         <TextBlock Text="Unsaved changes" FontSize="16" FontWeight="Bold"
                                    Foreground="{StaticResource WarningBrush}" />
-                        <TextBlock Text="Please apply changes before exiting." FontSize="13"
+                        <TextBlock x:Name="UnsavedDetailText" Text="Please apply changes before exiting." FontSize="13"
                                    Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0" />
                     </StackPanel>
                     <Button Grid.Column="2" Width="40" Height="40" Background="Transparent" BorderThickness="0"
@@ -211,5 +211,7 @@
         <local:ChangeValueDialog x:Name="ChangeDialog" Grid.Row="0" Grid.RowSpan="4" Confirmed="OnChangeDialogConfirmed" />
         <local:DateTimeSettingsDialog x:Name="DateTimeDialog" Grid.Row="0" Grid.RowSpan="4"
                                       Confirmed="OnDateTimeConfirmed" />
+        <local:ScreenCalibrationDialog x:Name="ScreenCalibrationDialog" Grid.Row="0" Grid.RowSpan="4"
+                                       Panel.ZIndex="60" Confirmed="OnScreenCalibrationConfirmed" />
     </Grid>
 </UserControl>

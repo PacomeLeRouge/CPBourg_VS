@@ -25,6 +25,7 @@ namespace CPBourg.NextGenGui.Views
             MinuteComboBox.SelectedIndex = currentValue.Minute;
             ValidationText.Visibility = Visibility.Collapsed;
             Visibility = Visibility.Visible;
+            LocalizationManager.Apply(this);
         }
 
         private void OnSaveClick(object sender, RoutedEventArgs e)

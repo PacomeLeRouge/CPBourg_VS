@@ -21,6 +21,28 @@ namespace CPBourg.NextGenGui.Views
             InitializeComponent();
         }
 
+        public void ApplyLanguage()
+        {
+            Set(MenuTitleText, "Global Menu");
+            Set(GeneralHeaderText, "GENERAL");
+            Set(HomeNavText, "Home");
+            Set(JobsNavText, "Job / File menu");
+            Set(ErrorsNavText, "Error & Information");
+            Set(SettingsNavText, "Settings / Preferences");
+            Set(ConfigurationHeaderText, "CONFIGURATION");
+            Set(MachineLineNavText, "Machine Line Configuration");
+            Set(AdvancedHeaderText, "ADVANCED");
+            Set(TechnicianNavText, "Technician Interface");
+            Set(HelpHeaderText, "HELP");
+            Set(HelpNavText, "Help / Manual");
+            Set(AboutNavText, "About / Version");
+        }
+
+        private static void Set(TextBlock target, string source)
+        {
+            LocalizationManager.SetLocalizedText(target, source);
+        }
+
         private void OnScrimMouseDown(object sender, MouseButtonEventArgs e)
         {
             CloseRequested?.Invoke(this, EventArgs.Empty);

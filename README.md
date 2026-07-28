@@ -1183,11 +1183,35 @@ Cancelling the final PIN leaves the configuration pending so the operator can
 continue editing or return to Review & Confirm later. The existing Technician
 Interface access prompt continues to use its original title and Unlock action.
 
+### v43 - Functional language and operator settings
+
+Settings now saves operator preferences to
+`%LOCALAPPDATA%\CPBourg\NextGenGui\operator-preferences.xml` and reapplies them
+at startup. Apply commits the complete pending preference set only after the
+file is written successfully; Cancel restores the last applied values.
+
+Language switching now provides English, French, Dutch, German, Spanish, and
+Italian. Applying a language updates the header abbreviation, Settings screen,
+global navigation menu, page titles, common dashboard actions/status text, and
+reusable dialogs. The localization layer retains each control's English source
+text so the operator can switch repeatedly between languages without
+restarting.
+
+The remaining Settings rows are functional:
+
+- **Keyboard Layout** requests the corresponding installed Windows input
+  language for AZERTY, QWERTY, or QWERTZ.
+- **Mouse Cursor** shows or hides the application cursor.
+- **Screen Calibration** opens a four-point touch verification workflow and
+  records its average touch error.
+- **Units**, **Date and Time**, and **Font Size** keep their existing live
+  application behavior and are now persisted with the other preferences.
+
 ### Languages (FR-10)
 
-The stage labels in `Startup/StartupStage.cs` are the strings that will move to
-a French/English resource file when language switching is implemented. They are
-inline for the prototype and marked with a comment.
+Runtime translations are managed by `Views/LocalizationManager.cs`. Internal
+navigation tags and machine/job data remain language-neutral; only displayed
+operator text is translated.
 
 ---
 
@@ -1220,6 +1244,9 @@ inline for the prototype and marked with a comment.
 | `Views/NumericInputDialog.xaml(.cs)` | Reusable touchscreen keypad for non-negative whole-number entry |
 | `Views/DecimalInputDialog.xaml(.cs)` | Decimal touchscreen keypad with optional negative-value entry |
 | `Views/DateTimeSettingsDialog.xaml(.cs)` | Operator-interface date and 24-hour time editor |
+| `Views/ScreenCalibrationDialog.xaml(.cs)` | Four-point touch-screen calibration/verification workflow |
+| `Views/LocalizationManager.cs` | Runtime English/French/Dutch/German/Spanish/Italian translations |
+| `Views/KeyboardLayoutManager.cs` | Maps AZERTY/QWERTY/QWERTZ preferences to Windows input languages |
 | `Views/FontSizeManager.cs` | Applies Small / Medium / Large text sizing without resizing touch targets |
 | `Views/GlobalMenuView.xaml(.cs)` | Slide-out global navigation overlay |
 | `Views/HelpView.xaml(.cs)` | Help screen with the clickable official manuals/support link |
@@ -1232,6 +1259,8 @@ inline for the prototype and marked with a comment.
 | `Models/MachineTileInfo.cs` | Data for one machine tile |
 | `Models/JobSummary.cs` | Data for the current-job card |
 | `Models/SettingsItemInfo.cs` | Data for one Settings row |
+| `Models/OperatorPreferences.cs` / `Models/OperatorPreferencesStore.cs` | Durable operator Settings values stored under LocalAppData |
+| `Models/ScreenCalibrationResult.cs` | Result returned by the touch calibration workflow |
 | `Models/ChangeOptionInfo.cs` | Data for one radio option in a Change-value dialog |
 | `Models/MeasurementUnit.cs` / `Models/MeasurementFormatter.cs` | Canonical mm/in preference, conversion, and formatting helpers |
 | `Models/JobRecord.cs` | Data for one saved job |
