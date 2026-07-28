@@ -257,7 +257,7 @@
         <!-- ================= Step tab bar ================= -->
         <Border Grid.Row="0" Style="{StaticResource CardStyle}" Padding="6">
             <UniformGrid Columns="5">
-                <Button x:Name="StepTab0" Style="{StaticResource StepTabButtonStyle}" Content="1. Menu" Click="OnStepTabClick" Tag="0" />
+                <Button x:Name="StepTab0" Style="{StaticResource StepTabButtonStyle}" Content="1. Overview" Click="OnStepTabClick" Tag="0" />
                 <Button x:Name="StepTab1" Style="{StaticResource StepTabButtonStyle}" Content="2. Stitching" Click="OnStepTabClick" Tag="1" />
                 <Button x:Name="StepTab2" Style="{StaticResource StepTabButtonStyle}" Content="3. Folding" Click="OnStepTabClick" Tag="2" />
                 <Button x:Name="StepTab3" Style="{StaticResource StepTabButtonStyle}" Content="4. Trimming" Click="OnStepTabClick" Tag="3" />
@@ -308,45 +308,105 @@
         <!-- ================= Per-step content ================= -->
         <Grid Grid.Row="4">
 
-            <!-- ===== Overview (Menu + not-yet-built steps): machine line ===== -->
+            <!-- ===== Guided BBM configuration overview ===== -->
             <Border x:Name="OverviewContent" Style="{StaticResource CardStyle}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="8" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" Text="Live Preview" FontSize="17" FontWeight="Medium"
+                    <TextBlock Grid.Row="0" Text="BBM Configuration Overview" FontSize="20" FontWeight="SemiBold"
                                Foreground="{StaticResource TextPrimaryBrush}" />
+                    <TextBlock Grid.Row="2" Text="Review the paper path, then select Stitching, Folding, Trimming, and Conveyor to configure each operation for the loaded job."
+                               FontSize="15" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" />
 
-                    <Grid Grid.Row="1">
-                        <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="20"
+                    <Grid Grid.Row="3">
+                        <Viewbox Stretch="Uniform" StretchDirection="DownOnly" Margin="20,4"
                                  HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <Canvas Width="640" Height="300">
-                                <Ellipse Canvas.Left="95" Canvas.Top="258" Width="22" Height="22" Fill="{StaticResource TextSecondaryBrush}" />
-                                <Ellipse Canvas.Left="225" Canvas.Top="258" Width="22" Height="22" Fill="{StaticResource TextSecondaryBrush}" />
-                                <Rectangle Canvas.Left="70" Canvas.Top="120" Width="200" Height="145" RadiusX="8" RadiusY="8"
+                            <Canvas Width="720" Height="270">
+                                <TextBlock Canvas.Left="2" Canvas.Top="98" Width="82" Text="Paper in" FontSize="14"
+                                           FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap"
+                                           Foreground="{StaticResource JobsAccentBrush}" />
+                                <Line X1="85" Y1="140" X2="660" Y2="140" Stroke="{StaticResource JobsAccentBrush}" StrokeThickness="4" />
+                                <Polygon Points="680,140 656,127 656,153" Fill="{StaticResource JobsAccentBrush}" />
+                                <TextBlock Canvas.Left="255" Canvas.Top="247" Width="250" Text="Paper path through BBM"
+                                           TextAlignment="Center" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{StaticResource JobsAccentBrush}" />
+                                <TextBlock Canvas.Left="684" Canvas.Top="128" Text="Out" FontSize="16" FontWeight="SemiBold"
+                                           Foreground="{StaticResource JobsAccentBrush}" />
+
+                                <Ellipse Canvas.Left="126" Canvas.Top="220" Width="22" Height="22" Fill="{StaticResource TextSecondaryBrush}" />
+                                <Ellipse Canvas.Left="256" Canvas.Top="220" Width="22" Height="22" Fill="{StaticResource TextSecondaryBrush}" />
+                                <Rectangle Canvas.Left="100" Canvas.Top="82" Width="200" Height="145" RadiusX="8" RadiusY="8"
                                            Fill="{StaticResource CardBorderBrush}" Stroke="{StaticResource TextMutedBrush}" StrokeThickness="1.5" />
-                                <Rectangle Canvas.Left="95" Canvas.Top="165" Width="70" Height="10" RadiusX="4" RadiusY="4" Fill="{StaticResource TextMutedBrush}" />
-                                <Rectangle Canvas.Left="95" Canvas.Top="200" Width="70" Height="10" RadiusX="4" RadiusY="4" Fill="{StaticResource TextMutedBrush}" />
-                                <Rectangle Canvas.Left="150" Canvas.Top="92" Width="8" Height="32" Fill="{StaticResource TextMutedBrush}" />
-                                <Rectangle Canvas.Left="118" Canvas.Top="62" Width="74" Height="44" RadiusX="4" RadiusY="4" Fill="{StaticResource HeaderBackgroundBrush}" />
-                                <Ellipse Canvas.Left="315" Canvas.Top="258" Width="22" Height="22" Fill="{StaticResource TextSecondaryBrush}" />
-                                <Ellipse Canvas.Left="470" Canvas.Top="258" Width="22" Height="22" Fill="{StaticResource TextSecondaryBrush}" />
-                                <Rectangle Canvas.Left="278" Canvas.Top="128" Width="250" Height="137" RadiusX="8" RadiusY="8" Fill="{StaticResource TextSecondaryBrush}" />
-                                <Rectangle Canvas.Left="290" Canvas.Top="112" Width="80" Height="28" RadiusX="6" RadiusY="6" Fill="{StaticResource TextMutedBrush}" />
-                                <Ellipse Canvas.Left="452" Canvas.Top="182" Width="52" Height="52" Stroke="{StaticResource TextMutedBrush}" StrokeThickness="3" Fill="Transparent" />
-                                <Ellipse Canvas.Left="470" Canvas.Top="200" Width="16" Height="16" Fill="{StaticResource TextMutedBrush}" />
-                                <Rectangle Canvas.Left="430" Canvas.Top="90" Width="8" Height="40" Fill="{StaticResource TextMutedBrush}" />
-                                <Rectangle Canvas.Left="398" Canvas.Top="58" Width="78" Height="50" RadiusX="4" RadiusY="4" Fill="{StaticResource HeaderBackgroundBrush}" />
-                                <Rectangle Canvas.Left="528" Canvas.Top="185" Width="100" Height="22" RadiusX="3" RadiusY="3" Fill="{StaticResource TextSecondaryBrush}" />
-                                <Rectangle Canvas.Left="528" Canvas.Top="178" Width="100" Height="8" RadiusX="2" RadiusY="2" Fill="{StaticResource TextMutedBrush}" />
+                                <Rectangle Canvas.Left="125" Canvas.Top="166" Width="70" Height="10" RadiusX="4" RadiusY="4" Fill="{StaticResource TextMutedBrush}" />
+                                <Rectangle Canvas.Left="125" Canvas.Top="196" Width="70" Height="10" RadiusX="4" RadiusY="4" Fill="{StaticResource TextMutedBrush}" />
+                                <Rectangle Canvas.Left="180" Canvas.Top="54" Width="8" Height="32" Fill="{StaticResource TextMutedBrush}" />
+                                <Rectangle Canvas.Left="148" Canvas.Top="24" Width="74" Height="44" RadiusX="4" RadiusY="4" Fill="{StaticResource HeaderBackgroundBrush}" />
+                                <Ellipse Canvas.Left="346" Canvas.Top="220" Width="22" Height="22" Fill="{StaticResource TextSecondaryBrush}" />
+                                <Ellipse Canvas.Left="501" Canvas.Top="220" Width="22" Height="22" Fill="{StaticResource TextSecondaryBrush}" />
+                                <Rectangle Canvas.Left="308" Canvas.Top="90" Width="250" Height="137" RadiusX="8" RadiusY="8" Fill="{StaticResource TextSecondaryBrush}" />
+                                <Rectangle Canvas.Left="320" Canvas.Top="74" Width="80" Height="28" RadiusX="6" RadiusY="6" Fill="{StaticResource TextMutedBrush}" />
+                                <Ellipse Canvas.Left="482" Canvas.Top="144" Width="52" Height="52" Stroke="{StaticResource TextMutedBrush}" StrokeThickness="3" Fill="Transparent" />
+                                <Ellipse Canvas.Left="500" Canvas.Top="162" Width="16" Height="16" Fill="{StaticResource TextMutedBrush}" />
+                                <Rectangle Canvas.Left="460" Canvas.Top="52" Width="8" Height="40" Fill="{StaticResource TextMutedBrush}" />
+                                <Rectangle Canvas.Left="428" Canvas.Top="20" Width="78" Height="50" RadiusX="4" RadiusY="4" Fill="{StaticResource HeaderBackgroundBrush}" />
+                                <Rectangle Canvas.Left="558" Canvas.Top="147" Width="100" Height="22" RadiusX="3" RadiusY="3" Fill="{StaticResource TextSecondaryBrush}" />
+                                <Rectangle Canvas.Left="558" Canvas.Top="140" Width="100" Height="8" RadiusX="2" RadiusY="2" Fill="{StaticResource TextMutedBrush}" />
                             </Canvas>
                         </Viewbox>
-
-                        <TextBlock x:Name="StepCaptionText" Text="" VerticalAlignment="Bottom" HorizontalAlignment="Center"
-                                   Margin="0,0,0,4" FontSize="14" Foreground="{StaticResource TextMutedBrush}" />
                     </Grid>
+
+                    <UniformGrid Grid.Row="4" Columns="4" Margin="0,8,0,0">
+                        <Border Background="{StaticResource ScreenBackgroundBrush}" CornerRadius="7" Padding="14,10" Margin="0,0,6,0">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="28" Height="28" CornerRadius="14" Background="{StaticResource JobsAccentBrush}">
+                                    <TextBlock Text="2" Foreground="White" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel Margin="10,0,0,0">
+                                    <TextBlock Text="Stitching" FontSize="15" FontWeight="SemiBold" />
+                                    <TextBlock Text="Staple mode and position" FontSize="12" Foreground="{StaticResource TextMutedBrush}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                        <Border Background="{StaticResource ScreenBackgroundBrush}" CornerRadius="7" Padding="14,10" Margin="2,0,4,0">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="28" Height="28" CornerRadius="14" Background="{StaticResource JobsAccentBrush}">
+                                    <TextBlock Text="3" Foreground="White" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel Margin="10,0,0,0">
+                                    <TextBlock Text="Folding" FontSize="15" FontWeight="SemiBold" />
+                                    <TextBlock Text="Fold path and pressure" FontSize="12" Foreground="{StaticResource TextMutedBrush}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                        <Border Background="{StaticResource ScreenBackgroundBrush}" CornerRadius="7" Padding="14,10" Margin="4,0,2,0">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="28" Height="28" CornerRadius="14" Background="{StaticResource JobsAccentBrush}">
+                                    <TextBlock Text="4" Foreground="White" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel Margin="10,0,0,0">
+                                    <TextBlock Text="Trimming" FontSize="15" FontWeight="SemiBold" />
+                                    <TextBlock Text="Length and clamp pressure" FontSize="12" Foreground="{StaticResource TextMutedBrush}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                        <Border Background="{StaticResource ScreenBackgroundBrush}" CornerRadius="7" Padding="14,10" Margin="6,0,0,0">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="28" Height="28" CornerRadius="14" Background="{StaticResource JobsAccentBrush}">
+                                    <TextBlock Text="5" Foreground="White" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel Margin="10,0,0,0">
+                                    <TextBlock Text="Conveyor" FontSize="15" FontWeight="SemiBold" />
+                                    <TextBlock Text="Output spacing and detection" FontSize="12" Foreground="{StaticResource TextMutedBrush}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
                 </Grid>
             </Border>
 
@@ -523,8 +583,8 @@
                                             <Rectangle Canvas.Left="9" Canvas.Top="12" Width="13" Height="24" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.5" />
                                             <Rectangle Canvas.Left="24" Canvas.Top="12" Width="13" Height="24" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.5" />
                                             <Line X1="23" Y1="10" X2="23" Y2="38" Stroke="{StaticResource TextMutedBrush}" StrokeThickness="1.2" StrokeDashArray="2,2" />
-                                            <Rectangle Canvas.Left="21.5" Canvas.Top="17" Width="3" Height="5" Fill="{StaticResource TextSecondaryBrush}" />
-                                            <Rectangle Canvas.Left="21.5" Canvas.Top="27" Width="3" Height="5" Fill="{StaticResource TextSecondaryBrush}" />
+                                            <Line X1="20" Y1="18" X2="25" Y2="21" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="2.5" />
+                                            <Line X1="20" Y1="28" X2="25" Y2="31" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="2.5" />
                                         </Canvas>
                                     </Viewbox>
                                     <TextBlock x:Name="ModeSaddleLabel" Text="Saddle" FontSize="14" HorizontalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource TextSecondaryBrush}" />
@@ -536,8 +596,8 @@
                                         <Canvas Width="46" Height="46">
                                             <Rectangle Canvas.Left="14" Canvas.Top="10" Width="18" Height="28" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.5" />
                                             <Rectangle Canvas.Left="19" Canvas.Top="7" Width="8" Height="5" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.5" />
-                                            <Rectangle Canvas.Left="19" Canvas.Top="14" Width="3" Height="4" Fill="{StaticResource TextSecondaryBrush}" />
-                                            <Rectangle Canvas.Left="24" Canvas.Top="14" Width="3" Height="4" Fill="{StaticResource TextSecondaryBrush}" />
+                                            <Line X1="18" Y1="15" X2="23" Y2="18" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="2.5" />
+                                            <Line X1="24" Y1="15" X2="29" Y2="18" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="2.5" />
                                         </Canvas>
                                     </Viewbox>
                                     <TextBlock x:Name="ModeTopLabel" Text="Top" FontSize="14" HorizontalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource TextSecondaryBrush}" />
@@ -548,7 +608,7 @@
                                     <Viewbox Width="46" Height="46">
                                         <Canvas Width="46" Height="46">
                                             <Rectangle Canvas.Left="12" Canvas.Top="10" Width="18" Height="28" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.5" />
-                                            <Line X1="25" Y1="13" X2="30" Y2="18" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="2.5" />
+                                            <Line X1="25" Y1="18" X2="30" Y2="13" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="2.5" />
                                         </Canvas>
                                     </Viewbox>
                                     <TextBlock x:Name="ModeRightCornerLabel" Text="Right Corner" FontSize="13" HorizontalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource TextSecondaryBrush}" />
@@ -559,7 +619,7 @@
                                     <Viewbox Width="46" Height="46">
                                         <Canvas Width="46" Height="46">
                                             <Rectangle Canvas.Left="16" Canvas.Top="10" Width="18" Height="28" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.5" />
-                                            <Line X1="16" Y1="18" X2="21" Y2="13" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="2.5" />
+                                            <Line X1="16" Y1="13" X2="21" Y2="18" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="2.5" />
                                         </Canvas>
                                     </Viewbox>
                                     <TextBlock x:Name="ModeLeftCornerLabel" Text="Left Corner" FontSize="13" HorizontalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource TextSecondaryBrush}" />
@@ -799,14 +859,11 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="10" />
                                 <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="10" />
-                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="Pressure Mode" FontSize="17" FontWeight="Medium"
                                        Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
                             <Button Grid.Column="2" x:Name="PressureAutoButton" Style="{StaticResource ChoiceButtonStyle}" MinWidth="120" Content="Auto" Tag="Auto" Click="OnPressureModeClick" />
-                            <Button Grid.Column="4" x:Name="PressureDefaultButton" Style="{StaticResource ChoiceButtonStyle}" MinWidth="120" Content="Default" Tag="Default" Click="OnPressureModeClick" />
-                            <Button Grid.Column="6" x:Name="PressureManualButton" Style="{StaticResource ChoiceButtonStyle}" MinWidth="120" Content="Manual" Tag="Manual" Click="OnPressureModeClick" />
+                            <Button Grid.Column="4" x:Name="PressureManualButton" Style="{StaticResource ChoiceButtonStyle}" MinWidth="120" Content="Manual" Tag="Manual" Click="OnPressureModeClick" />
                         </Grid>
                         <Grid Grid.Row="18">
                             <Grid.ColumnDefinitions>
@@ -872,7 +929,7 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="&#x2194;" FontSize="16" Foreground="{StaticResource TextMutedBrush}"
                                                VerticalAlignment="Center" Width="18" TextAlignment="Center" />
-                                    <TextBlock Grid.Column="1" Text="Final Booklet Length" FontSize="15" FontWeight="Medium" Margin="12,0,0,0"
+                                    <TextBlock Grid.Column="1" Text="Finished Booklet Length" FontSize="15" FontWeight="Medium" Margin="12,0,0,0"
                                                Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
                                     <TextBlock Grid.Column="2" x:Name="TrimSummaryLength" Text="205.0 mm" FontSize="15"
                                                Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
@@ -883,11 +940,37 @@
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="&#x2194;" FontSize="16" Foreground="{StaticResource TextMutedBrush}"
+                                               VerticalAlignment="Center" Width="18" TextAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="Total Booklet Length" FontSize="15" FontWeight="Medium" Margin="12,0,0,0"
+                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" x:Name="TrimSummaryTotal" Text="210.0 mm" FontSize="15"
+                                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                                </Grid>
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="&#x2702;" FontSize="16" Foreground="{StaticResource TextMutedBrush}"
+                                               VerticalAlignment="Center" Width="18" TextAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="Trimmed Strip" FontSize="15" FontWeight="Medium" Margin="12,0,0,0"
+                                               Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" x:Name="TrimSummaryStrip" Text="5.0 mm" FontSize="15"
+                                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                                </Grid>
+                                <Grid Margin="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="&#x2195;" FontSize="16" Foreground="{StaticResource TextMutedBrush}"
                                                VerticalAlignment="Center" Width="18" TextAlignment="Center" />
-                                    <TextBlock Grid.Column="1" Text="Clamp Conveyor Height" FontSize="15" FontWeight="Medium" Margin="12,0,0,0"
+                                    <TextBlock Grid.Column="1" Text="Clamp Pressure" FontSize="15" FontWeight="Medium" Margin="12,0,0,0"
                                                Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
-                                    <TextBlock Grid.Column="2" x:Name="TrimSummaryClamp" Text="Automatic" FontSize="15"
+                                    <TextBlock Grid.Column="2" x:Name="TrimSummaryClamp" Text="50%" FontSize="15"
                                                Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
                                 </Grid>
                                 <Grid Margin="0,4">
@@ -933,13 +1016,13 @@
 
                         <Border Height="1" Background="{StaticResource CardBorderBrush}" Margin="0,18" />
 
-                        <!-- Final Booklet Length -->
+                        <!-- Finished Booklet Length -->
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="Final Booklet Length" FontSize="17" FontWeight="Medium"
+                            <TextBlock Grid.Column="0" Text="Finished Booklet Length" FontSize="17" FontWeight="Medium"
                                        Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
                             <StackPanel Grid.Column="1" Orientation="Horizontal">
                                 <Button x:Name="FinalLengthMinus" Style="{StaticResource StepperButtonStyle}" Content="&#8722;" Click="OnFinalLengthMinus" />
@@ -950,64 +1033,64 @@
                                 <TextBlock x:Name="FinalLengthUnitText" Text="mm" Style="{StaticResource UnitLabelStyle}" />
                             </StackPanel>
                         </Grid>
-                        <TextBlock Text="Enter the desired final length" FontSize="13" Foreground="{StaticResource TextMutedBrush}"
-                                   HorizontalAlignment="Right" Margin="0,8,0,0" />
+                        <Grid Margin="0,10,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="18" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Background="{StaticResource ScreenBackgroundBrush}" CornerRadius="6" Padding="12,8">
+                                <StackPanel>
+                                    <TextBlock Text="Total before trim" FontSize="12" Foreground="{StaticResource TextMutedBrush}" />
+                                    <TextBlock x:Name="TotalBookletLengthText" Text="210.0 mm" FontSize="16" FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextPrimaryBrush}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="2" Background="{StaticResource ScreenBackgroundBrush}" CornerRadius="6" Padding="12,8">
+                                <StackPanel>
+                                    <TextBlock Text="Trimmed strip" FontSize="12" Foreground="{StaticResource TextMutedBrush}" />
+                                    <TextBlock x:Name="TrimmedStripLengthText" Text="5.0 mm" FontSize="16" FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextPrimaryBrush}" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
 
                         <Border Height="1" Background="{StaticResource CardBorderBrush}" Margin="0,18" />
 
-                        <!-- Clamp Conveyor Height -->
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="16" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                <TextBlock Text="Clamp Conveyor Height" FontSize="17" FontWeight="Medium"
-                                           Foreground="{StaticResource TextPrimaryBrush}" />
-                                <TextBlock Text="Trimmer height conveyor self adjusts in relation to booklet thickness"
-                                           FontSize="13" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" Margin="0,10,0,0" />
-                            </StackPanel>
-                            <UniformGrid Grid.Column="2" Columns="3" Width="330">
-                                <Button x:Name="ClampAutoButton" Style="{StaticResource StitchModeButtonStyle}" Tag="Auto" Click="OnClampHeightClick">
-                                    <StackPanel>
-                                        <Viewbox Width="60" Height="46">
-                                            <Canvas Width="60" Height="46">
-                                                <Rectangle Canvas.Left="12" Canvas.Top="4" Width="14" Height="14" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.4" />
-                                                <Rectangle Canvas.Left="34" Canvas.Top="4" Width="14" Height="14" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.4" />
-                                                <Polygon Points="8,42 26,42 26,28" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.4" Fill="Transparent" />
-                                                <Polygon Points="34,42 52,42 52,28" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.4" Fill="Transparent" />
-                                            </Canvas>
-                                        </Viewbox>
-                                        <TextBlock x:Name="ClampAutoLabel" Text="Auto" FontSize="14" HorizontalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource TextSecondaryBrush}" />
-                                    </StackPanel>
-                                </Button>
-                                <Button x:Name="ClampMaximumButton" Style="{StaticResource StitchModeButtonStyle}" Tag="Maximum" Click="OnClampHeightClick">
-                                    <StackPanel>
-                                        <Viewbox Width="60" Height="46">
-                                            <Canvas Width="60" Height="46">
-                                                <Rectangle Canvas.Left="12" Canvas.Top="4" Width="14" Height="14" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.4" />
-                                                <Rectangle Canvas.Left="34" Canvas.Top="4" Width="14" Height="14" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.4" />
-                                                <Polygon Points="8,42 52,42 52,22" Fill="{StaticResource TextSecondaryBrush}" />
-                                            </Canvas>
-                                        </Viewbox>
-                                        <TextBlock x:Name="ClampMaximumLabel" Text="Maximum" FontSize="14" HorizontalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource TextSecondaryBrush}" />
-                                    </StackPanel>
-                                </Button>
-                                <Button x:Name="ClampMinimumButton" Style="{StaticResource StitchModeButtonStyle}" Tag="Minimum" Click="OnClampHeightClick">
-                                    <StackPanel>
-                                        <Viewbox Width="60" Height="46">
-                                            <Canvas Width="60" Height="46">
-                                                <Rectangle Canvas.Left="12" Canvas.Top="4" Width="14" Height="14" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.4" />
-                                                <Rectangle Canvas.Left="34" Canvas.Top="4" Width="14" Height="14" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.4" />
-                                                <Polygon Points="8,42 52,42 52,36" Fill="{StaticResource CardBorderBrush}" Stroke="{StaticResource TextSecondaryBrush}" StrokeThickness="1.2" />
-                                            </Canvas>
-                                        </Viewbox>
-                                        <TextBlock x:Name="ClampMinimumLabel" Text="Minimum" FontSize="14" HorizontalAlignment="Center" Margin="0,8,0,0" Foreground="{StaticResource TextSecondaryBrush}" />
-                                    </StackPanel>
-                                </Button>
+                        <!-- Graduated clamp pressure -->
+                        <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Clamp Pressure" FontSize="17" FontWeight="Medium"
+                                               Foreground="{StaticResource TextPrimaryBrush}" />
+                                    <TextBlock Text="Select the pressure applied to hold the booklet during trimming."
+                                               FontSize="13" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" Margin="0,6,0,0" />
+                                </StackPanel>
+                                <TextBlock Grid.Column="1" x:Name="ClampPressureValueText" Text="50%" FontSize="20" FontWeight="SemiBold"
+                                           Foreground="{StaticResource JobsAccentBrush}" VerticalAlignment="Center" />
+                            </Grid>
+                            <Slider x:Name="ClampPressureSlider" Style="{StaticResource LineSliderStyle}" Margin="4,14,4,0"
+                                    Minimum="0" Maximum="100" Value="50" TickFrequency="10"
+                                    IsSnapToTickEnabled="True" TickPlacement="BottomRight"
+                                    ValueChanged="OnClampPressureChanged" />
+                            <UniformGrid Columns="11" Margin="0,5,0,0">
+                                <TextBlock Text="0" TextAlignment="Center" Foreground="{StaticResource TextMutedBrush}" />
+                                <TextBlock Text="10" TextAlignment="Center" Foreground="{StaticResource TextMutedBrush}" />
+                                <TextBlock Text="20" TextAlignment="Center" Foreground="{StaticResource TextMutedBrush}" />
+                                <TextBlock Text="30" TextAlignment="Center" Foreground="{StaticResource TextMutedBrush}" />
+                                <TextBlock Text="40" TextAlignment="Center" Foreground="{StaticResource TextMutedBrush}" />
+                                <TextBlock Text="50" TextAlignment="Center" Foreground="{StaticResource TextMutedBrush}" />
+                                <TextBlock Text="60" TextAlignment="Center" Foreground="{StaticResource TextMutedBrush}" />
+                                <TextBlock Text="70" TextAlignment="Center" Foreground="{StaticResource TextMutedBrush}" />
+                                <TextBlock Text="80" TextAlignment="Center" Foreground="{StaticResource TextMutedBrush}" />
+                                <TextBlock Text="90" TextAlignment="Center" Foreground="{StaticResource TextMutedBrush}" />
+                                <TextBlock Text="100" TextAlignment="Center" Foreground="{StaticResource TextMutedBrush}" />
                             </UniformGrid>
-                        </Grid>
+                        </StackPanel>
 
                         <Border Height="1" Background="{StaticResource CardBorderBrush}" Margin="0,18" />
 
@@ -1220,17 +1303,17 @@
                 </StackPanel>
             </Button>
 
-            <Button Grid.Column="2" Style="{StaticResource FooterButtonStyle}" Click="OnResetClick">
+            <Button Grid.Column="2" x:Name="ResetStepButton" Style="{StaticResource FooterButtonStyle}" Click="OnResetClick">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="&#xE72C;" FontFamily="{StaticResource IconFontFamily}" FontSize="16" VerticalAlignment="Center" />
-                    <TextBlock Text="Reset" Margin="10,0,0,0" VerticalAlignment="Center" />
+                    <TextBlock Text="Reset Step" Margin="10,0,0,0" VerticalAlignment="Center" />
                 </StackPanel>
             </Button>
 
             <TextBlock Grid.Column="3" x:Name="FooterStatusText" Text="" HorizontalAlignment="Center" VerticalAlignment="Center"
                        FontSize="14" Foreground="{StaticResource StatusRunningBrush}" />
 
-            <Button Grid.Column="4" Style="{StaticResource PrimaryFooterButtonStyle}" Click="OnSaveClick">
+            <Button Grid.Column="4" x:Name="SaveStepButton" Style="{StaticResource PrimaryFooterButtonStyle}" Click="OnSaveClick">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="&#xE74E;" FontFamily="{StaticResource IconFontFamily}" FontSize="16" VerticalAlignment="Center" />
                     <TextBlock Text="Save" Margin="10,0,0,0" VerticalAlignment="Center" />

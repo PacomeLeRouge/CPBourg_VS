@@ -157,7 +157,7 @@ namespace CPBourg.NextGenGui.Views
         /// <summary>
         /// Opens the STFO individual-machine configuration wizard - reached by
         /// tapping the STFO tile on the Home dashboard, not the global menu.
-        /// Entry always starts on the first (Menu) step; the page title then
+        /// Entry always starts on the first (Overview) step; the page title then
         /// tracks the wizard step via <see cref="StfoConfigurationView.TitleChanged"/>.
         /// </summary>
         private void NavigateToStfo()

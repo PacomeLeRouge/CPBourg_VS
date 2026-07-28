@@ -19,7 +19,7 @@ namespace CPBourg.NextGenGui.Models
 
         public bool TrimEnabled { get; set; }
         public double FinalBookletLength { get; set; }
-        public string ClampHeight { get; set; }
+        public double ClampPressure { get; set; }
         public bool ChipBlower { get; set; }
 
         public int BookletSpacing { get; set; }
@@ -59,8 +59,7 @@ namespace CPBourg.NextGenGui.Models
 
                 TrimEnabled = true,
                 FinalBookletLength = finalLength,
-                ClampHeight = safePages >= 100 ? "Maximum" :
-                              safePages <= 8 ? "Minimum" : "Auto",
+                ClampPressure = Math.Min(90, Math.Max(20, 30 + safePages * 0.4)),
                 ChipBlower = true,
 
                 BookletSpacing = Math.Max(1, Math.Min(30, 6 + safePages % 10)),
