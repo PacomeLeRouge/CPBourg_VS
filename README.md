@@ -1292,6 +1292,21 @@ languages—even while returning to a previously configured line—does not alte
 module identity, order, duplicate prevention, or pending edits. The selected
 module speed continues to follow the metric/imperial setting.
 
+### v48 - Complete Home dashboard localization
+
+The Home dashboard now refreshes all fixed and runtime-generated text when the
+language setting is applied. Coverage includes counter controls and keypad
+prompts, current-job metadata and state, machine-tile statuses, alert summaries
+and severity labels, production controls, and every counter/run feedback
+message.
+
+Dashboard state is retained through a language change: online modules, alert
+counts, current job, production state, pending and confirmed counter values,
+and the most recent feedback message are re-rendered rather than reset. The
+shared localization traversal also now distinguishes WPF's implicit single
+`Run` for `Text="..."` from explicitly authored inline content, ensuring fixed
+labels are translated without disrupting bound or multi-part text.
+
 ---
 
 ## Files
@@ -1326,7 +1341,7 @@ module speed continues to follow the metric/imperial setting.
 | `Views/ScreenCalibrationDialog.xaml(.cs)` | Four-point touch-screen calibration/verification workflow |
 | `Views/LocalizationManager.cs` | Runtime English/French/Dutch/German/Spanish/Italian translations |
 | `Views/LocalizationManager.Stfo.cs` | Complete six-language STFO wizard and keypad translation catalog |
-| `Views/LocalizationManager.Operations.cs` | Six-language Jobs, Errors, Machine Line, and Technician translation catalog |
+| `Views/LocalizationManager.Operations.cs` | Six-language Home, Jobs, Errors, Machine Line, and Technician translation catalog |
 | `Views/KeyboardLayoutManager.cs` | Maps AZERTY/QWERTY/QWERTZ preferences to Windows input languages |
 | `Views/FontSizeManager.cs` | Applies Small / Medium / Large text sizing without resizing touch targets |
 | `Views/GlobalMenuView.xaml(.cs)` | Slide-out global navigation overlay |

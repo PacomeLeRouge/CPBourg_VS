@@ -392,10 +392,20 @@ namespace CPBourg.NextGenGui.Views
             {
                 var textBlock = element as TextBlock;
                 if (textBlock != null &&
-                    !BindingOperations.IsDataBound(textBlock, TextBlock.TextProperty) &&
-                    textBlock.Inlines.Count == 0)
+                    !BindingOperations.IsDataBound(textBlock, TextBlock.TextProperty))
                 {
-                    ApplyString(element, TextBlock.TextProperty, textBlock.Text);
+                    // WPF may represent Text="..." as one implicit Run after
+                    // layout. Those controls still have a local Text value
+                    // and must be translated. A TextBlock authored with
+                    // explicit Runs has the default Text value, so leave the
+                    // parent alone and recurse into its Runs instead.
+                    ValueSource textValueSource = DependencyPropertyHelper.GetValueSource(
+                        textBlock, TextBlock.TextProperty);
+                    if (textBlock.Inlines.Count == 0 ||
+                        textValueSource.BaseValueSource == BaseValueSource.Local)
+                    {
+                        ApplyString(element, TextBlock.TextProperty, textBlock.Text);
+                    }
                 }
 
                 var contentControl = element as ContentControl;

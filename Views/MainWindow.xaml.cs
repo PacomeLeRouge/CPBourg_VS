@@ -33,6 +33,7 @@ namespace CPBourg.NextGenGui.Views
                 LocalizationManager.SetLanguage(language);
                 LocalizationManager.Apply(this);
                 GlobalMenu.ApplyLanguage();
+                Dashboard.ApplyLanguage();
                 JobsScreen.ApplyLanguage();
                 ErrorsScreen.ApplyLanguage();
                 MachineLineConfigScreen.ApplyLanguage();
@@ -181,7 +182,11 @@ namespace CPBourg.NextGenGui.Views
             {
                 FontSizeManager.Apply(screen, _fontSizeSetting);
                 LocalizationManager.Apply(screen);
-                if (ReferenceEquals(screen, JobsScreen))
+                if (ReferenceEquals(screen, Dashboard))
+                {
+                    Dashboard.ApplyLanguage();
+                }
+                else if (ReferenceEquals(screen, JobsScreen))
                 {
                     JobsScreen.ApplyLanguage();
                 }

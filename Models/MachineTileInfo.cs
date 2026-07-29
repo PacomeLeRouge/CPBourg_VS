@@ -8,10 +8,12 @@ namespace CPBourg.NextGenGui.Models
     /// </summary>
     public sealed class MachineTileInfo
     {
-        public MachineTileInfo(string shortCode, MachineStatus status)
+        public MachineTileInfo(string shortCode, MachineStatus status,
+            string statusLabel)
         {
             ShortCode = shortCode;
             Status = status;
+            StatusLabel = statusLabel;
         }
 
         /// <summary>Short module code as used in the current GUI (e.g. "BSF").</summary>
@@ -19,18 +21,8 @@ namespace CPBourg.NextGenGui.Models
 
         public MachineStatus Status { get; }
 
-        public string StatusLabel
-        {
-            get
-            {
-                switch (Status)
-                {
-                    case MachineStatus.Running: return "Running";
-                    case MachineStatus.Idle: return "Idle";
-                    case MachineStatus.Offline: return "Offline";
-                    default: return Status.ToString();
-                }
-            }
-        }
+        /// <summary>Localized display label supplied by the Dashboard while
+        /// <see cref="Status"/> remains a language-neutral enum.</summary>
+        public string StatusLabel { get; }
     }
 }
