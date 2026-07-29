@@ -7,11 +7,12 @@ namespace CPBourg.NextGenGui.Models
     /// </summary>
     public sealed class AddModuleRequestInfo
     {
-        public AddModuleRequestInfo(string moduleType, bool? placeBeforeAnchor, string positionSummary)
+        public AddModuleRequestInfo(string moduleType, bool? placeBeforeAnchor,
+            string anchorModuleType)
         {
             ModuleType = moduleType;
             PlaceBeforeAnchor = placeBeforeAnchor;
-            PositionSummary = positionSummary;
+            AnchorModuleType = anchorModuleType;
         }
 
         public string ModuleType { get; }
@@ -21,8 +22,8 @@ namespace CPBourg.NextGenGui.Models
         /// position against - just add it.</summary>
         public bool? PlaceBeforeAnchor { get; }
 
-        /// <summary>Human-readable position, for the demo feedback line (e.g.
-        /// "before Booklet Maker (BM-2000-01)" or "start of line").</summary>
-        public string PositionSummary { get; }
+        /// <summary>Language-neutral anchor used to rebuild localized position
+        /// feedback after a language change; null for an initially empty line.</summary>
+        public string AnchorModuleType { get; }
     }
 }

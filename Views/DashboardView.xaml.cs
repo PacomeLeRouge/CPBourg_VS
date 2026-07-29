@@ -64,6 +64,11 @@ namespace CPBourg.NextGenGui.Views
         private readonly DispatcherTimer _productionTimer;
         private ProductionState _productionState = ProductionState.Ready;
         private int _activeErrorCount;
+        private int _criticalAlertCount;
+        private int _warningAlertCount;
+        private int _infoAlertCount;
+        private HashSet<string> _onlineModuleTypes = new HashSet<string>();
+        private Func<string> _lastActionRenderer;
 
         private enum ProductionState
         {
@@ -92,6 +97,19 @@ namespace CPBourg.NextGenGui.Views
             RefreshProductionButtons();
         }
 
+        public void ApplyLanguage()
+        {
+            LocalizationManager.Apply(this);
+            SetOnlineModules(_onlineModuleTypes);
+            UpdateAlertsSummary(
+                _criticalAlertCount, _warningAlertCount,
+                _infoAlertCount, _activeErrorCount);
+            UpdateCounterDisplay();
+            UpdateConfirmedCounterDisplay();
+            RefreshCurrentJobDisplay();
+            RenderLastAction();
+        }
+
         /// <summary>
         /// Shows a machine tile online (Running) when its module type is on
         /// the machine line, and offline (greyed out) otherwise. MainWindow
@@ -102,6 +120,7 @@ namespace CPBourg.NextGenGui.Views
         public void SetOnlineModules(IEnumerable<string> moduleTypesOnLine)
         {
             var onLine = new HashSet<string>(moduleTypesOnLine ?? Enumerable.Empty<string>());
+            _onlineModuleTypes = onLine;
 
             var tiles = new List<MachineTileInfo>();
             foreach (var tile in ModuleTiles)
@@ -109,7 +128,8 @@ namespace CPBourg.NextGenGui.Views
                 var status = onLine.Contains(tile.ModuleType)
                     ? MachineStatus.Running
                     : MachineStatus.Offline;
-                tiles.Add(new MachineTileInfo(tile.ShortCode, status));
+                tiles.Add(new MachineTileInfo(
+                    tile.ShortCode, status, T(status.ToString())));
             }
 
             MachineTilesControl.ItemsSource = tiles;
@@ -138,6 +158,9 @@ namespace CPBourg.NextGenGui.Views
         public void UpdateAlertsSummary(int critical, int warning, int info, int total)
         {
             _activeErrorCount = Math.Max(0, total);
+            _criticalAlertCount = Math.Max(0, critical);
+            _warningAlertCount = Math.Max(0, warning);
+            _infoAlertCount = Math.Max(0, info);
 
             Brush fg, bg;
             string headline;
@@ -149,8 +172,8 @@ namespace CPBourg.NextGenGui.Views
                 fg = (Brush)FindResource("StatusRunningBrush");
                 bg = (Brush)FindResource("StatusRunningBgBrush");
                 iconGlyph = "\uE73E";
-                headline = "No active alerts";
-                subtitle = "All systems are operating normally.";
+                headline = T("No active alerts");
+                subtitle = T("All systems are operating normally.");
             }
             else
             {
@@ -171,7 +194,7 @@ namespace CPBourg.NextGenGui.Views
                     bg = (Brush)FindResource("StatusIdleBgBrush");
                 }
 
-                headline = total + (total == 1 ? " active alert" : " active alerts");
+                headline = TF(total == 1 ? "{0} active alert" : "{0} active alerts", total);
                 subtitle = string.Empty;
             }
 
@@ -207,6 +230,9 @@ namespace CPBourg.NextGenGui.Views
         private CounterInputKind _pendingCounterInput;
         private JobRecord _currentJob;
         private MeasurementUnit _measurementUnit = MeasurementUnit.Millimeters;
+        private string _jobStatusSource = "Idle";
+        private string _jobStatusForegroundKey = "StatusOfflineBrush";
+        private string _jobStatusBackgroundKey = "StatusOfflineBgBrush";
 
         private enum CounterInputKind
         {
@@ -250,20 +276,18 @@ namespace CPBourg.NextGenGui.Views
 
             if (_currentJob == null)
             {
-                JobNameText.Text = "No job loaded";
-                JobFormatText.Text = "-";
-                JobPagesText.Text = "-";
-                JobStatusText.Text = "Idle";
+                _jobStatusSource = "Idle";
+                _jobStatusForegroundKey = "StatusOfflineBrush";
+                _jobStatusBackgroundKey = "StatusOfflineBgBrush";
+                RefreshCurrentJobDisplay();
                 RefreshProductionButtons();
                 return;
             }
 
-            JobNameText.Text = _currentJob.Name;
-            RefreshCurrentJobMeasurements();
-            JobPagesText.Text = _currentJob.PagesLabel;
-            JobStatusText.Text = "Loaded";
-            JobStatusText.Foreground = (Brush)FindResource("StatusRunningBrush");
-            JobStatusPill.Background = (Brush)FindResource("StatusRunningBgBrush");
+            _jobStatusSource = "Loaded";
+            _jobStatusForegroundKey = "StatusRunningBrush";
+            _jobStatusBackgroundKey = "StatusRunningBgBrush";
+            RefreshCurrentJobDisplay();
             RefreshProductionButtons();
         }
 
@@ -280,38 +304,75 @@ namespace CPBourg.NextGenGui.Views
                 return;
             }
 
-            JobFormatText.Text = _currentJob.Format + " · " +
+            JobFormatText.Text = T(_currentJob.Format) + " · " +
                 MeasurementFormatter.FormatDimensions(
                     _currentJob.WidthMm, _currentJob.LengthMm, _measurementUnit);
         }
 
-        private void MarkCounterChangesPending(string message)
+        private void RefreshCurrentJobDisplay()
+        {
+            if (_currentJob == null)
+            {
+                JobNameText.Text = T("No job loaded");
+                JobFormatText.Text = "-";
+                JobPagesText.Text = "-";
+            }
+            else
+            {
+                JobNameText.Text = _currentJob.Name;
+                RefreshCurrentJobMeasurements();
+                JobPagesText.Text = TF("{0} pages", _currentJob.Pages);
+            }
+
+            JobStatusText.Text = T(_jobStatusSource);
+            JobStatusText.Foreground = (Brush)FindResource(_jobStatusForegroundKey);
+            JobStatusPill.Background = (Brush)FindResource(_jobStatusBackgroundKey);
+        }
+
+        private void MarkCounterChangesPending(string source, params object[] values)
         {
             _hasPendingCounterChanges = true;
             RefreshProductionButtons();
-            ShowAction(message + " Select Confirm to apply the changes.");
+            ShowAction(source, values);
         }
 
-        private void SetJobStatus(string label, string foregroundKey, string backgroundKey)
+        private void SetJobStatus(string source, string foregroundKey, string backgroundKey)
         {
-            JobStatusText.Text = label;
-            JobStatusText.Foreground = (Brush)FindResource(foregroundKey);
-            JobStatusPill.Background = (Brush)FindResource(backgroundKey);
-            ShowAction("Line " + label.ToLowerInvariant() + ".");
+            _jobStatusSource = source;
+            _jobStatusForegroundKey = foregroundKey;
+            _jobStatusBackgroundKey = backgroundKey;
+            RefreshCurrentJobDisplay();
         }
 
-        private void ShowAction(string message)
+        private void ShowAction(string source, params object[] values)
         {
-            LastActionText.Text = message;
+            object[] capturedValues = values ?? new object[0];
+            _lastActionRenderer = () => TF(source, capturedValues);
+            RenderLastAction();
+        }
+
+        private void RenderLastAction()
+        {
+            LastActionText.Text = _lastActionRenderer == null
+                ? string.Empty
+                : _lastActionRenderer();
         }
 
         private void OnCounterDecrementClick(object sender, RoutedEventArgs e)
         {
             _presetTarget = Math.Max(0, _presetTarget - CounterStep);
             UpdatePresetDisplay();
-            MarkCounterChangesPending(_presetTarget == 0
-                ? "Preset pending: unlimited production."
-                : "Preset pending: " + _presetTarget.ToString("N0") + " sets.");
+            if (_presetTarget == 0)
+            {
+                MarkCounterChangesPending(
+                    "Preset pending: unlimited production. Select Confirm to apply the changes.");
+            }
+            else
+            {
+                MarkCounterChangesPending(
+                    "Preset pending: {0:N0} sets. Select Confirm to apply the changes.",
+                    _presetTarget);
+            }
         }
 
         private void OnCounterIncrementClick(object sender, RoutedEventArgs e)
@@ -322,7 +383,8 @@ namespace CPBourg.NextGenGui.Views
             }
             UpdatePresetDisplay();
             MarkCounterChangesPending(
-                "Preset pending: " + _presetTarget.ToString("N0") + " sets.");
+                "Preset pending: {0:N0} sets. Select Confirm to apply the changes.",
+                _presetTarget);
         }
 
         private void OnCompletedDecrementClick(object sender, RoutedEventArgs e)
@@ -330,7 +392,8 @@ namespace CPBourg.NextGenGui.Views
             _completedSets = Math.Max(0, _completedSets - CounterStep);
             UpdateCounterDisplay();
             MarkCounterChangesPending(
-                "Completed sets pending: " + _completedSets.ToString("N0") + ".");
+                "Completed sets pending: {0:N0}. Select Confirm to apply the changes.",
+                _completedSets);
         }
 
         private void OnCompletedIncrementClick(object sender, RoutedEventArgs e)
@@ -341,16 +404,17 @@ namespace CPBourg.NextGenGui.Views
             }
             UpdateCounterDisplay();
             MarkCounterChangesPending(
-                "Completed sets pending: " + _completedSets.ToString("N0") + ".");
+                "Completed sets pending: {0:N0}. Select Confirm to apply the changes.",
+                _completedSets);
         }
 
         private void OnCompletedInputClick(object sender, RoutedEventArgs e)
         {
             _pendingCounterInput = CounterInputKind.CompletedSets;
             CounterInputDialog.Open(
-                "Set Completed Sets",
-                "Completed sets",
-                "Enter how many sets the machine has completed so far.",
+                T("Set Completed Sets"),
+                T("Completed sets"),
+                T("Enter how many sets the machine has completed so far."),
                 _completedSets,
                 zeroMeansUnlimited: false);
         }
@@ -359,9 +423,9 @@ namespace CPBourg.NextGenGui.Views
         {
             _pendingCounterInput = CounterInputKind.PresetTarget;
             CounterInputDialog.Open(
-                "Set Production Preset",
-                "Sets to make",
-                "Enter the total number of sets the machine should make.",
+                T("Set Production Preset"),
+                T("Sets to make"),
+                T("Enter the total number of sets the machine should make."),
                 _presetTarget,
                 zeroMeansUnlimited: true);
         }
@@ -373,22 +437,32 @@ namespace CPBourg.NextGenGui.Views
                 _completedSets = value;
                 UpdateCounterDisplay();
                 MarkCounterChangesPending(
-                    "Completed sets pending: " + _completedSets.ToString("N0") + ".");
+                    "Completed sets pending: {0:N0}. Select Confirm to apply the changes.",
+                    _completedSets);
                 return;
             }
 
             _presetTarget = value;
             UpdatePresetDisplay();
-            MarkCounterChangesPending(_presetTarget == 0
-                ? "Preset pending: unlimited production."
-                : "Preset pending: " + _presetTarget.ToString("N0") + " sets.");
+            if (_presetTarget == 0)
+            {
+                MarkCounterChangesPending(
+                    "Preset pending: unlimited production. Select Confirm to apply the changes.");
+            }
+            else
+            {
+                MarkCounterChangesPending(
+                    "Preset pending: {0:N0} sets. Select Confirm to apply the changes.",
+                    _presetTarget);
+            }
         }
 
         private void OnResetToZeroClick(object sender, RoutedEventArgs e)
         {
             _completedSets = 0;
             UpdateCounterDisplay();
-            MarkCounterChangesPending("Completed sets pending: 0.");
+            MarkCounterChangesPending(
+                "Completed sets pending: {0:N0}. Select Confirm to apply the changes.", 0);
         }
 
         private void OnSetTargetClick(object sender, RoutedEventArgs e)
@@ -410,11 +484,18 @@ namespace CPBourg.NextGenGui.Views
             _hasPendingCounterChanges = false;
             RefreshProductionButtons();
 
-            string target = _confirmedPresetTarget == 0
-                ? "unlimited"
-                : _confirmedPresetTarget.ToString("N0");
-            ShowAction("Counter changes confirmed: " +
-                _confirmedCompletedSets.ToString("N0") + " completed / " + target + " preset.");
+            if (_confirmedPresetTarget == 0)
+            {
+                ShowAction(
+                    "Counter changes confirmed: {0:N0} completed / unlimited preset.",
+                    _confirmedCompletedSets);
+            }
+            else
+            {
+                ShowAction(
+                    "Counter changes confirmed: {0:N0} completed / {1:N0} preset.",
+                    _confirmedCompletedSets, _confirmedPresetTarget);
+            }
         }
 
         private void OnNewJobClick(object sender, RoutedEventArgs e) => NavigateToJobsRequested?.Invoke(this, EventArgs.Empty);
@@ -533,8 +614,8 @@ namespace CPBourg.NextGenGui.Views
             _productionTimer.Stop();
             _productionState = ProductionState.Completed;
             SetJobStatus("Completed", "StatusRunningBrush", "StatusRunningBgBrush");
-            ShowAction("Production completed the preset of " +
-                _confirmedPresetTarget.ToString("N0") + " sets.");
+            ShowAction("Production completed the preset of {0:N0} sets.",
+                _confirmedPresetTarget);
             RefreshProductionButtons();
         }
 
@@ -599,6 +680,18 @@ namespace CPBourg.NextGenGui.Views
             PresetValueButton.IsHitTestVisible = canEditCounters;
             PresetValueButton.Focusable = canEditCounters;
             PresetValueButton.Cursor = canEditCounters ? Cursors.Hand : Cursors.Arrow;
+        }
+
+        private static string T(string source)
+        {
+            return LocalizationManager.Translate(source);
+        }
+
+        private static string TF(string source, params object[] values)
+        {
+            return string.Format(
+                System.Globalization.CultureInfo.CurrentCulture,
+                T(source), values);
         }
     }
 }

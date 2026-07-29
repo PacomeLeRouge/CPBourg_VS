@@ -18,9 +18,10 @@ namespace CPBourg.NextGenGui.Views
 
         public void Open(string jobName, string existingComment)
         {
+            Visibility = Visibility.Visible;
+            LocalizationManager.Apply(this);
             JobNameText.Text = jobName;
             CommentTextBox.Text = existingComment == "-" ? string.Empty : existingComment;
-            Visibility = Visibility.Visible;
         }
 
         private void OnSaveClick(object sender, RoutedEventArgs e)

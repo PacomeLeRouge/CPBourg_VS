@@ -24,20 +24,26 @@ namespace CPBourg.NextGenGui.Views
         public void Open()
         {
             Open(
-                "Technical Access",
-                "Enter your technician code to unlock protected actions.",
-                "Unlock");
+                LocalizationManager.Translate("Technical Access"),
+                LocalizationManager.Translate("Enter your technician code to unlock protected actions."),
+                LocalizationManager.Translate("Unlock"));
         }
 
         public void Open(string title, string description, string submitLabel)
         {
             _code = string.Empty;
+            Visibility = Visibility.Visible;
+            LocalizationManager.Apply(this);
             DialogTitleText.Text = title;
             DialogDescriptionText.Text = description;
             SubmitButtonText.Text = submitLabel;
             ValidationText.Visibility = Visibility.Collapsed;
             RefreshMaskedCode();
-            Visibility = Visibility.Visible;
+        }
+
+        public void ApplyLanguage()
+        {
+            LocalizationManager.Apply(this);
         }
 
         private void OnDigitClick(object sender, RoutedEventArgs e)

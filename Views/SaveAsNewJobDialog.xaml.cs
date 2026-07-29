@@ -44,14 +44,24 @@ namespace CPBourg.NextGenGui.Views
 
             foreach (var preset in BookFormatCatalog.Presets)
             {
-                FormatPresetComboBox.Items.Add(preset.Name);
+                FormatPresetComboBox.Items.Add(new ComboBoxItem
+                {
+                    Tag = preset.Name,
+                    Content = preset.Name,
+                });
             }
-            FormatPresetComboBox.Items.Add("Custom");
+            FormatPresetComboBox.Items.Add(new ComboBoxItem
+            {
+                Tag = "Custom",
+                Content = "Custom",
+            });
         }
 
         public void Open(string suggestedName, int pages, string format,
             double widthMm, double lengthMm, string machineLine)
         {
+            Visibility = Visibility.Visible;
+            LocalizationManager.Apply(this);
             SetupMachineLineText.Text = machineLine;
             JobNameTextBox.Text = suggestedName;
             _pages = Math.Max(1, pages);
@@ -59,13 +69,10 @@ namespace CPBourg.NextGenGui.Views
             _lengthMm = lengthMm;
 
             _updatingFormat = true;
-            FormatPresetComboBox.SelectedItem = BookFormatCatalog.Find(format) == null
-                ? "Custom"
-                : format;
+            SelectFormat(BookFormatCatalog.Find(format) == null ? "Custom" : format);
             _updatingFormat = false;
             RefreshJobDefinition();
             ShowInputState();
-            Visibility = Visibility.Visible;
         }
 
         public void Close()
@@ -79,6 +86,12 @@ namespace CPBourg.NextGenGui.Views
             RefreshJobDefinition();
         }
 
+        public void ApplyLanguage()
+        {
+            LocalizationManager.Apply(this);
+            RefreshJobDefinition();
+        }
+
         /// <summary>Switches the dialog to the "Job Name Already Exists!" warning
         /// state, keeping the Current Setup box and typed name as they were.</summary>
         public void ShowConflict()
@@ -86,10 +99,9 @@ namespace CPBourg.NextGenGui.Views
             HeaderIconBg.Background = (Brush)FindResource("WarningBgBrush");
             HeaderIconText.Text = "\uE7BA";
             HeaderIconText.Foreground = (Brush)FindResource("WarningBrush");
-            TitleText.Text = "Job Name Already Exists!";
+            TitleText.Text = T("Job Name Already Exists!");
             TitleText.Foreground = (Brush)FindResource("WarningBrush");
-            SubtitleText.Text = "A job with the entered name already exists. " +
-                "Do you want to replace the existing job with the current setup?";
+            SubtitleText.Text = T("A job with the entered name already exists. Do you want to replace the existing job with the current setup?");
 
             JobNameInputPanel.Visibility = Visibility.Collapsed;
             ConflictBanner.Visibility = Visibility.Visible;
@@ -101,9 +113,9 @@ namespace CPBourg.NextGenGui.Views
             HeaderIconBg.Background = (Brush)FindResource("StatusIdleBgBrush");
             HeaderIconText.Text = "\uE78C";
             HeaderIconText.Foreground = (Brush)FindResource("JobsAccentBrush");
-            TitleText.Text = "Save As New Job";
+            TitleText.Text = T("Save As New Job");
             TitleText.Foreground = (Brush)FindResource("TextPrimaryBrush");
-            SubtitleText.Text = "Save the current machine setup as a new job.";
+            SubtitleText.Text = T("Save the current machine setup as a new job.");
 
             JobNameInputPanel.Visibility = Visibility.Visible;
             ConflictBanner.Visibility = Visibility.Collapsed;
@@ -118,7 +130,7 @@ namespace CPBourg.NextGenGui.Views
                 return;
             }
 
-            var preset = BookFormatCatalog.Find(FormatPresetComboBox.SelectedItem as string);
+            var preset = BookFormatCatalog.Find(SelectedFormat());
             if (preset != null)
             {
                 _widthMm = preset.WidthMm;
@@ -132,9 +144,9 @@ namespace CPBourg.NextGenGui.Views
         {
             e.Handled = true;
             PagesInputDialog.Open(
-                "Set Number of Pages", "Pages",
-                "Enter the total number of pages in the new job.",
-                _pages, 1, 2000, "Enter a whole number from 1 to 2,000.");
+                T("Set Number of Pages"), T("Pages"),
+                T("Enter the total number of pages in the new job."),
+                _pages, 1, 2000, T("Enter a whole number from 1 to 2,000."));
         }
 
         private void OnPagesConfirmed(object sender, int pages)
@@ -152,10 +164,12 @@ namespace CPBourg.NextGenGui.Views
             bool isWidth = _pendingDimensionField == DimensionField.Width;
             e.Handled = true;
             DimensionInputDialog.Open(
-                isWidth ? "Set Book Width" : "Set Book Length",
-                (isWidth ? "Width (" : "Length (") + MeasurementFormatter.UnitSymbol(_measurementUnit) + ")",
-                "Enter the physical book format dimension in " +
-                    (_measurementUnit == MeasurementUnit.Inches ? "inches." : "millimetres."),
+                T(isWidth ? "Set Book Width" : "Set Book Length"),
+                string.Format(T(isWidth ? "Width ({0})" : "Length ({0})"),
+                    MeasurementFormatter.UnitSymbol(_measurementUnit)),
+                T(_measurementUnit == MeasurementUnit.Inches
+                    ? "Enter the physical book format dimension in inches."
+                    : "Enter the physical book format dimension in millimetres."),
                 MeasurementFormatter.ToDisplay(isWidth ? _widthMm : _lengthMm, _measurementUnit),
                 false);
         }
@@ -182,16 +196,16 @@ namespace CPBourg.NextGenGui.Views
             WidthValueBox.Text = MeasurementFormatter.FormatValue(_widthMm, _measurementUnit);
             LengthValueBox.Text = MeasurementFormatter.FormatValue(_lengthMm, _measurementUnit);
             SetupUnitRun.Text = " " + unit;
-            WidthDimensionLabel.Text = "Width (" + unit + ")";
-            LengthDimensionLabel.Text = "Length (" + unit + ")";
+            WidthDimensionLabel.Text = string.Format(T("Width ({0})"), unit);
+            LengthDimensionLabel.Text = string.Format(T("Length ({0})"), unit);
             string resolvedFormat = BookFormatCatalog.ResolveName(_widthMm, _lengthMm);
-            SetupFormatText.Text = resolvedFormat;
+            SetupFormatText.Text = T(resolvedFormat);
             _updatingFormat = true;
-            FormatPresetComboBox.SelectedItem = resolvedFormat;
+            SelectFormat(resolvedFormat);
             _updatingFormat = false;
             FormatClassificationText.Text = resolvedFormat == "Custom"
-                ? "Dimensions do not match a standard preset; this job will be displayed as Custom."
-                : "Dimensions match the " + resolvedFormat + " preset.";
+                ? T("Dimensions do not match a standard preset; this job will be displayed as Custom.")
+                : string.Format(T("Dimensions match the {0} preset."), resolvedFormat);
         }
 
         private void OnSaveJobClick(object sender, RoutedEventArgs e)
@@ -200,8 +214,8 @@ namespace CPBourg.NextGenGui.Views
             if (name.Length == 0 || _pages < 1 || _widthMm <= 0 || _lengthMm <= 0)
             {
                 ValidationText.Text = name.Length == 0
-                    ? "Enter a unique job name."
-                    : "Pages and both dimensions must be greater than zero.";
+                    ? T("Enter a unique job name.")
+                    : T("Pages and both dimensions must be greater than zero.");
                 ValidationText.Visibility = Visibility.Visible;
                 return;
             }
@@ -238,6 +252,30 @@ namespace CPBourg.NextGenGui.Views
         private void OnScrimMouseDown(object sender, MouseButtonEventArgs e)
         {
             Close();
+        }
+
+        private string SelectedFormat()
+        {
+            var item = FormatPresetComboBox.SelectedItem as ComboBoxItem;
+            return item?.Tag as string;
+        }
+
+        private void SelectFormat(string format)
+        {
+            foreach (object candidate in FormatPresetComboBox.Items)
+            {
+                var item = candidate as ComboBoxItem;
+                if (item?.Tag as string == format)
+                {
+                    FormatPresetComboBox.SelectedItem = item;
+                    return;
+                }
+            }
+        }
+
+        private static string T(string source)
+        {
+            return LocalizationManager.Translate(source);
         }
     }
 }

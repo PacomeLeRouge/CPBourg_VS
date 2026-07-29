@@ -29,19 +29,20 @@ namespace CPBourg.NextGenGui.Views
         public void Open(string title, string fieldLabel, string description,
             double initialValue, bool allowNegative)
         {
+            Visibility = Visibility.Visible;
+            LocalizationManager.Apply(this);
             TitleText.Text = title;
             FieldLabelText.Text = fieldLabel + ":";
             DescriptionText.Text = description;
             _allowNegative = allowNegative;
             SignButton.IsEnabled = allowNegative;
             HintText.Text = allowNegative
-                ? "Use +/- for direction and . for fractional values."
-                : "Use the decimal key for fractional values.";
+                ? LocalizationManager.Translate("Use +/- for direction and . for fractional values.")
+                : LocalizationManager.Translate("Use the decimal key for fractional values.");
             _text = initialValue.ToString("0.###", CultureInfo.InvariantCulture);
             _replaceOnNextInput = true;
             ValidationText.Visibility = Visibility.Collapsed;
             RefreshValue();
-            Visibility = Visibility.Visible;
         }
 
         private void OnDigitClick(object sender, RoutedEventArgs e)

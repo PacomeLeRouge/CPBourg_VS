@@ -28,6 +28,18 @@ namespace CPBourg.NextGenGui.Views
             GlobalMenu.ItemSelected += OnGlobalMenuItemSelected;
 
             SettingsScreen.LanguageChanged += (s, abbreviation) => LanguageIndicatorText.Text = abbreviation;
+            SettingsScreen.UiLanguageChanged += (s, language) =>
+            {
+                LocalizationManager.SetLanguage(language);
+                LocalizationManager.Apply(this);
+                GlobalMenu.ApplyLanguage();
+                Dashboard.ApplyLanguage();
+                JobsScreen.ApplyLanguage();
+                ErrorsScreen.ApplyLanguage();
+                MachineLineConfigScreen.ApplyLanguage();
+                StfoScreen.ApplyLanguage();
+                TechnicianScreen.ApplyLanguage();
+            };
             SettingsScreen.UnitsChanged += (s, unit) => ApplyMeasurementUnit(unit);
             SettingsScreen.DateTimeOffsetChanged += (s, offset) =>
             {
@@ -39,6 +51,10 @@ namespace CPBourg.NextGenGui.Views
                 _fontSizeSetting = setting;
                 FontSizeManager.Apply(this, _fontSizeSetting);
             };
+            SettingsScreen.KeyboardLayoutChanged += (s, layout) =>
+                KeyboardLayoutManager.Apply(layout, this);
+            SettingsScreen.MouseCursorChanged += (s, enabled) =>
+                Cursor = enabled ? System.Windows.Input.Cursors.Arrow : System.Windows.Input.Cursors.None;
 
             Dashboard.NavigateToJobsRequested += (s, e) => NavigateTo("Job / File Menu");
             Dashboard.NavigateToErrorsRequested += (s, e) => NavigateTo("Error & Information");
@@ -66,6 +82,11 @@ namespace CPBourg.NextGenGui.Views
             MachineLineConfigScreen.LineChanged += (s, e) => UpdateDashboardMachines();
             UpdateDashboardMachines();
 
+            // Settings loads durable preferences during construction; emit
+            // them now that the shell has subscribed to every preference.
+            SettingsScreen.ApplyStoredPreferences();
+            LocalizationManager.Apply(this);
+
             _clockTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             _clockTimer.Tick += (s, e) => UpdateClock();
             _clockTimer.Start();
@@ -77,6 +98,10 @@ namespace CPBourg.NextGenGui.Views
             GlobalMenu.Visibility = GlobalMenu.Visibility == Visibility.Visible
                 ? Visibility.Collapsed
                 : Visibility.Visible;
+            if (GlobalMenu.Visibility == Visibility.Visible)
+            {
+                GlobalMenu.ApplyLanguage();
+            }
         }
 
         private void OnBellClick(object sender, RoutedEventArgs e)
@@ -130,14 +155,14 @@ namespace CPBourg.NextGenGui.Views
             }
             else
             {
-                PageTitleText.Text = itemName;
+                LocalizationManager.SetLocalizedText(PageTitleText, itemName);
             }
         }
 
         /// <summary>
         /// Opens the STFO individual-machine configuration wizard - reached by
         /// tapping the STFO tile on the Home dashboard, not the global menu.
-        /// Entry always starts on the first (Menu) step; the page title then
+        /// Entry always starts on the first (Overview) step; the page title then
         /// tracks the wizard step via <see cref="StfoConfigurationView.TitleChanged"/>.
         /// </summary>
         private void NavigateToStfo()
@@ -145,14 +170,39 @@ namespace CPBourg.NextGenGui.Views
             HideContentScreens();
             StfoScreen.Visibility = Visibility.Visible;
             StfoScreen.ResetToStart();
+            StfoScreen.ApplyLanguage();
         }
 
         private void ShowContentScreen(UIElement screen, string title)
         {
             HideContentScreens();
             screen.Visibility = Visibility.Visible;
-            PageTitleText.Text = title;
-            Dispatcher.BeginInvoke(new Action(() => FontSizeManager.Apply(screen, _fontSizeSetting)));
+            LocalizationManager.SetLocalizedText(PageTitleText, title);
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                FontSizeManager.Apply(screen, _fontSizeSetting);
+                LocalizationManager.Apply(screen);
+                if (ReferenceEquals(screen, Dashboard))
+                {
+                    Dashboard.ApplyLanguage();
+                }
+                else if (ReferenceEquals(screen, JobsScreen))
+                {
+                    JobsScreen.ApplyLanguage();
+                }
+                else if (ReferenceEquals(screen, ErrorsScreen))
+                {
+                    ErrorsScreen.ApplyLanguage();
+                }
+                else if (ReferenceEquals(screen, MachineLineConfigScreen))
+                {
+                    MachineLineConfigScreen.ApplyLanguage();
+                }
+                else if (ReferenceEquals(screen, TechnicianScreen))
+                {
+                    TechnicianScreen.ApplyLanguage();
+                }
+            }));
         }
 
         private void HideContentScreens()

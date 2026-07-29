@@ -7,13 +7,19 @@ namespace CPBourg.NextGenGui.Models
     /// </summary>
     public sealed class ModuleTypeOptionInfo
     {
-        public ModuleTypeOptionInfo(string moduleType, bool isSelected = false)
+        public ModuleTypeOptionInfo(string moduleType, string displayName,
+            bool isSelected = false)
         {
             ModuleType = moduleType;
+            DisplayName = displayName;
             IsSelected = isSelected;
         }
 
+        /// <summary>Language-neutral value used by line configuration logic.</summary>
         public string ModuleType { get; }
+
+        /// <summary>Localized module name displayed to the operator.</summary>
+        public string DisplayName { get; }
 
         /// <summary>Whether this row is pre-highlighted when the step opens
         /// (the wizard defaults to the first catalog entry, matching the

@@ -18,10 +18,11 @@ namespace CPBourg.NextGenGui.Views
 
         public void Open(string jobName, string format, string machineLine)
         {
+            Visibility = Visibility.Visible;
+            LocalizationManager.Apply(this);
             JobNameText.Text = jobName;
             SetupFormatText.Text = format;
             SetupMachineLineText.Text = machineLine;
-            Visibility = Visibility.Visible;
         }
 
         private void OnRemoveClick(object sender, RoutedEventArgs e)

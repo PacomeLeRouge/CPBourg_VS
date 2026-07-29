@@ -16,6 +16,9 @@ namespace CPBourg.NextGenGui.Views
         private readonly TechnicianSettingsStore _settingsStore;
         private TechnicianSettings _savedSettings;
         private bool _isApplyingSettings;
+        private string _footerStatusSource;
+        private object[] _footerStatusArguments;
+        private bool _technicalAccessGranted;
         private const double CurrentSpeedMillimetersPerSecond = 1291;
 
         public event EventHandler CloseRequested;
@@ -36,6 +39,14 @@ namespace CPBourg.NextGenGui.Views
             CurrentSpeedValueText.Text = MeasurementFormatter.FormatValue(
                 CurrentSpeedMillimetersPerSecond, unit, "0", "0.0");
             CurrentSpeedUnitText.Text = MeasurementFormatter.SpeedUnitSymbol(unit);
+        }
+
+        public void ApplyLanguage()
+        {
+            LocalizationManager.Apply(this);
+            RenderFooterStatus();
+            AccessStatusText.Text = T(_technicalAccessGranted ? "Granted" : "Protected");
+            AccessDialog.ApplyLanguage();
         }
 
         private void ApplySettingsToControls(TechnicianSettings settings)
@@ -88,8 +99,7 @@ namespace CPBourg.NextGenGui.Views
         {
             if (!_isApplyingSettings)
             {
-                FooterStatusText.Text = "Unsaved changes";
-                FooterStatusText.Foreground = FindResource("WarningBrush") as System.Windows.Media.Brush;
+                SetFooterStatus("Unsaved changes", "WarningBrush");
             }
         }
 
@@ -112,22 +122,22 @@ namespace CPBourg.NextGenGui.Views
             string errorMessage;
             if (!_settingsStore.TrySave(settings, out errorMessage))
             {
+                _footerStatusSource = null;
+                _footerStatusArguments = null;
                 FooterStatusText.Text = errorMessage;
                 FooterStatusText.Foreground = FindResource("StatusErrorBrush") as System.Windows.Media.Brush;
                 return false;
             }
 
             _savedSettings = settings.Clone();
-            FooterStatusText.Text = "Technician settings saved";
-            FooterStatusText.Foreground = FindResource("StatusRunningBrush") as System.Windows.Media.Brush;
+            SetFooterStatus("Technician settings saved", "StatusRunningBrush");
             return true;
         }
 
         private void OnResetClick(object sender, RoutedEventArgs e)
         {
             ApplySettingsToControls(TechnicianSettings.CreateDefaults());
-            FooterStatusText.Text = "Defaults restored — select Save to keep them";
-            FooterStatusText.Foreground = FindResource("WarningBrush") as System.Windows.Media.Brush;
+            SetFooterStatus("Defaults restored — select Save to keep them", "WarningBrush");
         }
 
         private void OnBackClick(object sender, RoutedEventArgs e)
@@ -135,6 +145,8 @@ namespace CPBourg.NextGenGui.Views
             // Back discards unsaved edits so returning to the screen always
             // reflects the last durable state.
             ApplySettingsToControls(_savedSettings);
+            _footerStatusSource = null;
+            _footerStatusArguments = null;
             FooterStatusText.Text = string.Empty;
             CloseRequested?.Invoke(this, EventArgs.Empty);
         }
@@ -142,8 +154,7 @@ namespace CPBourg.NextGenGui.Views
         private void OnActionClick(object sender, RoutedEventArgs e)
         {
             string action = (sender as FrameworkElement)?.Tag as string ?? "Action";
-            FooterStatusText.Text = action + " command prepared (prototype only)";
-            FooterStatusText.Foreground = FindResource("TextSecondaryBrush") as System.Windows.Media.Brush;
+            SetFooterStatus("{0} command prepared (prototype only)", "TextSecondaryBrush", T(action));
         }
 
         private void OnTechnicalAccessClick(object sender, RoutedEventArgs e)
@@ -154,10 +165,35 @@ namespace CPBourg.NextGenGui.Views
         private void OnTechnicalAccessGranted(object sender, string technicianCode)
         {
             // The code itself is never retained after validation.
-            AccessStatusText.Text = "Granted";
+            _technicalAccessGranted = true;
+            AccessStatusText.Text = T("Granted");
             AccessStatusText.Foreground = FindResource("StatusRunningBrush") as System.Windows.Media.Brush;
-            FooterStatusText.Text = "Technical access granted";
-            FooterStatusText.Foreground = FindResource("StatusRunningBrush") as System.Windows.Media.Brush;
+            SetFooterStatus("Technical access granted", "StatusRunningBrush");
+        }
+
+        private void SetFooterStatus(string source, string brushResource, params object[] arguments)
+        {
+            _footerStatusSource = source;
+            _footerStatusArguments = arguments;
+            FooterStatusText.Foreground = FindResource(brushResource) as System.Windows.Media.Brush;
+            RenderFooterStatus();
+        }
+
+        private void RenderFooterStatus()
+        {
+            if (string.IsNullOrEmpty(_footerStatusSource))
+            {
+                return;
+            }
+
+            FooterStatusText.Text = string.Format(
+                System.Globalization.CultureInfo.CurrentCulture,
+                T(_footerStatusSource), _footerStatusArguments ?? new object[0]);
+        }
+
+        private static string T(string source)
+        {
+            return LocalizationManager.Translate(source);
         }
     }
 }

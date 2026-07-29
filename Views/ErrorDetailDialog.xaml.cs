@@ -23,16 +23,34 @@ namespace CPBourg.NextGenGui.Views
         public void Open(ErrorRecord record)
         {
             _current = record;
+            Visibility = Visibility.Visible;
+            LocalizationManager.Apply(this);
+            RefreshRecord();
+        }
 
-            TitleText.Text = "Error: " + record.Details;
-            SourceText.Text = record.Source;
-            RelatedModuleText.Text = record.RelatedModule;
-            RelatedJobText.Text = record.RelatedJob;
-            DescriptionText.Text = record.Description;
-            SeverityBadgeText.Text = record.SeverityLabel;
+        public void ApplyLanguage()
+        {
+            LocalizationManager.Apply(this);
+            RefreshRecord();
+        }
+
+        private void RefreshRecord()
+        {
+            if (_current == null)
+            {
+                return;
+            }
+
+            TitleText.Text = string.Format(LocalizationManager.Translate("Error: {0}"),
+                LocalizationManager.Translate(_current.Details));
+            SourceText.Text = LocalizationManager.Translate(_current.Source);
+            RelatedModuleText.Text = LocalizationManager.Translate(_current.RelatedModule);
+            RelatedJobText.Text = LocalizationManager.Translate(_current.RelatedJob);
+            DescriptionText.Text = LocalizationManager.Translate(_current.Description);
+            SeverityBadgeText.Text = LocalizationManager.Translate(_current.SeverityLabel);
 
             Brush fg, bg;
-            switch (record.Severity)
+            switch (_current.Severity)
             {
                 case ErrorSeverity.Warning:
                     fg = (Brush)FindResource("WarningBrush");
@@ -58,7 +76,6 @@ namespace CPBourg.NextGenGui.Views
             SeverityBadge.Background = bg;
             SeverityBadgeText.Foreground = fg;
 
-            Visibility = Visibility.Visible;
         }
 
         private void OnClearClick(object sender, RoutedEventArgs e)

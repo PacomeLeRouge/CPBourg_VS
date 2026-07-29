@@ -107,11 +107,8 @@
                            FontSize="18" FontWeight="Medium" VerticalAlignment="Center"
                            Foreground="{StaticResource HeaderTextPrimaryBrush}" />
 
-                <!-- Language indicator - display only. The abbreviation shown here
-                     is kept in sync with the language chosen on the Settings screen
-                     (see MainWindow.xaml.cs, wired to SettingsView.LanguageChanged).
-                     Actually translating the rest of the UI is future work (FR-10) -
-                     this only updates the two-letter code shown here. -->
+                <!-- The language abbreviation and visible operator text are
+                     updated together after Settings / Apply. -->
                 <TextBlock x:Name="LanguageIndicatorText" Grid.Column="10" Text="EN" FontSize="14" FontWeight="Medium"
                            VerticalAlignment="Center"
                            Foreground="{StaticResource HeaderTextSecondaryBrush}" />

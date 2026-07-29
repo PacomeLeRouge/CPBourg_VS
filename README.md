@@ -1183,7 +1183,30 @@ Cancelling the final PIN leaves the configuration pending so the operator can
 continue editing or return to Review & Confirm later. The existing Technician
 Interface access prompt continues to use its original title and Unlock action.
 
-### v43 - Clearer BBM configuration guidance and diagrams
+### v43 - Functional language and operator settings
+
+Settings now saves operator preferences to
+`%LOCALAPPDATA%\CPBourg\NextGenGui\operator-preferences.xml` and reapplies them
+at startup. Apply commits the complete pending preference set only after the
+file is written successfully; Cancel restores the last applied values.
+
+Language switching now provides English, French, Dutch, German, Spanish, and
+Italian. Applying a language updates the header abbreviation, Settings screen,
+global navigation menu, page titles, common dashboard actions/status text, and
+reusable dialogs. The localization layer retains each control's English source
+text so the operator can switch repeatedly between languages without
+restarting.
+
+The remaining Settings rows are functional:
+
+- **Keyboard Layout** requests the corresponding installed Windows input
+  language for AZERTY, QWERTY, or QWERTZ.
+- **Mouse Cursor** shows or hides the application cursor.
+- **Screen Calibration** opens a four-point touch verification workflow and
+  records its average touch error.
+- **Units**, **Date and Time**, and **Font Size** keep their existing live
+  application behavior and are now persisted with the other preferences.
+### v44 - Clearer BBM configuration guidance and diagrams
 
 The BBM configuration landing step is now an **Overview** rather than an
 ambiguous Menu. It explains that the operator should review the paper path and
@@ -1211,9 +1234,78 @@ the preview reflects both the removed strip and selected clamp pressure.
 
 ### Languages (FR-10)
 
-The stage labels in `Startup/StartupStage.cs` are the strings that will move to
-a French/English resource file when language switching is implemented. They are
-inline for the prototype and marked with a comment.
+Runtime translations are managed by `Views/LocalizationManager.cs`. Internal
+navigation tags and machine/job data remain language-neutral; only displayed
+operator text is translated.
+
+### v45 - Complete STFO localization
+
+All five STFO configuration steps now follow the selected language. This
+includes the step tabs, live-preview headings and captions, parameter labels,
+choice buttons, saved-value summaries, Back/Next footer actions, validation
+messages, and decimal/integer keypad prompts. Runtime-generated copy such as
+the current job page count, save/reset feedback, and preview annotations is
+translated at the point it is produced.
+
+Changing language while the STFO wizard is open refreshes the current step
+immediately without changing any pending machine settings. Moving to another
+STFO step after the switch also retains the chosen language.
+
+The catalog is synchronized with the current BBM configuration design,
+including the Overview guidance, paper-path annotations, folding bypass/top
+tray diagram, finished/total/trim-strip measurements, graduated clamp pressure,
+and Reset Step action. Metric/imperial changes update these newer measurements
+alongside the existing STFO fields.
+
+### v46 - Jobs, Errors, and Technician settings integration
+
+The remaining operational screens now participate in the applied operator
+settings:
+
+- **Jobs / File Menu** and all of its dialogs translate their fixed labels,
+  generated status messages, barcode feedback, confirmation copy, validation
+  messages, custom-format classification, and exported job-log headings.
+  Metric/imperial dimensions continue to update in the list summary, new-job
+  editor, and exported log.
+- **Errors & Information** translates severity labels, sample machine
+  messages, list details, empty state, and the selected-error detail overlay.
+- **Technician Interface** translates every setting and machine action,
+  protected-access keypad copy, saved/reset feedback, and access state. Its
+  live speed readout follows the selected `mm/s` or `in/s` unit.
+
+Changing language while any of these screens is open refreshes both static and
+runtime-generated text immediately. The semantic values saved for jobs and
+technician settings remain language-neutral, so switching languages does not
+alter stored configuration data.
+
+### v47 - Machine Line Configuration localization
+
+Machine Line Configuration and its complete edit workflow now follow the
+applied language. This includes carousel and selected-module labels, module
+names, registration/configuration states, action buttons, empty states,
+position summaries, pending add/remove/replace feedback, the Add Module
+wizard, and final technician-PIN review copy.
+
+Module types and before/after placement remain language-neutral values in the
+line model. Localized display names are generated separately, so switching
+languages—even while returning to a previously configured line—does not alter
+module identity, order, duplicate prevention, or pending edits. The selected
+module speed continues to follow the metric/imperial setting.
+
+### v48 - Complete Home dashboard localization
+
+The Home dashboard now refreshes all fixed and runtime-generated text when the
+language setting is applied. Coverage includes counter controls and keypad
+prompts, current-job metadata and state, machine-tile statuses, alert summaries
+and severity labels, production controls, and every counter/run feedback
+message.
+
+Dashboard state is retained through a language change: online modules, alert
+counts, current job, production state, pending and confirmed counter values,
+and the most recent feedback message are re-rendered rather than reset. The
+shared localization traversal also now distinguishes WPF's implicit single
+`Run` for `Text="..."` from explicitly authored inline content, ensuring fixed
+labels are translated without disrupting bound or multi-part text.
 
 ---
 
@@ -1246,6 +1338,11 @@ inline for the prototype and marked with a comment.
 | `Views/NumericInputDialog.xaml(.cs)` | Reusable touchscreen keypad for non-negative whole-number entry |
 | `Views/DecimalInputDialog.xaml(.cs)` | Decimal touchscreen keypad with optional negative-value entry |
 | `Views/DateTimeSettingsDialog.xaml(.cs)` | Operator-interface date and 24-hour time editor |
+| `Views/ScreenCalibrationDialog.xaml(.cs)` | Four-point touch-screen calibration/verification workflow |
+| `Views/LocalizationManager.cs` | Runtime English/French/Dutch/German/Spanish/Italian translations |
+| `Views/LocalizationManager.Stfo.cs` | Complete six-language STFO wizard and keypad translation catalog |
+| `Views/LocalizationManager.Operations.cs` | Six-language Home, Jobs, Errors, Machine Line, and Technician translation catalog |
+| `Views/KeyboardLayoutManager.cs` | Maps AZERTY/QWERTY/QWERTZ preferences to Windows input languages |
 | `Views/FontSizeManager.cs` | Applies Small / Medium / Large text sizing without resizing touch targets |
 | `Views/GlobalMenuView.xaml(.cs)` | Slide-out global navigation overlay |
 | `Views/HelpView.xaml(.cs)` | Help screen with the clickable official manuals/support link |
@@ -1258,6 +1355,8 @@ inline for the prototype and marked with a comment.
 | `Models/MachineTileInfo.cs` | Data for one machine tile |
 | `Models/JobSummary.cs` | Data for the current-job card |
 | `Models/SettingsItemInfo.cs` | Data for one Settings row |
+| `Models/OperatorPreferences.cs` / `Models/OperatorPreferencesStore.cs` | Durable operator Settings values stored under LocalAppData |
+| `Models/ScreenCalibrationResult.cs` | Result returned by the touch calibration workflow |
 | `Models/ChangeOptionInfo.cs` | Data for one radio option in a Change-value dialog |
 | `Models/MeasurementUnit.cs` / `Models/MeasurementFormatter.cs` | Canonical mm/in preference, conversion, and formatting helpers |
 | `Models/JobRecord.cs` | Data for one saved job |
@@ -1269,6 +1368,8 @@ inline for the prototype and marked with a comment.
 | `Models/ErrorSeverity.cs` | Critical / Warning / Info / Resolved enum |
 | `Models/ErrorRecord.cs` | Data for one error/warning message |
 | `Models/MachineLineItemInfo.cs` | Data for one machine/module on the LINE CANVAS |
+| `Models/ModuleTypeOptionInfo.cs` / `Models/LinePositionOptionInfo.cs` | Semantic and localized choices used by Add Module |
+| `Models/AddModuleRequestInfo.cs` | Language-neutral module and anchor placement returned by the wizard |
 | `Models/TechnicianSettings.cs` | Saved Technician Interface option values and defaults |
 | `Models/TechnicianSettingsStore.cs` | User-local XML persistence for technician settings |
 | `Startup/StartupStage.cs` | The five boot phases + display text |

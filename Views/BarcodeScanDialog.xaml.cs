@@ -18,9 +18,10 @@ namespace CPBourg.NextGenGui.Views
 
         public void Open()
         {
+            Visibility = Visibility.Visible;
+            LocalizationManager.Apply(this);
             BarcodeTextBox.Text = string.Empty;
             ValidationText.Visibility = Visibility.Collapsed;
-            Visibility = Visibility.Visible;
             Dispatcher.BeginInvoke(new Action(() => BarcodeTextBox.Focus()), DispatcherPriority.Input);
         }
 
@@ -42,7 +43,7 @@ namespace CPBourg.NextGenGui.Views
             string barcode = BarcodeTextBox.Text.Trim();
             if (string.IsNullOrEmpty(barcode))
             {
-                ShowError("Scan or enter a barcode ID first.");
+                ShowError(LocalizationManager.Translate("Scan or enter a barcode ID first."));
                 return;
             }
 

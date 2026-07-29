@@ -68,9 +68,12 @@
                         </Style>
                     </DataGrid.Resources>
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Date &amp; Time" Binding="{Binding TimestampLabel}" Width="165" />
-                        <DataGridTextColumn Header="Action" Binding="{Binding Action}" Width="150" />
-                        <DataGridTextColumn Header="Details" Binding="{Binding Details}" Width="*" />
+                        <DataGridTextColumn x:Name="DateTimeColumn" Header="Date &amp; Time"
+                                            Binding="{Binding TimestampLabel}" Width="165" />
+                        <DataGridTextColumn x:Name="ActionColumn" Header="Action"
+                                            Binding="{Binding Action}" Width="150" />
+                        <DataGridTextColumn x:Name="DetailsColumn" Header="Details"
+                                            Binding="{Binding Details}" Width="*" />
                     </DataGrid.Columns>
                 </DataGrid>
 

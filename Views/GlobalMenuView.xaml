@@ -49,7 +49,7 @@
                 BorderBrush="{StaticResource CardBorderBrush}" BorderThickness="0,0,1,0">
 			<DockPanel Margin="24,22,24,22">
 				<Grid DockPanel.Dock="Top" Margin="0,0,0,18">
-					<TextBlock Text="Global Menu" FontSize="24" FontWeight="Medium"
+					<TextBlock x:Name="MenuTitleText" Text="Global Menu" FontSize="24" FontWeight="Medium"
                                Foreground="{StaticResource TextPrimaryBrush}" />
 					<Button HorizontalAlignment="Right" Width="48" Height="48" Click="OnCloseClick">
 						<TextBlock Text="&#xE711;" FontFamily="{StaticResource IconFontFamily}" FontSize="20" />
@@ -59,73 +59,73 @@
 				<StackPanel>
 					<!-- GENERAL -->
 					<StackPanel Margin="0,0,0,7">
-						<TextBlock Text="GENERAL" Style="{StaticResource GlobalMenuSectionHeaderTextStyle}" />
+						<TextBlock x:Name="GeneralHeaderText" Text="GENERAL" Style="{StaticResource GlobalMenuSectionHeaderTextStyle}" />
 						<Border Height="2" Background="{StaticResource JobsAccentBrush}" Margin="0,4,0,0" />
 					</StackPanel>
 					<Button Style="{StaticResource NavItemButtonStyle}" MinHeight="50" Click="OnNavItemClick" Tag="Home">
 						<StackPanel Orientation="Horizontal">
 							<TextBlock Text="&#xE80F;" Style="{StaticResource GlobalMenuIconTextStyle}" />
-							<TextBlock Text="Home" Style="{StaticResource GlobalMenuItemTextStyle}" />
+							<TextBlock x:Name="HomeNavText" Text="Home" Style="{StaticResource GlobalMenuItemTextStyle}" />
 						</StackPanel>
 					</Button>
 					<Button Style="{StaticResource NavItemButtonStyle}" MinHeight="50" Click="OnNavItemClick" Tag="Job / File Menu">
 						<StackPanel Orientation="Horizontal">
 							<TextBlock Text="&#xE8A5;" Style="{StaticResource GlobalMenuIconTextStyle}" />
-							<TextBlock Text="Job / File menu" Style="{StaticResource GlobalMenuItemTextStyle}" />
+							<TextBlock x:Name="JobsNavText" Text="Job / File menu" Style="{StaticResource GlobalMenuItemTextStyle}" />
 						</StackPanel>
 					</Button>
 					<Button Style="{StaticResource NavItemButtonStyle}" MinHeight="50" Click="OnNavItemClick" Tag="Error &amp; Information">
 						<StackPanel Orientation="Horizontal">
 							<TextBlock Text="&#xE7BA;" Style="{StaticResource GlobalMenuIconTextStyle}" />
-							<TextBlock Text="Error &amp; Information" Style="{StaticResource GlobalMenuItemTextStyle}" />
+							<TextBlock x:Name="ErrorsNavText" Text="Error &amp; Information" Style="{StaticResource GlobalMenuItemTextStyle}" />
 						</StackPanel>
 					</Button>
 					<Button Style="{StaticResource NavItemButtonStyle}" MinHeight="50" Click="OnNavItemClick" Tag="Settings / Preferences">
 						<StackPanel Orientation="Horizontal">
 							<TextBlock Text="&#xE713;" Style="{StaticResource GlobalMenuIconTextStyle}" />
-							<TextBlock Text="Settings / Preferences" Style="{StaticResource GlobalMenuItemTextStyle}" />
+							<TextBlock x:Name="SettingsNavText" Text="Settings / Preferences" Style="{StaticResource GlobalMenuItemTextStyle}" />
 						</StackPanel>
 					</Button>
 
 					<!-- CONFIGURATION -->
 					<StackPanel Margin="0,14,0,7">
-						<TextBlock Text="CONFIGURATION" Style="{StaticResource GlobalMenuSectionHeaderTextStyle}" />
+						<TextBlock x:Name="ConfigurationHeaderText" Text="CONFIGURATION" Style="{StaticResource GlobalMenuSectionHeaderTextStyle}" />
 						<Border Height="2" Background="{StaticResource JobsAccentBrush}" Margin="0,4,0,0" />
 					</StackPanel>
 					<Button Style="{StaticResource NavItemButtonStyle}" MinHeight="50" Click="OnNavItemClick" Tag="Machine Line Configuration">
 						<StackPanel Orientation="Horizontal">
 							<TextBlock Text="&#xE9A9;" Style="{StaticResource GlobalMenuIconTextStyle}" />
-							<TextBlock Text="Machine Line Configuration" Style="{StaticResource GlobalMenuItemTextStyle}" />
+							<TextBlock x:Name="MachineLineNavText" Text="Machine Line Configuration" Style="{StaticResource GlobalMenuItemTextStyle}" />
 						</StackPanel>
 					</Button>
 
 					<!-- ADVANCED -->
 					<StackPanel Margin="0,14,0,7">
-						<TextBlock Text="ADVANCED" Style="{StaticResource GlobalMenuSectionHeaderTextStyle}" />
+						<TextBlock x:Name="AdvancedHeaderText" Text="ADVANCED" Style="{StaticResource GlobalMenuSectionHeaderTextStyle}" />
 						<Border Height="2" Background="{StaticResource JobsAccentBrush}" Margin="0,4,0,0" />
 					</StackPanel>
 					<Button Style="{StaticResource NavItemButtonStyle}" MinHeight="50" Click="OnNavItemClick" Tag="Technician Interface">
 						<StackPanel Orientation="Horizontal">
 							<TextBlock Text="&#xE72E;" Style="{StaticResource GlobalMenuIconTextStyle}" />
-							<TextBlock Text="Technician Interface" Style="{StaticResource GlobalMenuItemTextStyle}" />
+							<TextBlock x:Name="TechnicianNavText" Text="Technician Interface" Style="{StaticResource GlobalMenuItemTextStyle}" />
 						</StackPanel>
 					</Button>
 
 					<!-- HELP -->
 					<StackPanel Margin="0,14,0,7">
-						<TextBlock Text="HELP" Style="{StaticResource GlobalMenuSectionHeaderTextStyle}" />
+						<TextBlock x:Name="HelpHeaderText" Text="HELP" Style="{StaticResource GlobalMenuSectionHeaderTextStyle}" />
 						<Border Height="2" Background="{StaticResource JobsAccentBrush}" Margin="0,4,0,0" />
 					</StackPanel>
 					<Button Style="{StaticResource NavItemButtonStyle}" MinHeight="50" Click="OnNavItemClick" Tag="Help / Manual">
 						<StackPanel Orientation="Horizontal">
 							<TextBlock Text="&#xE897;" Style="{StaticResource GlobalMenuIconTextStyle}" />
-							<TextBlock Text="Help / Manual" Style="{StaticResource GlobalMenuItemTextStyle}" />
+							<TextBlock x:Name="HelpNavText" Text="Help / Manual" Style="{StaticResource GlobalMenuItemTextStyle}" />
 						</StackPanel>
 					</Button>
 					<Button Style="{StaticResource NavItemButtonStyle}" MinHeight="50" Click="OnNavItemClick" Tag="About / Version">
 						<StackPanel Orientation="Horizontal">
 							<TextBlock Text="&#xE946;" Style="{StaticResource GlobalMenuIconTextStyle}" />
-							<TextBlock Text="About / Version" Style="{StaticResource GlobalMenuItemTextStyle}" />
+							<TextBlock x:Name="AboutNavText" Text="About / Version" Style="{StaticResource GlobalMenuItemTextStyle}" />
 						</StackPanel>
 					</Button>
 				</StackPanel>

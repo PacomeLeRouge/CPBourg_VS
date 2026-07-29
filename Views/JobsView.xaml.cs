@@ -23,6 +23,8 @@ namespace CPBourg.NextGenGui.Views
         private List<JobRecord> _allJobs = new List<JobRecord>();
         private JobRepository _repository;
         private MeasurementUnit _measurementUnit = MeasurementUnit.Millimeters;
+        private string _lastActionSource;
+        private object[] _lastActionArguments;
 
         public event EventHandler<JobRecord> JobLoaded;
 
@@ -49,6 +51,15 @@ namespace CPBourg.NextGenGui.Views
             SaveAsNewJobDialogControl.SetMeasurementUnit(unit);
             JobLogDialogControl.SetMeasurementUnit(unit);
             OnJobSelectionChanged(this, null);
+        }
+
+        public void ApplyLanguage()
+        {
+            LocalizationManager.Apply(this);
+            SaveAsNewJobDialogControl.ApplyLanguage();
+            JobLogDialogControl.ApplyLanguage();
+            OnJobSelectionChanged(this, null);
+            RenderLastAction();
         }
 
         private void OnRepositoryJobsChanged(object sender, EventArgs e)
@@ -89,7 +100,7 @@ namespace CPBourg.NextGenGui.Views
             SummaryCommentText.Text = "-";
             SummaryBarcodeText.Text = "-";
             SummaryLastModifiedText.Text = "-";
-            StatusMessageText.Text = "No job selected.";
+            StatusMessageText.Text = T("No job selected.");
         }
 
         private void OnJobSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -105,11 +116,12 @@ namespace CPBourg.NextGenGui.Views
             SummaryPagesText.Text = job.Pages.ToString();
             SummaryFormatText.Text = job.Format + " (" +
                 MeasurementFormatter.FormatDimensions(job.WidthMm, job.LengthMm, _measurementUnit) + ")";
-            SummaryCommentText.Text = job.Comment;
+            SummaryCommentText.Text = T(job.Comment);
             SummaryBarcodeText.Text = job.BarcodeId;
             SummaryLastModifiedText.Text = job.LastModified;
 
-            StatusMessageText.Text = "Selected job is ready to open.";
+            StatusMessageText.Text = T("Selected job is ready to open.");
+            LocalizationManager.Apply(JobsListBox);
         }
 
         private void OnSearchTextChanged(object sender, TextChangedEventArgs e)
@@ -136,8 +148,8 @@ namespace CPBourg.NextGenGui.Views
 
         private void ShowStub(string actionName)
         {
-            LastActionText.Text = "Last action: " + actionName +
-                " (stub - not yet connected to job storage)";
+            SetLastAction("Last action: {0} (stub - not yet connected to job storage)",
+                T(actionName));
         }
 
         private void OnFilterClick(object sender, RoutedEventArgs e) => ShowStub("Filter");
@@ -160,7 +172,7 @@ namespace CPBourg.NextGenGui.Views
             if (job == null)
             {
                 BarcodeScanDialogControl.ShowError(
-                    "No saved job uses barcode ID \u201c" + barcodeId + "\u201d. Check the book and scan again.");
+                    TF("No saved job uses barcode ID “{0}”. Check the book and scan again.", barcodeId));
                 return;
             }
 
@@ -169,13 +181,13 @@ namespace CPBourg.NextGenGui.Views
             JobsListBox.SelectedItem = job;
             JobsListBox.ScrollIntoView(job);
             job.AddLog("Barcode scanned", "Barcode " + barcodeId + " matched this saved job.");
-            StatusMessageText.Text = "Barcode matched \u201c" + job.Name + "\u201d. It is ready to open.";
-            LastActionText.Text = "Barcode " + barcodeId + " matched job \u201c" + job.Name + "\u201d.";
+            StatusMessageText.Text = TF("Barcode matched “{0}”. It is ready to open.", job.Name);
+            SetLastAction("Barcode {0} matched job “{1}”.", barcodeId, job.Name);
         }
 
         private void OnJobLogExported(object sender, string path)
         {
-            LastActionText.Text = "Job log exported to " + path;
+            SetLastAction("Job log exported to {0}", path);
         }
 
         // ===================== Open Job =====================
@@ -196,8 +208,10 @@ namespace CPBourg.NextGenGui.Views
             }
 
             _repository.Load(job);
-            string suffix = loadRunAdjustments ? " with saved RUN adjustments" : string.Empty;
-            LastActionText.Text = "Loaded job \"" + job.Name + "\"" + suffix + ".";
+            SetLastAction(loadRunAdjustments
+                    ? "Loaded job “{0}” with saved RUN adjustments."
+                    : "Loaded job “{0}”.",
+                job.Name);
             JobLoaded?.Invoke(this, job);
         }
 
@@ -219,8 +233,8 @@ namespace CPBourg.NextGenGui.Views
             job.AddLog("Comment updated", job.Comment);
             SummaryCommentText.Text = job.Comment;
 
-            ConfirmationDialogControl.Open("Comment Saved!",
-                "The comment for \u201c" + job.Name + "\u201d has been successfully saved.");
+            ConfirmationDialogControl.Open(T("Comment Saved!"),
+                TF("The comment for “{0}” has been successfully saved.", job.Name));
         }
 
         // ===================== Save As New Job =====================
@@ -228,7 +242,7 @@ namespace CPBourg.NextGenGui.Views
         private void OnSaveAsNewClick(object sender, RoutedEventArgs e)
         {
             var job = SelectedJob;
-            string suggestedName = job != null ? job.Name + " - Variant 1" : "New Job";
+            string suggestedName = job != null ? job.Name + " - " + T("Variant") + " 1" : T("New Job");
             var basis = _repository?.CurrentJob ?? job;
             var a4 = BookFormatCatalog.Find("A4");
             SaveAsNewJobDialogControl.Open(
@@ -266,9 +280,9 @@ namespace CPBourg.NextGenGui.Views
                 return;
             }
 
-            ConfirmationDialogControl.Open("New Job Saved!",
-                "The new job \u201c" + request.Name + "\u201d was saved as " +
-                request.Format + " with " + request.Pages + " pages.");
+            ConfirmationDialogControl.Open(T("New Job Saved!"),
+                TF("The new job “{0}” was saved as {1} with {2} pages.",
+                    request.Name, request.Format, request.Pages));
         }
 
         // ===================== Remove Job =====================
@@ -285,8 +299,33 @@ namespace CPBourg.NextGenGui.Views
             var job = _allJobs.FirstOrDefault(j => string.Equals(j.Name, jobName, StringComparison.OrdinalIgnoreCase));
             _repository?.Remove(job);
 
-            ConfirmationDialogControl.Open("Job Removed!",
-                "The job \u201c" + jobName + "\u201d has been successfully removed.");
+            ConfirmationDialogControl.Open(T("Job Removed!"),
+                TF("The job “{0}” has been successfully removed.", jobName));
+        }
+
+        private void SetLastAction(string source, params object[] arguments)
+        {
+            _lastActionSource = source;
+            _lastActionArguments = arguments;
+            RenderLastAction();
+        }
+
+        private void RenderLastAction()
+        {
+            LastActionText.Text = string.IsNullOrEmpty(_lastActionSource)
+                ? string.Empty
+                : TF(_lastActionSource, _lastActionArguments ?? new object[0]);
+        }
+
+        private static string T(string source)
+        {
+            return LocalizationManager.Translate(source);
+        }
+
+        private static string TF(string source, params object[] values)
+        {
+            return string.Format(System.Globalization.CultureInfo.CurrentCulture,
+                T(source), values);
         }
     }
 }
