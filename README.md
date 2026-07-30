@@ -1,11 +1,17 @@
 # CPBourg NextGen Operator Interface — Prototype
 
-High-fidelity splash screen for the modernized CPBourg operator interface, built
-in **C# / WPF** on **.NET Framework 4.7.2** (Windows 10 IoT Enterprise compatible).
+Interactive prototype of the modernized CPBourg operator interface, built in
+**C# / WPF** on **.NET Framework 4.7.2** (Windows 10 IoT Enterprise compatible).
+It includes the Home dashboard, jobs, STFO/BBM configuration, machine-line
+configuration, settings and localization, errors, and technician workflows.
 
-This is the first screen of the NextGen GUI prototype described in the PRD
-(`PRD_OpenHub_GUI_CPbourg_v1_1`). It renders the five-phase boot sequence and
-hands off to a placeholder operator dashboard.
+## Release candidate
+
+Version **1.30.0** is the client-evaluation release candidate prepared in July
+2026. Before delivery, follow [CLIENT_TEST_CHECKLIST.md](CLIENT_TEST_CHECKLIST.md).
+See [RELEASE_NOTES_1.30.0.md](RELEASE_NOTES_1.30.0.md) for package and
+installation guidance, and [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md) for the
+prototype boundary.
 
 ---
 

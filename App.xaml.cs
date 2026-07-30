@@ -7,8 +7,8 @@ namespace CPBourg.NextGenGui
 {
     public partial class App : Application
     {
-        private const string Version = "1.29.0";
-        private const string Build = "2026-06";
+        private const string Version = "1.30.0";
+        private const string Build = "2026-07";
 
         protected override void OnStartup(StartupEventArgs e)
         {

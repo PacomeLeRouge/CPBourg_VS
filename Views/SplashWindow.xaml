@@ -78,11 +78,11 @@
             </StackPanel>
 
             <!-- Footer -->
-            <TextBlock x:Name="VersionText" Text="Version: 1.29.0"
+            <TextBlock x:Name="VersionText" Text="Version: 1.30.0"
                        Foreground="{StaticResource TextMutedBrush}" FontSize="14"
                        HorizontalAlignment="Left" VerticalAlignment="Bottom"
                        Margin="28,0,0,20" />
-            <TextBlock x:Name="BuildText" Text="Build: 2026-06"
+            <TextBlock x:Name="BuildText" Text="Build: 2026-07"
                        Foreground="{StaticResource TextMutedBrush}" FontSize="14"
                        HorizontalAlignment="Right" VerticalAlignment="Bottom"
                        Margin="0,0,28,20" />
