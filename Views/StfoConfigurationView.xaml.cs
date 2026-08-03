@@ -154,6 +154,10 @@ namespace CPBourg.NextGenGui.Views
         /// step, or Confirm on the last.</summary>
         public event EventHandler CloseRequested;
 
+        /// <summary>
+        /// Initializes all five steps and captures the first saved snapshot for
+        /// each configurable step.
+        /// </summary>
         public StfoConfigurationView()
         {
             InitializeComponent();
@@ -235,6 +239,10 @@ namespace CPBourg.NextGenGui.Views
             RefreshCurrentJobLabel();
         }
 
+        /// <summary>
+        /// Reformats every measured control and preview while retaining
+        /// canonical millimeter state.
+        /// </summary>
         public void SetMeasurementUnit(MeasurementUnit unit)
         {
             _measurementUnit = unit;

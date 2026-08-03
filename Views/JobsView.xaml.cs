@@ -26,13 +26,19 @@ namespace CPBourg.NextGenGui.Views
         private string _lastActionSource;
         private object[] _lastActionArguments;
 
+        /// <summary>Raised after a repository job is loaded as current.</summary>
         public event EventHandler<JobRecord> JobLoaded;
 
+        /// <summary>Creates the view; a shared repository must be supplied separately.</summary>
         public JobsView()
         {
             InitializeComponent();
         }
 
+        /// <summary>
+        /// Attaches the shell-owned repository and refreshes the saved-job list.
+        /// Reinitialization safely unsubscribes from the previous repository.
+        /// </summary>
         public void InitializeRepository(JobRepository repository)
         {
             if (_repository != null)
@@ -45,6 +51,7 @@ namespace CPBourg.NextGenGui.Views
             ReloadRepositoryJobs(0);
         }
 
+        /// <summary>Applies the display unit to summaries, creation, and log export.</summary>
         public void SetMeasurementUnit(MeasurementUnit unit)
         {
             _measurementUnit = unit;
@@ -53,6 +60,7 @@ namespace CPBourg.NextGenGui.Views
             OnJobSelectionChanged(this, null);
         }
 
+        /// <summary>Rebuilds generated rows, dialogs, and feedback in the active language.</summary>
         public void ApplyLanguage()
         {
             LocalizationManager.Apply(this);

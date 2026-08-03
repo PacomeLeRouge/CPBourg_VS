@@ -57,6 +57,7 @@ namespace CPBourg.NextGenGui.Views
         /// <summary>Module types currently on the line, in order.</summary>
         public IEnumerable<string> LineModuleTypes => _machines.Select(m => m.ModuleType);
 
+        /// <summary>Creates the default one-module prototype line.</summary>
         public MachineLineConfigurationView()
         {
             InitializeComponent();
@@ -65,6 +66,7 @@ namespace CPBourg.NextGenGui.Views
             RefreshAll();
         }
 
+        /// <summary>Reformats simulated module speed without changing line state.</summary>
         public void SetMeasurementUnit(MeasurementUnit unit)
         {
             _measurementUnit = unit;
@@ -75,6 +77,7 @@ namespace CPBourg.NextGenGui.Views
             RefreshSelectedModule();
         }
 
+        /// <summary>Rebuilds generated tiles, summaries, dialogs, and feedback.</summary>
         public void ApplyLanguage()
         {
             LocalizationManager.Apply(this);

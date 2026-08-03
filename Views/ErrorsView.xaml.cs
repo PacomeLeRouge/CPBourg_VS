@@ -30,9 +30,16 @@ namespace CPBourg.NextGenGui.Views
         /// the request through its shared navigation method.</summary>
         public event EventHandler NavigateHomeRequested;
 
+        /// <summary>Number of active critical sample records.</summary>
         public int CriticalCount { get; private set; }
+
+        /// <summary>Number of active warning sample records.</summary>
         public int WarningCount { get; private set; }
+
+        /// <summary>Number of active informational sample records.</summary>
         public int InfoCount { get; private set; }
+
+        /// <summary>Total records used by the dashboard Start interlock.</summary>
         public int TotalCount { get; private set; }
 
         private List<ErrorRecord> _allMessages;
@@ -57,12 +64,14 @@ namespace CPBourg.NextGenGui.Views
             public string Details { get; }
         }
 
+        /// <summary>Creates and displays the seeded in-memory error list.</summary>
         public ErrorsView()
         {
             InitializeComponent();
             LoadSampleMessages();
         }
 
+        /// <summary>Rebuilds translated display records and the detail overlay.</summary>
         public void ApplyLanguage()
         {
             LocalizationManager.Apply(this);

@@ -79,6 +79,7 @@ namespace CPBourg.NextGenGui.Views
             Completed,
         }
 
+        /// <summary>Initializes sample modules, counter state, and the local production timer.</summary>
         public DashboardView()
         {
             InitializeComponent();
@@ -97,6 +98,10 @@ namespace CPBourg.NextGenGui.Views
             RefreshProductionButtons();
         }
 
+        /// <summary>
+        /// Rebuilds generated dashboard labels and status text after a language
+        /// change without altering production or counter state.
+        /// </summary>
         public void ApplyLanguage()
         {
             LocalizationManager.Apply(this);
@@ -264,7 +269,10 @@ namespace CPBourg.NextGenGui.Views
             JobQuantityText.Text = target;
         }
 
-        /// <summary>Displays the repository's latest loaded job.</summary>
+        /// <summary>
+        /// Updates the shared job shown on Home and resets local production and
+        /// counters for the newly selected job.
+        /// </summary>
         public void SetCurrentJob(JobRecord job)
         {
             bool changedJob = !ReferenceEquals(_currentJob, job);
@@ -291,6 +299,7 @@ namespace CPBourg.NextGenGui.Views
             RefreshProductionButtons();
         }
 
+        /// <summary>Reformats current-job measurements from canonical millimeters.</summary>
         public void SetMeasurementUnit(MeasurementUnit unit)
         {
             _measurementUnit = unit;
