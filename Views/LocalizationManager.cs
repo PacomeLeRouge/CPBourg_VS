@@ -289,6 +289,7 @@ namespace CPBourg.NextGenGui.Views
 
         public static string CurrentLanguage => _language;
 
+        /// <summary>Maps a saved language label to its supported ISO-style code.</summary>
         public static string GetCode(string language)
         {
             switch (language)
@@ -303,11 +304,15 @@ namespace CPBourg.NextGenGui.Views
             }
         }
 
+        /// <summary>Returns the two-letter uppercase header abbreviation.</summary>
         public static string GetAbbreviation(string language)
         {
             return GetCode(language).ToUpperInvariant();
         }
 
+        /// <summary>
+        /// Selects the active translation dictionary and updates CurrentUICulture.
+        /// </summary>
         public static void SetLanguage(string language)
         {
             _language = string.IsNullOrWhiteSpace(language) ? "English" : language;
@@ -325,6 +330,7 @@ namespace CPBourg.NextGenGui.Views
             CultureInfo.CurrentUICulture = culture;
         }
 
+        /// <summary>Translates an English source key or returns it unchanged.</summary>
         public static string Translate(string source)
         {
             if (string.IsNullOrEmpty(source))
@@ -341,12 +347,17 @@ namespace CPBourg.NextGenGui.Views
                 : source;
         }
 
+        /// <summary>Stores a stable source key and applies its current translation.</summary>
         public static void SetLocalizedText(TextBlock textBlock, string source)
         {
             textBlock.SetValue(SourceTextProperty, source);
             textBlock.Text = Translate(source);
         }
 
+        /// <summary>
+        /// Recursively reapplies translations to supported unbound WPF text,
+        /// string content, and tooltips below <paramref name="root"/>.
+        /// </summary>
         public static void Apply(DependencyObject root)
         {
             ApplyRecursive(root, new HashSet<DependencyObject>());

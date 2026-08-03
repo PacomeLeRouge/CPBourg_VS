@@ -26,6 +26,7 @@ namespace CPBourg.NextGenGui.Models
         public int BookletOffset { get; set; }
         public bool FullDetection { get; set; }
 
+        /// <summary>Creates an independent shallow copy of the scalar settings.</summary>
         public StfoJobSettings Clone()
         {
             return (StfoJobSettings)MemberwiseClone();

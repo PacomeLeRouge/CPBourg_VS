@@ -13,6 +13,21 @@ See [RELEASE_NOTES_1.30.0.md](RELEASE_NOTES_1.30.0.md) for package and
 installation guidance, and [KNOWN_LIMITATIONS.md](KNOWN_LIMITATIONS.md) for the
 prototype boundary.
 
+## Maintainer documentation
+
+The implementation guides are indexed in [docs/README.md](docs/README.md):
+
+- [Architecture and code map](docs/ARCHITECTURE.md)
+- [State machines and workflows](docs/STATE_AND_WORKFLOWS.md)
+- [Development, build, and release](docs/DEVELOPMENT.md)
+- [Localization and measurement units](docs/LOCALIZATION_AND_UNITS.md)
+- [Future WFM integration boundaries](docs/WFM_INTEGRATION.md)
+- [Testing strategy and regression coverage](docs/TESTING.md)
+
+The remainder of this README preserves the prototype's implementation history.
+Durable design rules belong in `docs/`; version-specific delivery information
+belongs in the release notes.
+
 ---
 
 ## Build & run

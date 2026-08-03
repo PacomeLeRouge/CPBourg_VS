@@ -25,6 +25,10 @@ namespace CPBourg.NextGenGui.Models
             _filePath = filePath;
         }
 
+        /// <summary>
+        /// Loads and validates the per-user XML file, returning approved
+        /// defaults when it is missing, malformed, inaccessible, or invalid.
+        /// </summary>
         public OperatorPreferences Load()
         {
             OperatorPreferences defaults = OperatorPreferences.CreateDefaults();
@@ -68,6 +72,10 @@ namespace CPBourg.NextGenGui.Models
             }
         }
 
+        /// <summary>
+        /// Writes the complete version-1 preference document. Returns false and
+        /// a user-facing error when the directory or file cannot be written.
+        /// </summary>
         public bool TrySave(OperatorPreferences preferences, out string errorMessage)
         {
             try

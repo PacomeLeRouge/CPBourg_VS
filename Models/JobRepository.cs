@@ -12,18 +12,29 @@ namespace CPBourg.NextGenGui.Models
     {
         private readonly List<JobRecord> _jobs;
 
+        /// <summary>Creates the seeded prototype list and selects its first job.</summary>
         public JobRepository()
         {
             _jobs = CreateSampleJobs();
             CurrentJob = _jobs.FirstOrDefault();
         }
 
+        /// <summary>Current in-memory jobs in newest-first display order.</summary>
         public IReadOnlyList<JobRecord> Jobs => _jobs;
+
+        /// <summary>The job shared by Home and STFO, or null when the list is empty.</summary>
         public JobRecord CurrentJob { get; private set; }
 
+        /// <summary>Raised after the collection is inserted into or removed from.</summary>
         public event EventHandler JobsChanged;
+
+        /// <summary>Raised after <see cref="CurrentJob"/> changes identity.</summary>
         public event EventHandler CurrentJobChanged;
 
+        /// <summary>
+        /// Makes an existing repository record current and appends a load log.
+        /// Unknown or null records are ignored.
+        /// </summary>
         public void Load(JobRecord job)
         {
             if (job == null || !_jobs.Contains(job))
@@ -36,6 +47,11 @@ namespace CPBourg.NextGenGui.Models
             CurrentJobChanged?.Invoke(this, EventArgs.Empty);
         }
 
+        /// <summary>
+        /// Creates a newest-first job with deterministic STFO settings. Returns
+        /// null when the request is null or a duplicate name is not authorized
+        /// for overwrite.
+        /// </summary>
         public JobRecord SaveNew(SaveJobRequest request, bool overwrite)
         {
             if (request == null)
@@ -78,6 +94,10 @@ namespace CPBourg.NextGenGui.Models
             return job;
         }
 
+        /// <summary>
+        /// Removes an existing record. Removing the current job selects the new
+        /// first item and raises both collection and current-job notifications.
+        /// </summary>
         public void Remove(JobRecord job)
         {
             if (job == null || !_jobs.Remove(job))

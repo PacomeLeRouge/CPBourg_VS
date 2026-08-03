@@ -25,6 +25,10 @@ namespace CPBourg.NextGenGui.Models
             _filePath = filePath;
         }
 
+        /// <summary>
+        /// Loads validated technician choices or returns defaults when durable
+        /// state cannot be read safely.
+        /// </summary>
         public TechnicianSettings Load()
         {
             var defaults = TechnicianSettings.CreateDefaults();
@@ -75,6 +79,9 @@ namespace CPBourg.NextGenGui.Models
             }
         }
 
+        /// <summary>
+        /// Writes the complete version-1 technician document under LocalAppData.
+        /// </summary>
         public bool TrySave(TechnicianSettings settings, out string errorMessage)
         {
             try

@@ -22,14 +22,19 @@ namespace CPBourg.NextGenGui.Models
             new BookFormatPreset("5 x 7 in", 127, 177.8),
         };
 
+        /// <summary>Supported standard formats in operator display order.</summary>
         public static IReadOnlyList<BookFormatPreset> Presets => PresetList;
 
+        /// <summary>Finds a preset by its language-neutral name.</summary>
         public static BookFormatPreset Find(string name)
         {
             return PresetList.FirstOrDefault(p =>
                 string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase));
         }
 
+        /// <summary>
+        /// Finds the preset whose canonical dimensions match within 0.05 mm.
+        /// </summary>
         public static BookFormatPreset Match(double widthMm, double lengthMm)
         {
             return PresetList.FirstOrDefault(p =>
@@ -37,6 +42,7 @@ namespace CPBourg.NextGenGui.Models
                 Math.Abs(p.LengthMm - lengthMm) <= MatchToleranceMm);
         }
 
+        /// <summary>Returns a matching preset name or <c>Custom</c>.</summary>
         public static string ResolveName(double widthMm, double lengthMm)
         {
             var preset = Match(widthMm, lengthMm);

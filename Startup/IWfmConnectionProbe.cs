@@ -18,6 +18,7 @@ namespace CPBourg.NextGenGui.Startup
     /// </summary>
     public interface IWfmConnectionProbe
     {
+        /// <summary>Attempts one cancellable startup connection handshake.</summary>
         Task<WfmConnectionResult> ConnectAsync(CancellationToken cancellationToken);
     }
 
@@ -30,12 +31,17 @@ namespace CPBourg.NextGenGui.Startup
             Message = message;
         }
 
+        /// <summary>Whether startup may proceed to the operator shell.</summary>
         public bool Success { get; }
+
+        /// <summary>Operator-facing connection result shown by the splash.</summary>
         public string Message { get; }
 
+        /// <summary>Creates a successful prototype result.</summary>
         public static WfmConnectionResult Ok() =>
             new WfmConnectionResult(true, "Connected to WFM");
 
+        /// <summary>Creates a failed result with its visible reason.</summary>
         public static WfmConnectionResult Failed(string message) =>
             new WfmConnectionResult(false, message);
     }

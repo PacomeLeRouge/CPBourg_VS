@@ -43,11 +43,22 @@ namespace CPBourg.NextGenGui.Views
         /// to this to keep the header's language indicator in sync.
         /// </summary>
         public event EventHandler<string> LanguageChanged;
+        /// <summary>Raised with the applied language name so all views can refresh.</summary>
         public event EventHandler<string> UiLanguageChanged;
+
+        /// <summary>Raised after a unit preference is durably applied.</summary>
         public event EventHandler<MeasurementUnit> UnitsChanged;
+
+        /// <summary>Raised with the applied interface-only clock offset.</summary>
         public event EventHandler<TimeSpan> DateTimeOffsetChanged;
+
+        /// <summary>Raised with Small, Medium, or Large after persistence succeeds.</summary>
         public event EventHandler<string> FontSizeChanged;
+
+        /// <summary>Raised with the requested Windows keyboard-layout family.</summary>
         public event EventHandler<string> KeyboardLayoutChanged;
+
+        /// <summary>Raised with the applied cursor visibility.</summary>
         public event EventHandler<bool> MouseCursorChanged;
 
         // Applied = currently in effect. Pending = selected but not yet

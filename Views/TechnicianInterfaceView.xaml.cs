@@ -21,8 +21,10 @@ namespace CPBourg.NextGenGui.Views
         private bool _technicalAccessGranted;
         private const double CurrentSpeedMillimetersPerSecond = 1291;
 
+        /// <summary>Raised after Back or a successful Confirm requests Home navigation.</summary>
         public event EventHandler CloseRequested;
 
+        /// <summary>Loads the last durable technician configuration.</summary>
         public TechnicianInterfaceView()
         {
             InitializeComponent();
@@ -34,6 +36,7 @@ namespace CPBourg.NextGenGui.Views
             AccessDialog.AccessGranted += OnTechnicalAccessGranted;
         }
 
+        /// <summary>Reformats the simulated current-speed readout.</summary>
         public void SetMeasurementUnit(MeasurementUnit unit)
         {
             CurrentSpeedValueText.Text = MeasurementFormatter.FormatValue(
@@ -41,6 +44,7 @@ namespace CPBourg.NextGenGui.Views
             CurrentSpeedUnitText.Text = MeasurementFormatter.SpeedUnitSymbol(unit);
         }
 
+        /// <summary>Refreshes labels, access state, feedback, and the code dialog.</summary>
         public void ApplyLanguage()
         {
             LocalizationManager.Apply(this);

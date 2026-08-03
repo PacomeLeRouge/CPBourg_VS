@@ -5,6 +5,11 @@ using CPBourg.NextGenGui.Models;
 
 namespace CPBourg.NextGenGui.Views
 {
+    /// <summary>
+    /// Application shell and post-startup composition root. Owns shared job
+    /// state, coordinates navigation between the embedded screens, and
+    /// distributes applied operator preferences and cross-screen events.
+    /// </summary>
     public partial class MainWindow : Window
     {
         private readonly DispatcherTimer _clockTimer;
@@ -12,6 +17,10 @@ namespace CPBourg.NextGenGui.Views
         private TimeSpan _operatorClockOffset = TimeSpan.Zero;
         private string _fontSizeSetting = "Medium";
 
+        /// <summary>
+        /// Creates the screen graph, wires all sibling-view event flows, loads
+        /// durable preferences, and starts the operator clock.
+        /// </summary>
         public MainWindow()
         {
             InitializeComponent();
